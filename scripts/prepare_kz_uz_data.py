@@ -6,19 +6,18 @@
 для последующего обучения Causal LLM (Gemma-2-9B).
 """
 
+import argparse
 import json
+import os
 import re
 import sys
 from datasets import load_dataset
 from tqdm import tqdm
 
-# ── Константы ────────────────────────────────────────────────
-TARGET_BYTES = 150 * 1024 * 1024  # 150 МБ на язык
+# ── Константы (defaults, overridable via CLI) ────────────────
+DEFAULT_TARGET_MB = 150
 MIN_LEN = 200   # минимальная длина текста (символы)
 MAX_LEN = 5000  # максимальная длина текста (символы)
-
-OUTPUT_KZ = "kazakh_raw.jsonl"
-OUTPUT_UZ = "uzbek_raw.jsonl"
 
 # ── HTML / спецсимволы ───────────────────────────────────────
 RE_HTML_TAG = re.compile(r"<[^>]+>")
@@ -128,7 +127,7 @@ def save_jsonl(records: list[dict], path: str):
 # ══════════════════════════════════════════════════════════════
 #  УЗБЕКСКИЙ ЯЗЫК
 # ══════════════════════════════════════════════════════════════
-def collect_uzbek() -> None:
+def collect_uzbek(output_path: str, target_bytes: int) -> None:
     print("\n" + "=" * 60)
     print("  УЗБЕКСКИЙ ЯЗЫК  —  murodbek/uz-books")
     print("=" * 60)
@@ -142,29 +141,31 @@ def collect_uzbek() -> None:
     records, total = collect_from_stream(
         stream=ds,
         text_field="text",
-        target_bytes=TARGET_BYTES,
+        target_bytes=target_bytes,
         desc="UZ  сбор",
     )
 
     mb = total / (1024 * 1024)
+    target_mb = target_bytes / (1024 * 1024)
     print(f"  Собрано записей: {len(records):,}  |  {mb:.1f} МБ")
 
-    if total < TARGET_BYTES:
-        print(f"  ⚠ Доступно только {mb:.1f} МБ из 150 МБ — "
+    if total < target_bytes:
+        print(f"  ⚠ Доступно только {mb:.1f} МБ из {target_mb:.0f} МБ — "
               "это весь датасет.")
 
-    save_jsonl(records, OUTPUT_UZ)
-    print(f"  Сохранено → {OUTPUT_UZ}")
+    save_jsonl(records, output_path)
+    print(f"  Сохранено → {output_path}")
 
 
 # ══════════════════════════════════════════════════════════════
 #  КАЗАХСКИЙ ЯЗЫК
 # ══════════════════════════════════════════════════════════════
-def collect_kazakh() -> None:
+def collect_kazakh(output_path: str, target_bytes: int) -> None:
     print("\n" + "=" * 60)
     print("  КАЗАХСКИЙ ЯЗЫК")
     print("=" * 60)
 
+    target_mb = target_bytes / (1024 * 1024)
     records: list[dict] = []
     total_bytes = 0
 
@@ -180,7 +181,7 @@ def collect_kazakh() -> None:
     wiki_records, wiki_bytes = collect_from_stream(
         stream=ds_wiki,
         text_field="text",
-        target_bytes=TARGET_BYTES,
+        target_bytes=target_bytes,
         desc="KZ wiki",
     )
     records.extend(wiki_records)
@@ -190,8 +191,8 @@ def collect_kazakh() -> None:
     print(f"  Wikipedia: {len(wiki_records):,} записей  |  {mb_wiki:.1f} МБ")
 
     # ── Источник 2: sozkz-corpus (дополнение) ────────────────
-    if total_bytes < TARGET_BYTES:
-        remaining = TARGET_BYTES - total_bytes
+    if total_bytes < target_bytes:
+        remaining = target_bytes - total_bytes
         remaining_mb = remaining / (1024 * 1024)
         print(f"\n  [2/2]  stukenov/sozkz-corpus-clean-kk-pretrain-v2  "
               f"(нужно ещё {remaining_mb:.1f} МБ)")
@@ -220,23 +221,48 @@ def collect_kazakh() -> None:
     mb_total = total_bytes / (1024 * 1024)
     print(f"\n  ИТОГО KZ: {len(records):,} записей  |  {mb_total:.1f} МБ")
 
-    if total_bytes < TARGET_BYTES:
-        print(f"  ⚠ Доступно только {mb_total:.1f} МБ из 150 МБ — "
+    if total_bytes < target_bytes:
+        print(f"  ⚠ Доступно только {mb_total:.1f} МБ из {target_mb:.0f} МБ — "
               "оба источника исчерпаны.")
 
-    save_jsonl(records, OUTPUT_KZ)
-    print(f"  Сохранено → {OUTPUT_KZ}")
+    save_jsonl(records, output_path)
+    print(f"  Сохранено → {output_path}")
+
+
+# ══════════════════════════════════════════════════════════════
+#  CLI
+# ══════════════════════════════════════════════════════════════
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Загрузка казахского и узбекского текстов из HuggingFace")
+    p.add_argument("--output_dir", type=str, default="./data/raw_sources",
+                    help="Директория для сохранения JSONL файлов")
+    p.add_argument("--kz_file", type=str, default="kazakh_raw.jsonl",
+                    help="Имя выходного файла для казахского")
+    p.add_argument("--uz_file", type=str, default="uzbek_raw.jsonl",
+                    help="Имя выходного файла для узбекского")
+    p.add_argument("--target_mb", type=int, default=DEFAULT_TARGET_MB,
+                    help="Целевой объём на язык в МБ (default: 150)")
+    return p.parse_args()
 
 
 # ══════════════════════════════════════════════════════════════
 #  MAIN
 # ══════════════════════════════════════════════════════════════
 def main():
-    print("Целевой объём: 150 МБ чистого текста на язык")
-    print(f"Фильтр длины:  {MIN_LEN}–{MAX_LEN} символов")
+    args = parse_args()
+    target_bytes = args.target_mb * 1024 * 1024
+    os.makedirs(args.output_dir, exist_ok=True)
 
-    collect_uzbek()
-    collect_kazakh()
+    kz_path = os.path.join(args.output_dir, args.kz_file)
+    uz_path = os.path.join(args.output_dir, args.uz_file)
+
+    print(f"Целевой объём: {args.target_mb} МБ чистого текста на язык")
+    print(f"Фильтр длины:  {MIN_LEN}–{MAX_LEN} символов")
+    print(f"Выход:          {args.output_dir}/")
+
+    collect_uzbek(uz_path, target_bytes)
+    collect_kazakh(kz_path, target_bytes)
 
     print("\n" + "=" * 60)
     print("  ГОТОВО")

@@ -20,7 +20,7 @@ train_svd.py — Fine-tuning Gemma-2-9B with LoRA + SVD Monitoring (v3)
 
 Запуск:
     python train_svd.py --data_dir ./data/pretrain \
-        --ky_file ky_final.jsonl --kz_file kz_final.jsonl --uz_file uz_final.jsonl
+        --ky_file kyrgyz_raw.jsonl --kz_file kazakh_raw.jsonl --uz_file uzbek_final_cyrillic.jsonl
 """
 
 import argparse
@@ -59,9 +59,9 @@ def parse_args():
     # Paths
     p.add_argument("--model_name", type=str, default="google/gemma-2-9b")
     p.add_argument("--data_dir", type=str, default="./data/pretrain")
-    p.add_argument("--ky_file", type=str, default="ky_final.jsonl")
-    p.add_argument("--kz_file", type=str, default="kz_final.jsonl")
-    p.add_argument("--uz_file", type=str, default="uz_final.jsonl")
+    p.add_argument("--ky_file", type=str, default="kyrgyz_raw.jsonl")
+    p.add_argument("--kz_file", type=str, default="kazakh_raw.jsonl")
+    p.add_argument("--uz_file", type=str, default="uzbek_final_cyrillic.jsonl")
     p.add_argument("--output_dir", type=str, default="./output")
     p.add_argument("--svd_log", type=str, default="svd_log.jsonl")
 
@@ -71,21 +71,37 @@ def parse_args():
     p.add_argument("--lora_dropout", type=float, default=0.05)
 
     # Training
-    p.add_argument("--max_seq_length", type=int, default=512)
+    p.add_argument("--max_seq_length", type=int, default=256)
     p.add_argument("--num_train_epochs", type=int, default=1)
-    p.add_argument("--per_device_train_batch_size", type=int, default=4)
-    p.add_argument("--per_device_eval_batch_size", type=int, default=4)
-    p.add_argument("--gradient_accumulation_steps", type=int, default=4)
+    p.add_argument("--per_device_train_batch_size", type=int, default=1)
+    p.add_argument("--per_device_eval_batch_size", type=int, default=1)
+    p.add_argument("--gradient_accumulation_steps", type=int, default=16)
     p.add_argument("--learning_rate", type=float, default=2e-4)
     p.add_argument("--warmup_ratio", type=float, default=0.05)
     p.add_argument("--logging_steps", type=int, default=10)
     p.add_argument("--eval_steps", type=int, default=200)
-    p.add_argument("--save_steps", type=int, default=500)
+    p.add_argument("--save_steps", type=int, default=200)
     p.add_argument("--svd_every_steps", type=int, default=100)
     p.add_argument("--val_split", type=float, default=0.10,
                     help="Fraction of data for validation (default 10%%)")
+    p.add_argument("--ppl_eval_every_steps", type=int, default=200,
+                    help="Per-language PPL eval frequency (default: 200)")
+    p.add_argument("--ppl_max_eval_samples", type=int, default=200,
+                    help="Max samples per language for PPL eval (default: 200)")
     p.add_argument("--bf16", action="store_true", default=True)
     p.add_argument("--seed", type=int, default=42)
+
+    # Resume from checkpoint
+    p.add_argument("--resume", action="store_true", default=False,
+                    help="Resume training from the last checkpoint in output_dir")
+
+    # Cross-lingual transfer (Step 4)
+    p.add_argument("--init_adapter", type=str, default=None,
+                    help="Path to a pre-trained LoRA adapter for cross-lingual "
+                         "transfer (e.g. output_kz/final_adapter for KZ→KY)")
+    p.add_argument("--transfer_warmup_steps", type=int, default=100,
+                    help="Warmup steps when loading a pre-trained adapter "
+                         "(default: 100)")
 
     return p.parse_args()
 
@@ -135,7 +151,8 @@ def load_and_tokenize(args, tokenizer):
     """
     Load three JSONL files, compute per-language token statistics
     (including English control baseline), tokenize, split into train/val.
-    Returns (train_dataset, val_dataset, per_lang_stats, total_tokens).
+    Returns (train_dataset, val_dataset, per_lang_val_datasets,
+             per_lang_stats, total_tokens).
     """
     lang_map = {
         "ky": (args.ky_file, "Kyrgyz"),
@@ -152,6 +169,9 @@ def load_and_tokenize(args, tokenizer):
             continue
         ds = load_dataset("json", data_files=fpath, split="train")
         file_mb = os.path.getsize(fpath) / (1024 * 1024)
+
+        # ── Add language label for per-language evaluation ──
+        ds = ds.add_column("lang", [lang] * len(ds))
 
         # ── Tokens-per-word statistic ──
         sample_texts = ds["text"][:2000]
@@ -200,7 +220,7 @@ def load_and_tokenize(args, tokenizer):
     tokenized = dataset.map(
         tokenize_fn,
         batched=True,
-        remove_columns=dataset.column_names,
+        remove_columns=[c for c in dataset.column_names if c != "lang"],
         num_proc=os.cpu_count(),
         desc="Tokenizing",
     )
@@ -248,7 +268,19 @@ def load_and_tokenize(args, tokenizer):
     print(f"[INFO] Train: {len(train_ds):,} | Val: {len(val_ds):,} "
           f"({args.val_split*100:.0f}% split)")
 
-    return train_ds, val_ds, per_lang_stats, total_tokens
+    # ── Per-language validation subsets (for PerLanguagePPLCallback) ──
+    per_lang_val_datasets = {}
+    for lang_code in ["ky", "kz", "uz"]:
+        lang_subset = val_ds.filter(lambda x: x["lang"] == lang_code)
+        if len(lang_subset) > 0:
+            per_lang_val_datasets[lang_code] = lang_subset.remove_columns(["lang"])
+            print(f"  [EVAL] {lang_code} val subset: {len(lang_subset):,} examples")
+
+    # Remove 'lang' column from main datasets (Trainer doesn't need it)
+    train_ds = train_ds.remove_columns(["lang"])
+    val_ds = val_ds.remove_columns(["lang"])
+
+    return train_ds, val_ds, per_lang_val_datasets, per_lang_stats, total_tokens
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -269,15 +301,19 @@ class SpectralMonitor(TrainerCallback):
 
     COLLAPSE_THRESHOLD = 0.7  # S₁/ΣSᵢ > 0.7 → collapse signal
 
-    def __init__(self, svd_log_path: str, svd_every_steps: int = 100):
+    def __init__(self, svd_log_path: str, svd_every_steps: int = 100,
+                 num_model_layers: int = 42, resume: bool = False):
         super().__init__()
         self.svd_log_path = svd_log_path
         self.svd_every_steps = svd_every_steps
+        self.num_model_layers = num_model_layers
+        self._layer_boundary = num_model_layers // 2  # lower vs upper split
         self._step_start = None
         self._collapse_detected = {}  # {layer_name: first_step}
         os.makedirs(os.path.dirname(svd_log_path) or ".", exist_ok=True)
-        with open(svd_log_path, "w") as f:
-            pass
+        if not resume:
+            with open(svd_log_path, "w") as f:
+                pass
 
     @staticmethod
     def _stable_rank(S: torch.Tensor) -> float:
@@ -305,6 +341,44 @@ class SpectralMonitor(TrainerCallback):
         p = S / S.sum()
         p = p[p > 0]
         return -(p * p.log()).sum().item()
+
+    def get_collapse_summary(self):
+        """Return a summary dict describing collapse dynamics across layers.
+
+        Returns:
+            dict with keys: total_collapsed, first_layer_name, first_layer_index,
+            first_layer_zone, first_step, last_step, by_zone (lower/upper counts),
+            layers (sorted list of {name, index, step, zone}).
+        """
+        if not self._collapse_detected:
+            return None
+
+        layers = []
+        for name, step in self._collapse_detected.items():
+            idx = _extract_layer_idx(name)
+            zone = "unknown"
+            if idx is not None:
+                zone = "lower" if idx < self._layer_boundary else "upper"
+            layers.append({"name": name, "index": idx, "step": step, "zone": zone})
+
+        # Sort by step (first collapse first), then by layer index
+        layers.sort(key=lambda x: (x["step"], x["index"] if x["index"] is not None else 999))
+
+        first = layers[0]
+        by_zone = {"lower": 0, "upper": 0, "unknown": 0}
+        for l in layers:
+            by_zone[l["zone"]] += 1
+
+        return {
+            "total_collapsed": len(layers),
+            "first_layer_name": first["name"],
+            "first_layer_index": first["index"],
+            "first_layer_zone": first["zone"],
+            "first_step": first["step"],
+            "last_step": layers[-1]["step"],
+            "by_zone": by_zone,
+            "layers": layers,
+        }
 
     def on_step_begin(self, args, state, control, **kwargs):
         self._step_start = time.time()
@@ -362,9 +436,13 @@ class SpectralMonitor(TrainerCallback):
             s_sum = S.sum().item()
             se = (S[0].item() / s_sum) if s_sum > 0 else 0.0
 
+            # Extract layer index from name (e.g., "...layers.12....")
+            layer_idx = _extract_layer_idx(name_b)
+
             record = {
                 "step": step,
                 "layer_name": name_b,
+                "layer_index": layer_idx,
                 "singular_values": S.cpu().tolist(),
                 "spectral_energy": round(se, 6),
                 "effective_rank": self._effective_rank(S, threshold=0.9),
@@ -407,7 +485,12 @@ class SpectralMonitor(TrainerCallback):
             print(f"  ⚠ COLLAPSE ALERT (SE > {self.COLLAPSE_THRESHOLD}) "
                   f"at step {step} in {len(collapse_alerts)} layer(s):")
             for name in collapse_alerts[:5]:
-                print(f"      → {name}")
+                idx = _extract_layer_idx(name)
+                idx_str = f"layer {idx}" if idx is not None else "layer ?"
+                zone = ""
+                if idx is not None:
+                    zone = " (lower)" if idx < self._layer_boundary else " (upper)"
+                print(f"      → [{idx_str}{zone}] {name}")
             if len(collapse_alerts) > 5:
                 print(f"      ... and {len(collapse_alerts) - 5} more")
 
@@ -421,12 +504,13 @@ class TrainingMetricsLogger(TrainerCallback):
     grad_norm, GPU memory, throughput → training_log.jsonl.
     """
 
-    def __init__(self, log_path: str):
+    def __init__(self, log_path: str, resume: bool = False):
         super().__init__()
         self.log_path = log_path
         os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
-        with open(log_path, "w") as f:
-            pass
+        if not resume:
+            with open(log_path, "w") as f:
+                pass
         self._step_start = None
 
     def on_step_begin(self, args, state, control, **kwargs):
@@ -469,6 +553,92 @@ class TrainingMetricsLogger(TrainerCallback):
 
 
 # ════════════════════════════════════════════════════════════════════
+# 4b.  Per-Language Perplexity Callback
+# ════════════════════════════════════════════════════════════════════
+class PerLanguagePPLCallback(TrainerCallback):
+    """
+    Every `eval_every_steps` steps, compute per-language perplexity
+    on small held-out sets. Logs to ppl_per_lang_log.jsonl.
+
+    Tracks which language's PPL degrades first as spectral collapse occurs.
+    """
+
+    def __init__(self, per_lang_val_datasets: dict, tokenizer,
+                 log_path: str, eval_every_steps: int = 200,
+                 max_eval_samples: int = 200, eval_batch_size: int = 4,
+                 seed: int = 42, resume: bool = False):
+        super().__init__()
+        self.per_lang_val_datasets = per_lang_val_datasets
+        self.tokenizer = tokenizer
+        self.log_path = log_path
+        self.eval_every_steps = eval_every_steps
+        self.max_eval_samples = max_eval_samples
+        self.eval_batch_size = eval_batch_size
+        self.seed = seed
+        os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
+        if not resume:
+            with open(log_path, "w") as f:
+                pass
+
+    def _compute_ppl(self, model, dataset) -> tuple:
+        """Compute average cross-entropy loss and perplexity on a dataset."""
+        model.eval()
+
+        if len(dataset) > self.max_eval_samples:
+            dataset = dataset.shuffle(seed=self.seed).select(range(self.max_eval_samples))
+
+        cols_to_keep = {"input_ids", "attention_mask", "labels"}
+        remove_cols = [c for c in dataset.column_names if c not in cols_to_keep]
+        if remove_cols:
+            dataset = dataset.remove_columns(remove_cols)
+
+        collator = DataCollatorForLanguageModeling(
+            tokenizer=self.tokenizer, mlm=False)
+        loader = torch.utils.data.DataLoader(
+            dataset, batch_size=self.eval_batch_size,
+            collate_fn=collator, shuffle=False)
+
+        total_loss = 0.0
+        total_tokens = 0
+
+        with torch.no_grad():
+            for batch in loader:
+                batch = {k: v.to(model.device) for k, v in batch.items()}
+                outputs = model(**batch)
+                labels = batch["labels"]
+                n_tokens = (labels != -100).sum().item()
+                total_loss += outputs.loss.item() * n_tokens
+                total_tokens += n_tokens
+
+        avg_loss = total_loss / total_tokens if total_tokens > 0 else float("inf")
+        ppl = math.exp(avg_loss) if avg_loss < 20 else float("inf")
+        return avg_loss, ppl
+
+    def on_step_end(self, args, state, control, model=None, **kwargs):
+        if state.global_step == 0:
+            return
+        if state.global_step % self.eval_every_steps != 0:
+            return
+
+        step = state.global_step
+        print(f"\n[PPL] Step {step}: computing per-language perplexity...")
+
+        record = {"step": step,
+                  "epoch": round(state.epoch, 4) if state.epoch else None}
+
+        for lang_code, lang_ds in self.per_lang_val_datasets.items():
+            loss, ppl = self._compute_ppl(model, lang_ds)
+            record[f"{lang_code}_loss"] = round(loss, 6)
+            record[f"{lang_code}_ppl"] = round(ppl, 4) if ppl != float("inf") else None
+            print(f"  [{lang_code}] loss={loss:.4f}  ppl={ppl:.2f}")
+
+        model.train()
+
+        with open(self.log_path, "a") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+
+# ════════════════════════════════════════════════════════════════════
 # 5.  Experiment Dashboard  (single 2×2 figure)
 # ════════════════════════════════════════════════════════════════════
 def _read_jsonl(path):
@@ -477,9 +647,13 @@ def _read_jsonl(path):
         return entries
     with open(path) as f:
         for line in f:
-            line = line.strip()
-            if line:
+            line = line.strip().strip('\x00')
+            if not line:
+                continue
+            try:
                 entries.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
     return entries
 
 
@@ -733,6 +907,85 @@ def plot_spectral_energy_detail(svd_log_path: str, output_dir: str,
 
 
 # ════════════════════════════════════════════════════════════════════
+# 6b. Per-Language PPL vs Spectral Collapse Plot
+# ════════════════════════════════════════════════════════════════════
+def plot_ppl_per_lang(ppl_log_path: str, svd_log_path: str, output_dir: str):
+    """
+    Plot per-language perplexity curves with spectral collapse markers.
+    Key visualization: shows which language degrades first at collapse onset.
+    """
+    ppl_entries = _read_jsonl(ppl_log_path)
+    svd_entries = _read_jsonl(svd_log_path)
+
+    if not ppl_entries:
+        print("[PLOT] ppl_per_lang_log.jsonl empty, skipping per-lang PPL plot.")
+        return
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+
+    lang_colors = {"ky": "#2196F3", "kz": "#FF9800", "uz": "#4CAF50"}
+    lang_names = {"ky": "Kyrgyz", "kz": "Kazakh", "uz": "Uzbek"}
+
+    # ── (a) Per-language PPL curves ──
+    ax = axes[0]
+    for lang in ["ky", "kz", "uz"]:
+        key = f"{lang}_ppl"
+        steps = [e["step"] for e in ppl_entries if e.get(key) is not None]
+        vals = [e[key] for e in ppl_entries if e.get(key) is not None]
+        if steps:
+            ax.plot(steps, vals, linewidth=2, marker="o", markersize=4,
+                    color=lang_colors[lang], label=lang_names[lang])
+
+    # Find first collapse step from SVD log
+    first_collapse_step = None
+    for e in svd_entries:
+        if e.get("collapse_detected_at_step") is not None:
+            step = e["collapse_detected_at_step"]
+            if first_collapse_step is None or step < first_collapse_step:
+                first_collapse_step = step
+
+    if first_collapse_step is not None:
+        ax.axvline(x=first_collapse_step, color="#e74c3c", linestyle="--",
+                   linewidth=1.5, alpha=0.7,
+                   label=f"First collapse (step {first_collapse_step})")
+
+    ax.set_title("Per-Language Perplexity", fontweight="bold", fontsize=13)
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Perplexity  exp(loss)")
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    # ── (b) Per-language loss curves ──
+    ax = axes[1]
+    for lang in ["ky", "kz", "uz"]:
+        key = f"{lang}_loss"
+        steps = [e["step"] for e in ppl_entries if e.get(key) is not None]
+        vals = [e[key] for e in ppl_entries if e.get(key) is not None]
+        if steps:
+            ax.plot(steps, vals, linewidth=2, marker="s", markersize=4,
+                    color=lang_colors[lang], label=lang_names[lang])
+
+    if first_collapse_step is not None:
+        ax.axvline(x=first_collapse_step, color="#e74c3c", linestyle="--",
+                   linewidth=1.5, alpha=0.7,
+                   label=f"First collapse (step {first_collapse_step})")
+
+    ax.set_title("Per-Language Validation Loss", fontweight="bold", fontsize=13)
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Cross-Entropy Loss")
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.3)
+
+    fig.suptitle("Per-Language Evaluation vs Spectral Collapse",
+                 fontsize=15, fontweight="bold")
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    path = os.path.join(output_dir, "ppl_per_lang.png")
+    fig.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    print(f"[PLOT] Saved per-language PPL plot → {path}")
+
+
+# ════════════════════════════════════════════════════════════════════
 # 7.  Config Dump  (reproducibility)
 # ════════════════════════════════════════════════════════════════════
 def save_config_dump(args, per_lang_stats, total_tokens, model, output_dir):
@@ -801,7 +1054,7 @@ def save_config_dump(args, per_lang_stats, total_tokens, model, output_dir):
             "gpu_name": torch.cuda.get_device_name(0),
             "gpu_count": torch.cuda.device_count(),
             "gpu_memory_gb": round(
-                torch.cuda.get_device_properties(0).total_mem / (1024**3), 1),
+                torch.cuda.get_device_properties(0).total_memory / (1024**3), 1),
             "cuda_version": torch.version.cuda or "N/A",
         }
 
@@ -854,19 +1107,28 @@ def setup_model_and_tokenizer(args):
 
     model = prepare_model_for_kbit_training(model)
 
-    lora_config = LoraConfig(
-        r=args.lora_r,
-        lora_alpha=args.lora_alpha,
-        lora_dropout=args.lora_dropout,
-        target_modules=[
-            "q_proj", "k_proj", "v_proj", "o_proj",
-            "gate_proj", "up_proj", "down_proj",
-        ],
-        bias="none",
-        task_type=TaskType.CAUSAL_LM,
-    )
+    if args.init_adapter:
+        # ── Cross-lingual transfer: load pre-trained LoRA adapter ──
+        from peft import PeftModel
+        print(f"[INFO] Loading pre-trained adapter: {args.init_adapter}")
+        model = PeftModel.from_pretrained(model, args.init_adapter,
+                                          is_trainable=True)
+        print(f"[INFO] Transfer mode: warmup={args.transfer_warmup_steps} steps")
+    else:
+        # ── Standard: create fresh LoRA adapter ──
+        lora_config = LoraConfig(
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            target_modules=[
+                "q_proj", "k_proj", "v_proj", "o_proj",
+                "gate_proj", "up_proj", "down_proj",
+            ],
+            bias="none",
+            task_type=TaskType.CAUSAL_LM,
+        )
+        model = get_peft_model(model, lora_config)
 
-    model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
     return model, tokenizer
@@ -875,10 +1137,28 @@ def setup_model_and_tokenizer(args):
 # ════════════════════════════════════════════════════════════════════
 # 9.  Main
 # ════════════════════════════════════════════════════════════════════
+def _find_last_checkpoint(output_dir):
+    """Find the last checkpoint-XXXX directory in output_dir."""
+    import glob
+    checkpoints = sorted(glob.glob(os.path.join(output_dir, "checkpoint-*")),
+                         key=lambda p: int(p.split("-")[-1]))
+    return checkpoints[-1] if checkpoints else None
+
+
 def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     start_time = time.time()
+
+    # ── Resume detection ──
+    resume_checkpoint = None
+    if args.resume:
+        resume_checkpoint = _find_last_checkpoint(args.output_dir)
+        if resume_checkpoint:
+            print(f"[RESUME] Found checkpoint: {resume_checkpoint}")
+        else:
+            print("[RESUME] No checkpoint found, starting from scratch.")
+            args.resume = False
 
     print("=" * 70)
     print("  Gemma-2-9B  LoRA Fine-tuning + SVD Monitoring  (v3)")
@@ -888,23 +1168,62 @@ def main():
     model, tokenizer = setup_model_and_tokenizer(args)
 
     # ── Data (with per-language token stats) ──
-    train_ds, val_ds, per_lang_stats, total_tokens = load_and_tokenize(args, tokenizer)
+    train_ds, val_ds, per_lang_val_datasets, per_lang_stats, total_tokens = \
+        load_and_tokenize(args, tokenizer)
 
     # ── Config dump (before training for reproducibility) ──
     save_config_dump(args, per_lang_stats, total_tokens, model, args.output_dir)
 
-    # ── Data collator ──
-    data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+    # ── Data collator (dynamic padding + labels=-100 on pad positions) ──
+    def clm_collator(features):
+        """Pad to longest in batch; set labels=-100 on padding positions."""
+        max_len = max(len(f["input_ids"]) for f in features)
+        pad_id = tokenizer.pad_token_id
+        batch = {"input_ids": [], "attention_mask": [], "labels": []}
+        for f in features:
+            ids = f["input_ids"]
+            pad_len = max_len - len(ids)
+            batch["input_ids"].append(ids + [pad_id] * pad_len)
+            batch["attention_mask"].append([1] * len(ids) + [0] * pad_len)
+            batch["labels"].append(ids + [-100] * pad_len)
+        batch = {k: torch.tensor(v) for k, v in batch.items()}
+        return batch
+    data_collator = clm_collator
 
     # ── Callbacks ──
     svd_log_path = os.path.join(args.output_dir, args.svd_log)
     training_log_path = os.path.join(args.output_dir, "training_log.jsonl")
+    ppl_log_path = os.path.join(args.output_dir, "ppl_per_lang_log.jsonl")
 
+    # Detect number of transformer layers for lower/upper zone classification
+    num_layers = model.config.num_hidden_layers  # Gemma-2-9B: 42
     svd_cb = SpectralMonitor(svd_log_path=svd_log_path,
-                                svd_every_steps=args.svd_every_steps)
-    metrics_cb = TrainingMetricsLogger(log_path=training_log_path)
+                                svd_every_steps=args.svd_every_steps,
+                                num_model_layers=num_layers,
+                                resume=args.resume)
+    metrics_cb = TrainingMetricsLogger(log_path=training_log_path,
+                                       resume=args.resume)
+    ppl_cb = PerLanguagePPLCallback(
+        per_lang_val_datasets=per_lang_val_datasets,
+        tokenizer=tokenizer,
+        log_path=ppl_log_path,
+        eval_every_steps=args.ppl_eval_every_steps,
+        max_eval_samples=args.ppl_max_eval_samples,
+        eval_batch_size=args.per_device_eval_batch_size,
+        seed=args.seed,
+        resume=args.resume,
+    )
 
     # ── Training arguments (with eval) ──
+    # In transfer mode, use warmup_steps instead of warmup_ratio
+    warmup_kwargs = {}
+    if args.init_adapter:
+        warmup_kwargs["warmup_steps"] = args.transfer_warmup_steps
+        print(f"[INFO] Transfer warmup: {args.transfer_warmup_steps} steps "
+              f"(overrides warmup_ratio)")
+    else:
+        warmup_kwargs["warmup_ratio"] = args.warmup_ratio
+
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         num_train_epochs=args.num_train_epochs,
@@ -912,7 +1231,7 @@ def main():
         per_device_eval_batch_size=args.per_device_eval_batch_size,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         learning_rate=args.learning_rate,
-        warmup_ratio=args.warmup_ratio,
+        **warmup_kwargs,
         logging_steps=args.logging_steps,
         eval_strategy="steps",
         eval_steps=args.eval_steps,
@@ -929,7 +1248,6 @@ def main():
         lr_scheduler_type="cosine",
         seed=args.seed,
         report_to="none",
-        remove_unused_columns=False,
         dataloader_num_workers=4,
         dataloader_pin_memory=True,
     )
@@ -941,7 +1259,7 @@ def main():
         train_dataset=train_ds,
         eval_dataset=val_ds,
         data_collator=data_collator,
-        callbacks=[svd_cb, metrics_cb],
+        callbacks=[svd_cb, metrics_cb, ppl_cb],
     )
 
     # ── Train ──
@@ -949,7 +1267,7 @@ def main():
     print("  START TRAINING")
     print("=" * 70 + "\n")
 
-    train_result = trainer.train()
+    train_result = trainer.train(resume_from_checkpoint=resume_checkpoint)
     total_time = time.time() - start_time
 
     # ── Final evaluation ──
@@ -957,8 +1275,10 @@ def main():
     eval_results = trainer.evaluate()
     eval_loss = eval_results.get("eval_loss")
     eval_ppl = math.exp(eval_loss) if eval_loss and eval_loss < 20 else None
-    print(f"[INFO] Final eval_loss = {eval_loss:.4f}  |  eval_ppl = {eval_ppl:.2f}"
-          if eval_ppl else f"[INFO] Final eval_loss = {eval_loss}")
+    if eval_ppl is not None:
+        print(f"[INFO] Final eval_loss = {eval_loss:.4f}  |  eval_ppl = {eval_ppl:.2f}")
+    else:
+        print(f"[INFO] Final eval_loss = {eval_loss if eval_loss is not None else 'N/A'}")
 
     # ── Save adapter ──
     final_path = os.path.join(args.output_dir, "final_adapter")
@@ -973,6 +1293,15 @@ def main():
     metrics["total_tokens"] = total_tokens
     metrics["final_eval_loss"] = eval_loss
     metrics["final_eval_ppl"] = eval_ppl
+
+    # Include collapse summary in saved metrics
+    collapse_summary = svd_cb.get_collapse_summary()
+    if collapse_summary:
+        metrics["collapse_first_layer_index"] = collapse_summary["first_layer_index"]
+        metrics["collapse_first_layer_zone"] = collapse_summary["first_layer_zone"]
+        metrics["collapse_first_step"] = collapse_summary["first_step"]
+        metrics["collapse_total_layers"] = collapse_summary["total_collapsed"]
+
     trainer.log_metrics("train", metrics)
     trainer.save_metrics("train", metrics)
     trainer.save_state()
@@ -981,6 +1310,7 @@ def main():
     print("\n[INFO] Generating plots...")
     plot_experiment_dashboard(training_log_path, svd_log_path, args.output_dir)
     plot_spectral_energy_detail(svd_log_path, args.output_dir, target_layers=(5, 12, 20))
+    plot_ppl_per_lang(ppl_log_path, svd_log_path, args.output_dir)
 
     # ── Final summary ──
     print("\n" + "=" * 70)
@@ -990,9 +1320,33 @@ def main():
     print(f"  Final train loss: {metrics.get('train_loss', 'N/A')}")
     if metrics.get("train_loss") and metrics["train_loss"] < 20:
         print(f"  Final train PPL:  {math.exp(metrics['train_loss']):.2f}")
-    print(f"  Final eval loss:  {eval_loss}")
-    print(f"  Final eval PPL:   {eval_ppl}")
+    print(f"  Final eval loss:  {eval_loss if eval_loss is not None else 'N/A'}")
+    print(f"  Final eval PPL:   {f'{eval_ppl:.2f}' if eval_ppl is not None else 'N/A'}")
     print(f"  Total tokens:     {total_tokens:,}")
+
+    # ── Collapse summary ──
+    collapse_summary = svd_cb.get_collapse_summary()
+    if collapse_summary:
+        print("─" * 70)
+        print("  SPECTRAL COLLAPSE SUMMARY:")
+        first = collapse_summary
+        print(f"    First collapse:  layer {first['first_layer_index']} "
+              f"({first['first_layer_zone']}) at step {first['first_step']}")
+        print(f"    First layer:     {first['first_layer_name']}")
+        print(f"    Total collapsed: {first['total_collapsed']} layer(s) "
+              f"(lower: {first['by_zone']['lower']}, upper: {first['by_zone']['upper']})")
+        if first["total_collapsed"] > 1:
+            print(f"    Last collapse:   step {first['last_step']}")
+            print(f"    Collapse order (first 10):")
+            for entry in first["layers"][:10]:
+                idx_str = f"layer {entry['index']:2d}" if entry["index"] is not None else "layer  ?"
+                print(f"      step {entry['step']:5d}  {idx_str} ({entry['zone']:5s})  {entry['name']}")
+            if first["total_collapsed"] > 10:
+                print(f"      ... and {first['total_collapsed'] - 10} more")
+    else:
+        print("─" * 70)
+        print("  SPECTRAL COLLAPSE: None detected (all SE < 0.7)")
+
     print("─" * 70)
     print("  OUTPUT FILES:")
     print(f"    {args.output_dir}/")
@@ -1000,9 +1354,11 @@ def main():
     print(f"    ├── config_dump.json")
     print(f"    ├── training_log.jsonl")
     print(f"    ├── svd_log.jsonl")
+    print(f"    ├── ppl_per_lang_log.jsonl")
     print(f"    ├── train_results.json")
     print(f"    ├── experiment_dashboard.png")
-    print(f"    └── spectral_energy.png")
+    print(f"    ├── spectral_energy.png")
+    print(f"    └── ppl_per_lang.png")
     print("=" * 70)
 
 

@@ -1,8 +1,20 @@
-# ── Data (too large for GitHub, 150MB+ per file) ──
+# ── Data (too large for GitHub) ──
 data/
 
-# ── Training outputs (checkpoints, adapters, logs) ──
+# ── Training checkpoints (600MB-2.5GB each) ──
+output_*/checkpoint-*/
+output_*/final_adapter/
 output/
+
+# ── Large log files (SVD logs → HuggingFace) ──
+output_*/svd_log.jsonl
+
+# ── Large binary files ──
+*.safetensors
+*.bin
+*.pt
+*.ckpt
+*.h5
 
 # ── Python ──
 __pycache__/
@@ -28,3 +40,24 @@ Thumbs.db
 *.env
 venv/
 .venv/
+
+# ── Claude Code ──
+.claude/
+
+# ── LaTeX build artifacts ──
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# ── Failed experiment (OOM, no useful data) ──
+output_ky_collapse_r128_lr5e4_5ep/
+
+# ── Old drafts ──
+paper/mainoneColumn.pdf
+paper_outline.txt
+Spectral_LoRA_Protocol.docx

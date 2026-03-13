@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-03-10T11:34:43.927713",
+  "adapter_path": "./output_uz_baseline_r16_lr2e4_3ep/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 4.761225,
+      "ppl": 116.889,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 4.165671,
+      "ppl": 64.4359,
+      "n_samples": 500,
+      "n_tokens": 113336
+    },
+    "uz": {
+      "loss": 1.393102,
+      "ppl": 4.0273,
+      "n_samples": 500,
+      "n_tokens": 127308
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.0886,
+      "recall": 0.3153,
+      "f1": 0.1383,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.0549,
+          "recall": 0.3611,
+          "f1": 0.0952
+        },
+        "ORG": {
+          "precision": 0.1463,
+          "recall": 0.1538,
+          "f1": 0.15
+        },
+        "LOC": {
+          "precision": 0.1368,
+          "recall": 0.4444,
+          "f1": 0.2092
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.1079,
+      "recall": 0.3661,
+      "f1": 0.1667,
+      "n_evaluated": 100,
+      "parse_failures": 1,
+      "per_type": {
+        "PER": {
+          "precision": 0.1639,
+          "recall": 0.7692,
+          "f1": 0.2703
+        },
+        "ORG": {
+          "precision": 0.0619,
+          "recall": 0.25,
+          "f1": 0.0993
+        },
+        "LOC": {
+          "precision": 0.0476,
+          "recall": 0.0889,
+          "f1": 0.062
+        }
+      }
+    },
+    "uz": {
+      "precision": 0.1964,
+      "recall": 0.534,
+      "f1": 0.2872,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.1988,
+          "recall": 0.9714,
+          "f1": 0.3301
+        },
+        "ORG": {
+          "precision": 0.3902,
+          "recall": 0.5517,
+          "f1": 0.4571
+        },
+        "LOC": {
+          "precision": 0.0735,
+          "recall": 0.1282,
+          "f1": 0.0935
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.3312,
+      "correct": 263,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.354,
+      "correct": 246,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.3189,
+      "correct": 236,
+      "n_questions": 740
+    }
+  }
+}

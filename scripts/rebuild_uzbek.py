@@ -7,6 +7,7 @@
 4. Сохраняет uzbek_final_cyrillic.jsonl
 """
 
+import argparse
 import json
 import re
 import os
@@ -15,10 +16,6 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 # ── Константы ────────────────────────────────────────────────
-BASE = "/Users/zarinamacbook/Desktop/LORA Research"
-INPUT = os.path.join(BASE, "uzbek_raw.jsonl")
-OUTPUT = os.path.join(BASE, "uzbek_final_cyrillic.jsonl")
-
 TARGET_BYTES = 150 * 1024 * 1024  # 150 МБ
 MIN_LEN = 200
 MAX_LEN = 5000
@@ -82,189 +79,213 @@ def chunk_text(text: str) -> list[str]:
     return chunks
 
 
-# ══════════════════════════════════════════════════════════════
-#  Шаг 1: Фильтрация существующего uzbek_raw.jsonl
-# ══════════════════════════════════════════════════════════════
-print("=" * 60)
-print("  ШАГ 1: Фильтрация uzbek_raw.jsonl (кириллица > 90%)")
-print("=" * 60)
-
-records = []
-total_bytes = 0
-kept = 0
-dropped = 0
-
-with open(INPUT, "r", encoding="utf-8") as f:
-    lines = f.readlines()
-
-pbar = tqdm(lines, desc="Фильтрация", unit="rec")
-for line in pbar:
-    entry = json.loads(line)
-    text = entry["text"]
-    ratio = cyrillic_ratio(text)
-
-    if ratio >= CYR_THRESHOLD:
-        entry_bytes = len(text.encode("utf-8"))
-        records.append(entry)
-        total_bytes += entry_bytes
-        kept += 1
-    else:
-        dropped += 1
-
-    pbar.set_postfix(kept=kept, dropped=dropped, mb=f"{total_bytes/(1024*1024):.1f}")
-pbar.close()
-
-mb = total_bytes / (1024 * 1024)
-print(f"\n  Оставлено:  {kept:,}  |  Отброшено: {dropped:,}")
-print(f"  Размер:     {mb:.1f} МБ из 150 МБ")
-remaining = TARGET_BYTES - total_bytes
+# ── CLI Arguments ────────────────────────────────────────────
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Пересборка узбекского датасета: только кириллица (>90%)")
+    p.add_argument("--input", type=str, default="./data/raw_sources/uzbek_raw.jsonl",
+                    help="Путь к исходному uzbek_raw.jsonl")
+    p.add_argument("--output", type=str, default="./data/pretrain/uzbek_final_cyrillic.jsonl",
+                    help="Путь для сохранения результата")
+    return p.parse_args()
 
 
-# ══════════════════════════════════════════════════════════════
-#  Шаг 2: Добор из wikimedia/wikipedia (20231101.uz)
-# ══════════════════════════════════════════════════════════════
-if remaining > 0:
-    remaining_mb = remaining / (1024 * 1024)
-    print(f"\n{'='*60}")
-    print(f"  ШАГ 2: Добор из wikimedia/wikipedia (20231101.uz)")
-    print(f"  Нужно ещё: {remaining_mb:.1f} МБ")
+def main():
+    args = parse_args()
+    input_path = args.input
+    output_path = args.output
+
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+
+    # ══════════════════════════════════════════════════════════════
+    #  Шаг 1: Фильтрация существующего uzbek_raw.jsonl
+    # ══════════════════════════════════════════════════════════════
+    print("=" * 60)
+    print("  ШАГ 1: Фильтрация uzbek_raw.jsonl (кириллица > 90%)")
     print("=" * 60)
 
-    ds_wiki = load_dataset(
-        "wikimedia/wikipedia",
-        name="20231101.uz",
-        split="train",
-        streaming=True,
-    )
+    records = []
+    total_bytes = 0
+    kept = 0
+    dropped = 0
 
-    added_wiki = 0
-    pbar = tqdm(desc="UZ wiki", unit="MB", total=remaining_mb,
-                bar_format="{l_bar}{bar}| {n:.1f}/{total:.1f} MB [{elapsed}<{remaining}]")
+    # Count lines first (memory-efficient) for progress bar
+    with open(input_path, "r", encoding="utf-8") as f:
+        n_lines = sum(1 for _ in f)
 
-    for example in ds_wiki:
-        raw = example.get("text", "")
-        if not raw or not isinstance(raw, str):
-            continue
+    with open(input_path, "r", encoding="utf-8") as f:
+        pbar = tqdm(f, desc="Фильтрация", unit="rec", total=n_lines)
+        for line in pbar:
+            entry = json.loads(line)
+            text = entry["text"]
+            ratio = cyrillic_ratio(text)
 
-        text = clean_text(raw)
-        for chunk in chunk_text(text):
-            if cyrillic_ratio(chunk) < CYR_THRESHOLD:
-                continue
+            if ratio >= CYR_THRESHOLD:
+                entry_bytes = len(text.encode("utf-8"))
+                records.append(entry)
+                total_bytes += entry_bytes
+                kept += 1
+            else:
+                dropped += 1
 
-            entry_bytes = len(chunk.encode("utf-8"))
-            records.append({"text": chunk})
-            total_bytes += entry_bytes
-            remaining -= entry_bytes
-            added_wiki += 1
-            pbar.n = (TARGET_BYTES - remaining) / (1024 * 1024) - mb
-            pbar.refresh()
+            pbar.set_postfix(kept=kept, dropped=dropped, mb=f"{total_bytes/(1024*1024):.1f}")
+        pbar.close()
 
-            if remaining <= 0:
-                break
-        if remaining <= 0:
-            break
-
-    pbar.close()
-    print(f"  Добавлено из Wikipedia: {added_wiki:,} записей")
-    print(f"  Текущий размер: {total_bytes/(1024*1024):.1f} МБ")
+    mb = total_bytes / (1024 * 1024)
+    print(f"\n  Оставлено:  {kept:,}  |  Отброшено: {dropped:,}")
+    print(f"  Размер:     {mb:.1f} МБ из 150 МБ")
     remaining = TARGET_BYTES - total_bytes
 
 
-# ══════════════════════════════════════════════════════════════
-#  Шаг 3: Добор из HuggingFaceFW/fineweb-2 (uzn_Cyrl)
-# ══════════════════════════════════════════════════════════════
-if remaining > 0:
-    remaining_mb = remaining / (1024 * 1024)
-    print(f"\n{'='*60}")
-    print(f"  ШАГ 3: Добор из HuggingFaceFW/fineweb-2 (uzn_Cyrl)")
-    print(f"  Нужно ещё: {remaining_mb:.1f} МБ")
-    print("=" * 60)
+    # ══════════════════════════════════════════════════════════════
+    #  Шаг 2: Добор из wikimedia/wikipedia (20231101.uz)
+    # ══════════════════════════════════════════════════════════════
+    if remaining > 0:
+        remaining_mb = remaining / (1024 * 1024)
+        print(f"\n{'='*60}")
+        print(f"  ШАГ 2: Добор из wikimedia/wikipedia (20231101.uz)")
+        print(f"  Нужно ещё: {remaining_mb:.1f} МБ")
+        print("=" * 60)
 
-    ds_fw = load_dataset(
-        "HuggingFaceFW/fineweb-2",
-        "uzn_Cyrl",
-        split="train",
-        streaming=True,
-    )
+        ds_wiki = load_dataset(
+            "wikimedia/wikipedia",
+            name="20231101.uz",
+            split="train",
+            streaming=True,
+        )
 
-    start_remaining = remaining
-    added_fw = 0
-    pbar = tqdm(desc="fineweb-2", unit="MB", total=remaining_mb,
-                bar_format="{l_bar}{bar}| {n:.1f}/{total:.1f} MB [{elapsed}<{remaining}]")
+        added_wiki = 0
+        pbar = tqdm(desc="UZ wiki", unit="MB", total=remaining_mb,
+                    bar_format="{l_bar}{bar}| {n:.1f}/{total:.1f} MB [{elapsed}<{remaining}]")
 
-    for example in ds_fw:
-        raw = example.get("text", "")
-        if not raw or not isinstance(raw, str):
-            continue
-
-        text = clean_text(raw)
-        for chunk in chunk_text(text):
-            if cyrillic_ratio(chunk) < CYR_THRESHOLD:
+        for example in ds_wiki:
+            raw = example.get("text", "")
+            if not raw or not isinstance(raw, str):
                 continue
 
-            entry_bytes = len(chunk.encode("utf-8"))
-            records.append({"text": chunk})
-            total_bytes += entry_bytes
-            remaining -= entry_bytes
-            added_fw += 1
-            pbar.n = (start_remaining - remaining) / (1024 * 1024)
-            pbar.refresh()
+            text = clean_text(raw)
+            for chunk in chunk_text(text):
+                if cyrillic_ratio(chunk) < CYR_THRESHOLD:
+                    continue
 
+                entry_bytes = len(chunk.encode("utf-8"))
+                records.append({"text": chunk})
+                total_bytes += entry_bytes
+                remaining -= entry_bytes
+                added_wiki += 1
+                pbar.n = (TARGET_BYTES - remaining) / (1024 * 1024) - mb
+                pbar.refresh()
+
+                if remaining <= 0:
+                    break
             if remaining <= 0:
                 break
-        if remaining <= 0:
+
+        pbar.close()
+        print(f"  Добавлено из Wikipedia: {added_wiki:,} записей")
+        print(f"  Текущий размер: {total_bytes/(1024*1024):.1f} МБ")
+        remaining = TARGET_BYTES - total_bytes
+
+
+    # ══════════════════════════════════════════════════════════════
+    #  Шаг 3: Добор из HuggingFaceFW/fineweb-2 (uzn_Cyrl)
+    # ══════════════════════════════════════════════════════════════
+    if remaining > 0:
+        remaining_mb = remaining / (1024 * 1024)
+        print(f"\n{'='*60}")
+        print(f"  ШАГ 3: Добор из HuggingFaceFW/fineweb-2 (uzn_Cyrl)")
+        print(f"  Нужно ещё: {remaining_mb:.1f} МБ")
+        print("=" * 60)
+
+        ds_fw = load_dataset(
+            "HuggingFaceFW/fineweb-2",
+            "uzn_Cyrl",
+            split="train",
+            streaming=True,
+        )
+
+        start_remaining = remaining
+        added_fw = 0
+        pbar = tqdm(desc="fineweb-2", unit="MB", total=remaining_mb,
+                    bar_format="{l_bar}{bar}| {n:.1f}/{total:.1f} MB [{elapsed}<{remaining}]")
+
+        for example in ds_fw:
+            raw = example.get("text", "")
+            if not raw or not isinstance(raw, str):
+                continue
+
+            text = clean_text(raw)
+            for chunk in chunk_text(text):
+                if cyrillic_ratio(chunk) < CYR_THRESHOLD:
+                    continue
+
+                entry_bytes = len(chunk.encode("utf-8"))
+                records.append({"text": chunk})
+                total_bytes += entry_bytes
+                remaining -= entry_bytes
+                added_fw += 1
+                pbar.n = (start_remaining - remaining) / (1024 * 1024)
+                pbar.refresh()
+
+                if remaining <= 0:
+                    break
+            if remaining <= 0:
+                break
+
+        pbar.close()
+        print(f"  Добавлено из fineweb-2: {added_fw:,} записей")
+        print(f"  Текущий размер: {total_bytes/(1024*1024):.1f} МБ")
+        remaining = TARGET_BYTES - total_bytes
+
+
+    # ══════════════════════════════════════════════════════════════
+    #  Сохранение
+    # ══════════════════════════════════════════════════════════════
+    # Обрезаем до ровно 150 МБ если немного превысили
+    final_records = []
+    final_bytes = 0
+    for rec in records:
+        entry_bytes = len(rec["text"].encode("utf-8"))
+        if final_bytes + entry_bytes > TARGET_BYTES:
             break
+        final_records.append(rec)
+        final_bytes += entry_bytes
 
-    pbar.close()
-    print(f"  Добавлено из fineweb-2: {added_fw:,} записей")
-    print(f"  Текущий размер: {total_bytes/(1024*1024):.1f} МБ")
-    remaining = TARGET_BYTES - total_bytes
+    with open(output_path, "w", encoding="utf-8") as f:
+        for rec in final_records:
+            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
 
+    print(f"\n{'='*60}")
+    print(f"  ИТОГ")
+    print(f"{'='*60}")
+    print(f"  Файл:       {output_path}")
+    print(f"  Записей:    {len(final_records):,}")
+    print(f"  Размер:     {final_bytes/(1024*1024):.1f} МБ")
 
-# ══════════════════════════════════════════════════════════════
-#  Сохранение
-# ══════════════════════════════════════════════════════════════
-# Обрезаем до ровно 150 МБ если немного превысили
-final_records = []
-final_bytes = 0
-for rec in records:
-    entry_bytes = len(rec["text"].encode("utf-8"))
-    if final_bytes + entry_bytes > TARGET_BYTES:
-        break
-    final_records.append(rec)
-    final_bytes += entry_bytes
-
-with open(OUTPUT, "w", encoding="utf-8") as f:
+    # ── Финальная статистика ─────────────────────────────────────
+    print(f"\n  Вычисляю статистику...")
+    all_words = []
     for rec in final_records:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        all_words.extend(rec["text"].lower().split())
 
-print(f"\n{'='*60}")
-print(f"  ИТОГ")
-print(f"{'='*60}")
-print(f"  Файл:       {OUTPUT}")
-print(f"  Записей:    {len(final_records):,}")
-print(f"  Размер:     {final_bytes/(1024*1024):.1f} МБ")
+    total_words = len(all_words)
+    unique_tokens = len(set(all_words))
 
-# ── Финальная статистика ─────────────────────────────────────
-print(f"\n  Вычисляю статистику...")
-all_words = []
-for rec in final_records:
-    all_words.extend(rec["text"].lower().split())
+    print(f"  Всего слов:         {total_words:,}")
+    print(f"  Уникальных токенов: {unique_tokens:,}")
+    print(f"  TTR (полный):       {unique_tokens/total_words:.4f}")
 
-total_words = len(all_words)
-unique_tokens = len(set(all_words))
+    # Проверка кириллицы
+    sample_text = " ".join(r["text"] for r in final_records[:200])
+    ratio = cyrillic_ratio(sample_text)
+    print(f"  Кириллица (сэмпл):  {ratio*100:.1f}%")
 
-print(f"  Всего слов:         {total_words:,}")
-print(f"  Уникальных токенов: {unique_tokens:,}")
-print(f"  TTR (полный):       {unique_tokens/total_words:.4f}")
+    if remaining > 0:
+        print(f"\n  ⚠ Не удалось набрать 150 МБ. Нехватка: {remaining/(1024*1024):.1f} МБ")
+        print(f"    Все три источника исчерпаны.")
 
-# Проверка кириллицы
-sample_text = " ".join(r["text"] for r in final_records[:200])
-ratio = cyrillic_ratio(sample_text)
-print(f"  Кириллица (сэмпл):  {ratio*100:.1f}%")
+    print(f"\nГОТОВО!")
 
-if remaining > 0:
-    print(f"\n  ⚠ Не удалось набрать 150 МБ. Нехватка: {remaining/(1024*1024):.1f} МБ")
-    print(f"    Все три источника исчерпаны.")
 
-print(f"\nГОТОВО!")
+if __name__ == "__main__":
+    main()

@@ -8,6 +8,7 @@
   3. dataset_report.txt    — текстовый отчёт (копипаст в статью)
 """
 
+import argparse
 import json
 import os
 import re
@@ -19,16 +20,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
-
-# ── Настройки ────────────────────────────────────────────────
-BASE = "/Users/zarinamacbook/Desktop/LORA Research"
-DATASETS = {
-    "Kyrgyz (KY)":  os.path.join(BASE, "kyrgyz_raw.jsonl"),
-    "Uzbek (UZ)":   os.path.join(BASE, "uzbek_final_cyrillic.jsonl"),
-    "Kazakh (KZ)":  os.path.join(BASE, "kazakh_raw.jsonl"),
-}
-OUT_PNG = os.path.join(BASE, "dataset_analysis.png")
-OUT_TXT = os.path.join(BASE, "dataset_report.txt")
 
 COLORS = {"Kyrgyz (KY)": "#2196F3", "Uzbek (UZ)": "#4CAF50", "Kazakh (KZ)": "#FF9800"}
 
@@ -47,7 +38,9 @@ def analyze(name: str, texts: list[str]) -> dict:
     char_lens = [len(t) for t in texts]
     byte_lens = [len(t.encode("utf-8")) for t in texts]
     word_counts = [len(t.split()) for t in texts]
-    sent_counts = [len(re.split(r'[.!?]+', t)) for t in texts]
+    # Split on sentence-ending punctuation followed by space/newline/end
+    # (avoids breaking on abbreviations like "г.", "т.д.", "ж.")
+    sent_counts = [len(re.split(r'[.!?]+(?:\s|$)', t)) for t in texts]
 
     total_chars = sum(char_lens)
     total_bytes = sum(byte_lens)
@@ -68,8 +61,9 @@ def analyze(name: str, texts: list[str]) -> dict:
     # Средняя длина слова (в символах)
     avg_word_len = sum(len(w) for w in all_words) / len(all_words) if all_words else 0
 
-    # Процент кириллицы
-    full_text_sample = " ".join(texts[:500])
+    # Процент кириллицы (sample evenly across dataset)
+    step = max(1, len(texts) // 2000)
+    full_text_sample = " ".join(texts[::step][:2000])
     cyrillic = len(re.findall(r"[\u0400-\u04FF]", full_text_sample))
     latin = len(re.findall(r"[a-zA-Z]", full_text_sample))
     total_alpha = cyrillic + latin
@@ -308,10 +302,38 @@ def plot_analysis(results: list[dict], out_path: str):
     print(f"  Графики сохранены → {out_path}")
 
 
+# ── CLI Arguments ────────────────────────────────────────────
+def parse_args():
+    p = argparse.ArgumentParser(
+        description="Комплексный анализ pretrain-датасетов (KY / UZ / KZ)")
+    p.add_argument("--data_dir", type=str, default="./data/pretrain",
+                    help="Директория с JSONL-файлами (default: ./data/pretrain)")
+    p.add_argument("--ky_file", type=str, default="kyrgyz_raw.jsonl",
+                    help="Имя файла кыргызского корпуса")
+    p.add_argument("--uz_file", type=str, default="uzbek_final_cyrillic.jsonl",
+                    help="Имя файла узбекского корпуса")
+    p.add_argument("--kz_file", type=str, default="kazakh_raw.jsonl",
+                    help="Имя файла казахского корпуса")
+    p.add_argument("--output_dir", type=str, default="./reports",
+                    help="Директория для отчётов (default: ./reports)")
+    return p.parse_args()
+
+
 # ── Main ─────────────────────────────────────────────────────
 def main():
+    args = parse_args()
+
+    datasets = {
+        "Kyrgyz (KY)": os.path.join(args.data_dir, args.ky_file),
+        "Uzbek (UZ)":  os.path.join(args.data_dir, args.uz_file),
+        "Kazakh (KZ)": os.path.join(args.data_dir, args.kz_file),
+    }
+    out_png = os.path.join(args.output_dir, "dataset_analysis.png")
+    out_txt = os.path.join(args.output_dir, "dataset_report.txt")
+    os.makedirs(args.output_dir, exist_ok=True)
+
     results = []
-    for name, path in DATASETS.items():
+    for name, path in datasets.items():
         print(f"Анализирую {name}...")
         texts = load_jsonl(path)
         info = analyze(name, texts)
@@ -323,12 +345,12 @@ def main():
     report = build_report(results)
     print("\n" + report)
 
-    with open(OUT_TXT, "w", encoding="utf-8") as f:
+    with open(out_txt, "w", encoding="utf-8") as f:
         f.write(report)
-    print(f"\nОтчёт сохранён → {OUT_TXT}")
+    print(f"\nОтчёт сохранён → {out_txt}")
 
     # Графики
-    plot_analysis(results, OUT_PNG)
+    plot_analysis(results, out_png)
 
     print("\nГОТОВО!")
 
