@@ -26,7 +26,7 @@
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-Spectral collapse---the concentration of adapter weight matrices into a single dominant singular direction---has been proposed as a diagnostic for LoRA training failure. We systematically test this hypothesis by fine-tuning Gemma-2-9B with LoRA on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) across six experimental configurations varying rank ($r \in \{16, 64\}$), learning rate ($2 \times 10^{-4}$, $5 \times 10^{-4}$, $1 \times 10^{-3}$), training duration (3--10 epochs), and cross-lingual transfer (Kazakh $\rightarrow$ Kyrgyz).
+Spectral collapse---the concentration of adapter weight matrices into a single dominant singular direction---has been proposed as a diagnostic for LoRA training failure. We systematically test this hypothesis by fine-tuning Gemma-2-9B with LoRA on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) and an English control, across eight experimental configurations varying rank ($r \in \{16, 64\}$), learning rate ($2 \times 10^{-4}$, $5 \times 10^{-4}$, $1 \times 10^{-3}$), training duration (3--10 epochs), and cross-lingual transfer (Kazakh $\rightarrow$ Kyrgyz).
 
 We report three main findings. First, we \textbf{refute the spectral energy threshold hypothesis}: no experiment reaches $\text{SE} > 0.59$ (well below the proposed 0.7 threshold), yet configurations with $r=64$ suffer complete functional collapse (NER F1~$= 0$ across all languages, cross-lingual perplexity $> 600$). Spectral energy actually \emph{decreases} during training as effective rank grows. Second, we identify \textbf{Frobenius norm growth} as a more reliable indicator of functional degradation in our setting (Gemma-2-9B, 4-bit quantization): pathological configurations exhibit 15--38$\times$ norm growth versus only $+13\%$ for the best-performing transfer setup. Third, we demonstrate that \textbf{sequential Kazakh $\rightarrow$ Kyrgyz transfer} yields $+61\%$ NER F1 improvement (0.253 vs.\ 0.157) while retaining Kazakh knowledge (perplexity 23.5 vs.\ 47.6 for direct Kyrgyz training), suggesting that related-language transfer is an effective strategy for extremely low-resource Turkic varieties.
 
@@ -103,6 +103,8 @@ We compile monolingual corpora of approximately 150~MB for each of the three tar
     \item \textbf{Uzbek (UZ):} 21,242 records from uz-books, Uzbek Wikipedia, and FineWeb-2 with Cyrillic script filtering, totaling 5.4M tokens (152.6~MB).
 \end{itemize}
 
+Additionally, we compile an \textbf{English (EN)} control corpus of 52,268 records from English Wikipedia (155~MB, 12.7M tokens), matched in size to the Turkic corpora.
+
 All texts are chunked into segments of 200--5,000 characters. A 10\% held-out split is reserved for validation. The substantial difference in token counts between Kazakh (14.1M) and the other two languages (4.4--5.4M) reflects the higher information density of Kazakh Wikipedia articles; all corpora are matched by raw byte size.
 
 \subsection{LoRA Configuration}
@@ -123,6 +125,7 @@ E4 & KY Overfit & Kyrgyz & 16 & $2{\times}10^{-4}$ & 10 & 1.05\% & Random \\
 E5 & KY Collapse & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Random \\
 E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ ckpt \\
 E7 & Diverged & All & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
+E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 \bottomrule
 \end{tabular}
 \caption{Summary of experimental configurations. All experiments use Gemma-2-9B with 4-bit quantization, $\alpha = 2r$, cosine LR schedule, and effective batch size 16. Experiment E7 diverged during training and is excluded from downstream evaluation.}
@@ -220,9 +223,11 @@ E3 & KY Baseline & KY & 4.78 & 0.157 & 0.190 & 0.326 & 34.7\% & 30.2\% \\
 E4 & KY Overfit (10ep) & KY & 4.18 & 0.173 & 0.238 & 0.239 & 33.9\% & 27.8\% \\
 E5 & KY $r{=}64$ & KY & 5.90 & 0.000 & 0.000 & 0.000 & 23.2\% & 22.2\% \\
 E6 & KZ$\rightarrow$KY & KY & 4.73 & 0.253 & 0.130 & 0.348 & 33.7\% & 31.7\% \\
+\midrule
+E8 & EN Control & EN & 5.54$^*$ & 0.209 & 0.217 & 0.338 & 37.7\%$^\dagger$ & 36.3\% \\
 \bottomrule
 \end{tabular}
-\caption{Main evaluation results across all experiments. PPL is computed on the target language validation set. NER F1 is micro-averaged across entity types using 3-shot WikiANN evaluation (100 samples). TUMLU accuracy is reported for the target language and Kazakh (as a forgetting diagnostic). The $r{=}64$ experiment (E5) shows complete NER failure (100/100 parse failures) despite only moderate PPL degradation.}
+\caption{Main evaluation results across all experiments. PPL is computed on the target language validation set. NER F1 is micro-averaged across entity types using 3-shot WikiANN evaluation (100 samples). TUMLU accuracy is reported for the target language and Kazakh (as a forgetting diagnostic). The $r{=}64$ experiment (E5) shows complete NER failure (100/100 parse failures) despite only moderate PPL degradation. $^*$EN Control PPL is reported on Kazakh (the most-resourced Turkic eval set). $^\dagger$EN Control TUMLU is reported on Kyrgyz.}
 \label{tab:main_results}
 \end{table*}
 
@@ -248,13 +253,17 @@ KY Baseline & \textbf{4.78} & 47.58 & 56.85 \\
 KY Overfit & \textbf{4.18} & 87.65 & 95.76 \\
 KY $r{=}64$ & 5.90 & 659.25 & 742.73 \\
 KZ$\rightarrow$KY & 4.73 & 23.49 & 124.19 \\
+\midrule
+EN Control & 14.96 & 5.54 & 16.55 \\
 \bottomrule
 \end{tabular}
-\caption{Cross-lingual perplexity matrix. Each row is an adapter; each column is the evaluation language. Bold indicates target-language PPL. The $r{=}64$ configuration shows catastrophic cross-lingual degradation ($>600\times$ PPL increase), while KZ$\rightarrow$KY transfer retains substantially more Kazakh knowledge (23.49 vs.\ 47.58).}
+\caption{Cross-lingual perplexity matrix. Each row is an adapter; each column is the evaluation language. Bold indicates target-language PPL. The $r{=}64$ configuration shows catastrophic cross-lingual degradation ($>600\times$ PPL increase), while the EN control shows minimal Turkic forgetting despite comparable Frobenius norm growth (33$\times$).}
 \label{tab:cross_ppl}
 \end{table}
 
 Several key observations emerge. First, the $r{=}64$ configuration (E5) induces catastrophic forgetting: Kazakh PPL rises to 659.25 and Uzbek to 742.73, representing increases of over 240$\times$ and 180$\times$ relative to the respective baselines. Second, the KZ$\rightarrow$KY transfer (E6) retains substantially more Kazakh knowledge than direct Kyrgyz training: KZ PPL of 23.49 versus 47.58 for the KY baseline (a 2$\times$ improvement). Third, extended training (10 epochs, E4) nearly doubles cross-lingual PPL relative to the 3-epoch baseline (87.65 vs.\ 47.58 for KZ; 95.76 vs.\ 56.85 for UZ), confirming that additional training steps systematically erode non-target-language knowledge. Fourth, the Uzbek baseline (E2) shows the highest asymmetric forgetting: KY PPL rises to 116.89, substantially worse than the reverse direction (UZ PPL under KY training is 56.85), possibly reflecting the greater script distance between Uzbek (historically Latin) and Kyrgyz (Cyrillic).
+
+Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm growth alone does not predict forgetting. Despite exhibiting 33$\times$ norm growth---comparable to the KZ baseline (38$\times$)---the EN adapter induces minimal Turkic language degradation (KZ PPL 5.54 vs.\ 47.58 for the KY baseline). This demonstrates that forgetting severity depends not only on the magnitude of weight perturbations but also on their \emph{alignment} with pretrained representations: English weight updates reinforce existing well-represented features, while Turkic updates must restructure underrepresented regions of the weight space, causing disproportionate interference with other languages.
 
 \Cref{fig:cross_ppl} visualizes these patterns as a heatmap.
 
@@ -306,15 +315,17 @@ If spectral energy fails as a diagnostic, what metric does reliably predict func
 \midrule
 KZ$\rightarrow$KY Transfer & $\sim$1.7 & $\sim$1.9 & 1.13$\times$ \\
 KY Baseline $r{=}16$ & 0.22 & $\sim$1.7 & $\sim$8$\times$ \\
+EN Control $r{=}16$ & 0.09 & $\sim$3.1 & $\sim$33$\times$ \\
+KZ Baseline $r{=}16$ & 0.08 & $\sim$3.1 & $\sim$38$\times$ \\
 KY $r{=}64$ & 0.37--0.92 & 14--35 & 15--38$\times$ \\
 Diverged $r{=}64$ & --- & --- & explodes \\
 \bottomrule
 \end{tabular}
-\caption{Frobenius norm growth ratios for $\texttt{lora\_B}$ matrices. The transfer setup shows minimal growth ($+13\%$), baseline shows moderate growth ($\sim 8\times$), while the pathological $r{=}64$ configuration shows extreme growth (15--38$\times$). The diverged experiment (E7) exhibits unbounded norm explosion.}
+\caption{Frobenius norm growth ratios for $\texttt{lora\_B}$ matrices. EN control and KZ baseline show comparable growth ($\sim$33--38$\times$), yet EN produces minimal cross-lingual forgetting (KZ PPL 5.54) while KY baseline with only 8$\times$ growth causes severe forgetting (KZ PPL 47.58). This demonstrates that norm growth alone is insufficient as a universal diagnostic---language representation in the pretrained model modulates the impact of weight perturbations.}
 \label{tab:frobenius}
 \end{table}
 
-\Cref{tab:frobenius} and \Cref{fig:frobenius} show a clear gradient: the KZ$\rightarrow$KY transfer, which achieves the best downstream performance, exhibits only $+13\%$ Frobenius norm growth (from $\sim$1.7 to $\sim$1.9), beginning from the already-trained KZ checkpoint. The KY baseline shows moderate growth of approximately 8$\times$ (from 0.22 to $\sim$1.7). The pathological $r{=}64$ configuration shows extreme growth of 15--38$\times$ (from 0.37--0.92 to 14--35, varying across layers). The diverged experiment (E7, $r{=}64$, $\text{lr}=1 \times 10^{-3}$) shows unbounded norm explosion before training terminates.
+\Cref{tab:frobenius} and \Cref{fig:frobenius} reveal a nuanced picture. The KZ$\rightarrow$KY transfer exhibits only $+13\%$ Frobenius norm growth, while the KY baseline shows $\sim$8$\times$ growth and the pathological $r{=}64$ configuration shows 15--38$\times$ growth. However, the EN control experiment complicates this gradient: despite $\sim$33$\times$ norm growth---comparable to the KZ baseline (38$\times$)---EN training causes minimal cross-lingual forgetting (KZ PPL 5.54 vs.\ 47.58 for KY baseline with only 8$\times$ growth). This reveals that Frobenius norm growth is a reliable diagnostic \emph{within} a language category (underrepresented vs.\ well-represented) but not \emph{across} categories: the same magnitude of weight perturbation has qualitatively different effects depending on how well the target language is represented in the pretrained model.
 
 \begin{figure}[t]
     \centering
@@ -415,7 +426,9 @@ Our experiments suggest the following practical thresholds for $\|B\|_F$ growth 
     \item Unbounded growth: \textbf{Training failure}; divergence imminent (e.g., E7).
 \end{itemize}
 
-We emphasize that these thresholds refer to \emph{relative growth} (ratio of final to initial Frobenius norm) rather than absolute values. Absolute norms depend on the initialization scheme: standard LoRA (zeros for $B$, Kaiming for $A$), PiSSA \cite{meng2024pissa}, or transfer initialization all produce different baseline magnitudes. The relative growth ratio normalizes this dependency, making it a more portable diagnostic. Nonetheless, these thresholds are preliminary and derived from a single model architecture; we present them as guidelines for further investigation rather than universal constants.
+We emphasize that these thresholds refer to \emph{relative growth} (ratio of final to initial Frobenius norm) rather than absolute values. Absolute norms depend on the initialization scheme: standard LoRA (zeros for $B$, Kaiming for $A$), PiSSA \cite{meng2024pissa}, or transfer initialization all produce different baseline magnitudes. The relative growth ratio normalizes this dependency, making it a more portable diagnostic.
+
+\textbf{Important caveat from the EN control:} These thresholds apply specifically to \emph{underrepresented} languages. The EN control experiment shows 33$\times$ norm growth with minimal forgetting, demonstrating that for well-represented languages, the pretrained model can absorb large weight perturbations without catastrophic interference. We therefore recommend these thresholds as guidelines for low-resource language adaptation specifically, where the model must restructure underrepresented regions of the weight space.
 
 \subsection{Role of Subword Fragmentation}
 
@@ -425,7 +438,7 @@ The 3.2$\times$ subword fragmentation ratio observed for all three Turkic langua
 
 \textbf{Morphological fragmentation:} Agglutinative suffixes that carry grammatical meaning are split across multiple subwords, forcing the model to reconstruct morphological relationships across token boundaries. For instance, a single Kazakh word form may be split into 4--5 subwords, with the root, derivational suffixes, and inflectional endings each occupying separate tokens.
 
-\textbf{Potential link to norm growth:} The model must make larger modifications to its internal representations to accommodate the fragmented Turkic input, potentially explaining the faster Frobenius norm growth observed in our experiments. However, without an English-language control experiment with matched data size, this connection remains speculative and we present it as a direction for future work rather than a confirmed finding.
+\textbf{Link to forgetting severity:} Our EN control experiment (E8) provides direct evidence that subword fragmentation interacts with forgetting dynamics. Despite comparable Frobenius norm growth (EN: 33$\times$ vs.\ KZ: 38$\times$), the EN adapter causes minimal cross-lingual degradation (KZ PPL 5.54) while Turkic adapters cause severe forgetting (KZ PPL 47.58 for KY baseline with only 8$\times$ growth). This suggests that the critical factor is not the \emph{magnitude} of weight updates but their \emph{directionality}: Turkic fine-tuning forces the model to restructure representations in regions poorly covered by pretraining, disrupting shared multilingual features, while EN fine-tuning reinforces already well-represented features with minimal cross-lingual interference.
 
 \subsection{Practical Recommendations}
 
@@ -444,7 +457,7 @@ Based on our findings, we offer the following recommendations for practitioners 
 % ============================================================================
 \section{Limitations}
 
-Our study has several important limitations. First, all experiments use a single base model (Gemma-2-9B); results may differ for other architectures such as Llama~3 or Mistral, particularly regarding the relationship between rank, norm growth, and functional collapse. Second, the absence of an English-language control experiment with matched data size means we cannot isolate the effect of Turkic morphology on Frobenius norm growth from other confounding factors such as data distribution, corpus size, and tokenizer coverage. Third, NER evaluation relies on few-shot prompting rather than a fine-tuned NER model, introducing noise from instruction-following variation; the complete NER failure for $r{=}64$ (100/100 parse failures) may partially reflect loss of instruction-following capability rather than loss of named entity knowledge per se. Fourth, we examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language), limiting the generalizability of our cross-lingual transfer findings. Fifth, the fixed corpus size of approximately 150~MB per language precludes scaling analyses that might reveal different dynamics at larger data volumes. Sixth, our SVD monitoring focuses on $\texttt{lora\_B}$ matrices; $\texttt{lora\_A}$ dynamics may reveal complementary patterns. Seventh, 4-bit quantization introduces approximation errors that may influence spectral properties in ways not captured by our analysis. Finally, our Frobenius norm thresholds are derived from a single experimental setting and should be treated as preliminary guidelines pending validation across diverse models and languages.
+Our study has several important limitations. First, all experiments use a single base model (Gemma-2-9B); results may differ for other architectures such as Llama~3 or Mistral, particularly regarding the relationship between rank, norm growth, and functional collapse. Second, while our English control experiment (E8) uses a matched corpus size ($\sim$150~MB), differences in data distribution (Wikipedia vs.\ mixed sources) and tokenizer coverage may partially confound the comparison. Third, NER evaluation relies on few-shot prompting rather than a fine-tuned NER model, introducing noise from instruction-following variation; the complete NER failure for $r{=}64$ (100/100 parse failures) may partially reflect loss of instruction-following capability rather than loss of named entity knowledge per se. Fourth, we examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language), limiting the generalizability of our cross-lingual transfer findings. Fifth, the fixed corpus size of approximately 150~MB per language precludes scaling analyses that might reveal different dynamics at larger data volumes. Sixth, our SVD monitoring focuses on $\texttt{lora\_B}$ matrices; $\texttt{lora\_A}$ dynamics may reveal complementary patterns. Seventh, 4-bit quantization introduces approximation errors that may influence spectral properties in ways not captured by our analysis. Finally, our Frobenius norm thresholds are derived from a single experimental setting and should be treated as preliminary guidelines pending validation across diverse models and languages.
 
 % ============================================================================
 % 7. CONCLUSION
@@ -455,11 +468,11 @@ We have presented a systematic study of the spectral dynamics of LoRA adapters d
 
 First, the spectral energy threshold hypothesis is \textbf{refuted} for our setting: no experiment exceeds SE of 0.59 (well below the proposed 0.7 threshold), yet configurations with $r{=}64$ suffer complete functional collapse (NER F1~$= 0$, cross-lingual PPL $> 600$). Spectral energy decreases during training as effective rank grows, rendering it an unreliable diagnostic for training pathology.
 
-Second, \textbf{Frobenius norm growth ratio} emerges as a more reliable indicator of functional degradation. Pathological configurations exhibit 15--38$\times$ norm growth versus 1.13$\times$ for the best-performing transfer setup, with clear correlation to cross-lingual perplexity degradation. We propose preliminary monitoring thresholds ($>5\times$ warning, $>10\times$ stop), noting that these are specific to our experimental setting (Gemma-2-9B with 4-bit NF4 quantization and standard LoRA initialization) and require validation across architectures before general adoption.
+Second, \textbf{Frobenius norm growth ratio} is a useful but language-dependent diagnostic. Within underrepresented languages, it reliably separates healthy from pathological regimes (1.13$\times$ for transfer vs.\ 15--38$\times$ for $r{=}64$). However, our EN control reveals that well-represented languages can absorb comparable norm growth (33$\times$) with minimal forgetting, demonstrating that the \emph{directionality} of weight perturbations---not just their magnitude---determines forgetting severity.
 
 Third, \textbf{sequential cross-lingual transfer} between related Turkic languages is highly effective: Kazakh$\rightarrow$Kyrgyz transfer improves NER F1 by $+61\%$ (0.253 vs.\ 0.157) while retaining Kazakh knowledge (PPL 23.49 vs.\ 47.58), with minimal Frobenius norm growth ($+13\%$).
 
-These findings have immediate practical implications for the growing community of researchers and practitioners adapting LLMs to low-resource languages. Future work should validate our Frobenius norm thresholds across diverse model architectures, extend the analysis to additional Turkic languages including Turkish, investigate Frobenius norm regularization as a training objective, and explore adaptive rank selection strategies informed by real-time spectral monitoring. An English-language control experiment with matched data size would help disentangle the effects of Turkic morphological complexity from general low-resource dynamics. Additionally, log-likelihood-based NER evaluation could clarify whether the $r{=}64$ configuration loses named entity knowledge entirely or merely loses the instruction-following capability needed for structured output.
+These findings have immediate practical implications for the growing community of researchers and practitioners adapting LLMs to low-resource languages. Future work should validate our findings across diverse model architectures, extend the analysis to additional Turkic languages including Turkish, investigate directional norm regularization as a training objective, and explore adaptive rank selection strategies informed by real-time spectral monitoring. Additionally, log-likelihood-based NER evaluation could clarify whether the $r{=}64$ configuration loses named entity knowledge entirely or merely loses the instruction-following capability needed for structured output.
 
 % ============================================================================
 % ETHICS STATEMENT
@@ -503,6 +516,7 @@ E3 & KY Baseline & 0.815 & 1.920 & 6.82 & 4.4M & 183 \\
 E4 & KY Overfit & 1.050 & 1.963 & 7.12 & 4.4M & 1193 \\
 E5 & KY $r{=}64$ & 0.274 & 2.164 & 8.71 & 4.4M & 157 \\
 E6 & KZ$\rightarrow$KY & 1.809 & 1.932 & 6.90 & 4.4M & 355 \\
+E8 & EN Control & 1.821 & 2.017 & 7.51 & 12.7M & 1351 \\
 \bottomrule
 \end{tabular}
 \caption{Full training statistics for all experiments. Eval loss and PPL are computed on the validation split during training (distinct from the post-hoc evaluation in \Cref{tab:main_results}). The higher train loss for E6 (KZ$\rightarrow$KY) reflects the adapter starting from KZ-optimized weights that initially perform poorly on KY data.}

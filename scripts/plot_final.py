@@ -27,6 +27,7 @@ import matplotlib.ticker as ticker
 
 # ── Config ──────────────────────────────────────────────────────────
 EXPERIMENTS = {
+    "EN baseline":    "output_en_baseline_r16_lr2e4_3ep",
     "KZ baseline":    "output_kz_baseline_r16_lr2e4_3ep",
     "UZ baseline":    "output_uz_baseline_r16_lr2e4_3ep",
     "KY baseline":    "output_ky_baseline_r16_lr2e4_3ep",
@@ -40,6 +41,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # Colors
 COLORS = {
+    "EN baseline":    "#607D8B",
     "KZ baseline":    "#2196F3",
     "UZ baseline":    "#4CAF50",
     "KY baseline":    "#FF9800",
@@ -91,7 +93,7 @@ def fig1_eval_summary():
     # --- Panel A: Target-language PPL ---
     ax = axes[0]
     target_lang = {
-        "KZ baseline": "kz", "UZ baseline": "uz", "KY baseline": "ky",
+        "EN baseline": "kz", "KZ baseline": "kz", "UZ baseline": "uz", "KY baseline": "ky",
         "KY 10ep": "ky", "KY r=64": "ky", "KZ→KY transfer": "ky",
     }
     ppls = []
