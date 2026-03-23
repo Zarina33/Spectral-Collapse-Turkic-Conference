@@ -42,9 +42,7 @@ Low-Rank Adaptation \cite{hu2022lora} has become the dominant approach for adapt
 
 Recent work has identified \emph{spectral collapse} as a potential failure mode of LoRA fine-tuning, where adapter weight matrices degenerate into rank-one approximations dominated by a single singular value \cite{biderman2024lora,jang2024lora}. \citet{biderman2024lora} proposed that when the spectral energy (SE)---the ratio of the largest singular value to the sum of all singular values---exceeds a threshold of approximately 0.7, the adapter has effectively collapsed and further training becomes unproductive. However, these findings were established primarily on English-language tasks with relatively large training corpora.
 
-Turkic languages present a particularly challenging testbed for LoRA adaptation. Kyrgyz, Kazakh, and Uzbek are agglutinative languages with rich morphological systems, employ both Cyrillic and Latin scripts, suffer from severe underrepresentation in multilingual LLM pretraining data, and exhibit extreme subword fragmentation under standard tokenizers designed for high-resource languages. These properties make Turkic language adaptation a stress test for parameter-efficient fine-tuning methods.
-
-Turkic languages are particularly informative for this investigation due to their extreme subword fragmentation under standard tokenizers (3.2$\times$ more tokens per word than English), which forces LoRA adapters to make larger weight modifications to accommodate poorly-covered morphology.
+Turkic languages present a particularly challenging testbed for LoRA adaptation. Kyrgyz, Kazakh, and Uzbek are agglutinative languages with rich morphological systems, employ both Cyrillic and Latin scripts, and suffer from severe underrepresentation in multilingual LLM pretraining data. Critically, they exhibit extreme subword fragmentation under standard tokenizers (3.2$\times$ more tokens per word than English), which forces LoRA adapters to make larger weight modifications to accommodate poorly-covered morphology. These properties make Turkic language adaptation a stress test for parameter-efficient fine-tuning methods.
 
 In this work, we systematically investigate the spectral dynamics of LoRA adapters trained on three Turkic languages, testing two hypotheses:
 
@@ -122,13 +120,13 @@ E1 & KZ Baseline & Kazakh & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 E2 & UZ Baseline & Uzbek & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 E3 & KY Baseline & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 E4 & KY Overfit & Kyrgyz & 16 & $2{\times}10^{-4}$ & 10 & 1.05\% & Random \\
-E5 & KY Collapse & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Random \\
+E5 & KY $r{=}64$ & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Random \\
 E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ ckpt \\
-E7 & Diverged & All & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
+E7 & Diverged & KY$^\ddagger$ & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
 E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 \bottomrule
 \end{tabular}
-\caption{Summary of experimental configurations. All experiments use Gemma-2-9B with 4-bit quantization, $\alpha = 2r$, cosine LR schedule, and effective batch size 16. Experiment E7 diverged during training and is excluded from downstream evaluation.}
+\caption{Summary of experimental configurations. All experiments use Gemma-2-9B with 4-bit quantization, $\alpha = 2r$, cosine LR schedule, and effective batch size 16. $^\ddagger$E7 was trained on Kyrgyz data but diverged at step 800 due to the aggressive learning rate; it is excluded from downstream evaluation but analyzed in \Cref{app:effrank}.}
 \label{tab:experiments}
 \end{table*}
 
@@ -365,7 +363,7 @@ NER F1 (KZ) & 0.190 & 0.130 \\
 NER F1 (UZ) & 0.326 & 0.348 \\
 TUMLU (KY) & 34.7\% & 33.7\% \\
 TUMLU (KZ) & 30.2\% & 31.7\% \\
-$\|B\|_F$ growth & $\sim$8$\times$ & 1.13$\times$ \\
+$\|B\|_F$ growth & 8.36$\times$ & 1.13$\times$ \\
 \bottomrule
 \end{tabular}
 \caption{Comparison of direct Kyrgyz training (E3) and Kazakh$\rightarrow$Kyrgyz transfer (E6). Transfer improves KY NER F1 by $+61\%$ and retains KZ knowledge (PPL 23.49 vs.\ 47.58). However, UZ PPL increases (124.19 vs.\ 56.85), suggesting the transfer benefit is primarily between the two closely related Cyrillic-script Kipchak languages.}
@@ -376,7 +374,7 @@ The most dramatic improvement is in Kyrgyz NER F1: 0.253 versus 0.157, a relativ
 
 Interestingly, even Uzbek NER F1 improves slightly under transfer (0.348 vs.\ 0.326), suggesting some positive transfer to the third Turkic language. However, Uzbek PPL degrades substantially (124.19 vs.\ 56.85, a 2.2$\times$ increase). This asymmetry has practical implications: sequential transfer between closely related languages (Kazakh and Kyrgyz are both Kipchak-branch, Cyrillic-script) can \emph{harm} more distant relatives (Uzbek, Karluk-branch, historically Latin-script). The adapter, having been optimized first for Kazakh then for Kyrgyz, specializes its weight updates in the Kipchak direction, displacing representations useful for Uzbek. Practitioners considering chain-of-transfer strategies should therefore monitor not only source-target retention but also collateral damage to typologically distant languages.
 
-\textbf{H2 is partially confirmed:} cross-lingual transfer improves downstream task performance and retains source-language knowledge, but the mechanism appears to be \emph{better initialization} rather than \emph{slower degradation}. The transfer adapter begins with an already-trained weight configuration (Frobenius norm growth of only $+13\%$ compared to $\sim 8\times$ for baseline), requiring minimal additional adaptation to accommodate Kyrgyz data.
+\textbf{H2 is partially confirmed:} cross-lingual transfer improves downstream task performance and retains source-language knowledge, but the mechanism appears to be \emph{better initialization} rather than \emph{slower degradation}. The transfer adapter begins with an already-trained weight configuration (Frobenius norm growth of only $+13\%$ compared to $8.36\times$ for baseline), requiring minimal additional adaptation to accommodate Kyrgyz data.
 
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
@@ -474,7 +472,7 @@ Second, \textbf{Frobenius norm growth ratio} is a useful but language-dependent 
 
 Third, \textbf{sequential cross-lingual transfer} between related Turkic languages is highly effective: Kazakh$\rightarrow$Kyrgyz transfer improves NER F1 by $+61\%$ (0.253 vs.\ 0.157) while retaining Kazakh knowledge (PPL 23.49 vs.\ 47.58), with minimal Frobenius norm growth ($+13\%$).
 
-These findings have immediate practical implications for the growing community of researchers and practitioners adapting LLMs to low-resource languages. Future work should validate our findings across diverse model architectures, extend the analysis to additional Turkic languages including Turkish, investigate directional norm regularization as a training objective, and explore adaptive rank selection strategies informed by real-time spectral monitoring. Additionally, log-likelihood-based NER evaluation could clarify whether the $r{=}64$ configuration loses named entity knowledge entirely or merely loses the instruction-following capability needed for structured output.
+These findings have immediate practical implications for the growing community of researchers and practitioners adapting LLMs to low-resource languages. Future work should validate our findings across diverse model architectures (particularly in full-precision BF16 to control for quantization effects on spectral dynamics), extend the analysis to additional Turkic languages including Turkish, investigate directional norm regularization as a training objective, and explore adaptive rank selection strategies informed by real-time spectral monitoring. An open question is whether $\texttt{lora\_A}$ matrices exhibit complementary spectral signals when $\texttt{lora\_B}$ norms explode---joint analysis of both matrices may yield a more complete diagnostic. Additionally, log-likelihood-based NER evaluation could clarify whether the $r{=}64$ configuration loses named entity knowledge entirely or merely loses the instruction-following capability needed for structured output.
 
 % ============================================================================
 % ETHICS STATEMENT
@@ -497,7 +495,7 @@ We thank the creators of the Kazakh, Kyrgyz, and Uzbek corpora used in this stud
 % ============================================================================
 \section*{Reproducibility Statement}
 
-All experimental code (training with SVD monitoring, evaluation, and plotting scripts), fine-tuned LoRA adapters for all eight experiments, SVD monitoring logs, and evaluation reports are publicly available at \url{https://github.com/Zarina33/Spectral-Collapse-Turkic} and \url{https://huggingface.co/Zarinaaa/spectral-collapse-turkic-adapters}. The released adapters enable full reproduction of the evaluation stage on WikiANN, TUMLU, and cross-lingual perplexity benchmarks without access to the training corpora.
+All experimental code (training with SVD monitoring, evaluation, and plotting scripts), fine-tuned LoRA adapters for all eight experiments, SVD monitoring logs, and evaluation reports are publicly available at \url{https://github.com/Zarina33/Spectral-Collapse-Turkic} and \url{https://huggingface.co/Zarinaaa/spectral-collapse-turkic-adapters}. The Kazakh, Uzbek, and English training corpora are derived from publicly available sources and can be reconstructed using the provided data preparation scripts. The Kyrgyz corpus cannot be redistributed due to licensing restrictions on its source materials; consequently, the KY training stage is not fully reproducible. However, the released KY adapters and SVD logs enable full reproduction of all evaluation and analysis stages.
 
 % ============================================================================
 % REFERENCES
