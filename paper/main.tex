@@ -90,7 +90,7 @@ Catastrophic forgetting \cite{mccloskey1989catastrophic,kirkpatrick2017overcomin
 
 \subsection{Base Model}
 
-We use Gemma-2-9B \cite{team2024gemma} as our base model, a 9.24 billion parameter decoder-only transformer with 42 layers. The model is quantized to 4-bit precision using the NF4 data type with double quantization \cite{dettmers2023qlora}, reducing memory requirements to approximately 5.1 billion effective parameters while preserving model quality. All experiments use bfloat16 compute precision.
+We use Gemma-2-9B \cite{team2024gemma} as our base model, a 9.24 billion parameter decoder-only transformer with 42 layers. The model is quantized to 4-bit precision using the NF4 data type with double quantization \cite{dettmers2023qlora}, reducing memory requirements to approximately 5.1 billion effective parameters while preserving model quality. All experiments use bfloat16 compute precision. We chose Gemma-2-9B because it possesses baseline linguistic knowledge of Turkic languages from pretraining, allowing us to isolate the spectral dynamics of LoRA \emph{adaptation} from the process of primary language acquisition. The functional collapse observed at $r{=}64$ therefore reflects a pathology of the adaptation process, not an inability of the model to represent Turkic tokens.
 
 \subsection{Training Data}
 \label{sec:data}
@@ -479,7 +479,9 @@ These findings have immediate practical implications for the growing community o
 % ============================================================================
 \section*{Ethics Statement}
 
-This work involves fine-tuning language models on publicly available text corpora from three Turkic languages. While we aim to improve NLP capabilities for underserved language communities, we acknowledge that language models can amplify biases present in training data. Our training corpora, drawn from Wikipedia, literary texts, and web sources, may contain cultural biases or factual inaccuracies. We do not release fine-tuned model weights, only the monitoring toolkit and training code.
+This work involves fine-tuning language models on text corpora from three Turkic languages and English. While we aim to improve NLP capabilities for underserved language communities, we acknowledge that language models can amplify biases present in training data. Our training corpora, drawn from Wikipedia, literary texts, and web sources, may contain cultural biases or factual inaccuracies.
+
+\textbf{Data availability:} The Kazakh and Uzbek corpora are compiled from publicly available sources (Wikipedia, open book collections). The Kyrgyz corpus is curated from licensed literary and encyclopedic sources and cannot be redistributed due to copyright restrictions. In the spirit of open science, we release all trained LoRA adapters, SVD monitoring logs, evaluation results, and full training code via GitHub and Hugging Face, enabling complete reproduction of the evaluation and analysis stages.
 
 % ============================================================================
 % ACKNOWLEDGMENTS
