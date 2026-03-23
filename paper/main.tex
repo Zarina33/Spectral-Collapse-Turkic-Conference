@@ -4,8 +4,9 @@
 
 \documentclass[11pt]{article}
 \usepackage{acl}
-\usepackage{times}
+\usepackage{fontspec}
 \usepackage{latexsym}
+\newfontfamily\cyrfont{Noto Serif}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -28,7 +29,7 @@
 \begin{abstract}
 Spectral collapse---the concentration of adapter weight matrices into a single dominant singular direction---has been proposed as a diagnostic for LoRA training failure. We systematically test this hypothesis by fine-tuning Gemma-2-9B with LoRA on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) and an English control, across eight experimental configurations varying rank ($r \in \{16, 64\}$), learning rate ($2 \times 10^{-4}$, $5 \times 10^{-4}$, $1 \times 10^{-3}$), training duration (3--10 epochs), and cross-lingual transfer (Kazakh $\rightarrow$ Kyrgyz).
 
-We report three main findings. First, we \textbf{challenge the spectral energy threshold hypothesis}: no experiment reaches $\text{SE} > 0.59$ (well below the proposed 0.7 threshold), yet configurations with $r=64$ suffer complete functional collapse (NER F1~$= 0$ across all languages, cross-lingual perplexity $> 600$). Spectral energy actually \emph{decreases} during training as effective rank grows. Second, we identify \textbf{Frobenius norm growth} as a more reliable indicator of functional degradation in our setting (Gemma-2-9B, 4-bit quantization): pathological configurations exhibit 15--38$\times$ norm growth versus only $+13\%$ for the best-performing transfer setup. Third, we demonstrate that \textbf{sequential Kazakh $\rightarrow$ Kyrgyz transfer} yields $+61\%$ NER F1 improvement (0.253 vs.\ 0.157) while retaining Kazakh knowledge (perplexity 23.5 vs.\ 47.6 for direct Kyrgyz training), suggesting that related-language transfer is an effective strategy for extremely low-resource Turkic varieties.
+We report three main findings. First, we \textbf{challenge the spectral energy threshold hypothesis}: no experiment reaches $\text{SE} > 0.59$ (well below the proposed 0.7 threshold), yet configurations with $r=64$ suffer complete functional collapse (NER F1~$= 0$ across all languages, cross-lingual perplexity $> 600$). Spectral energy actually \emph{decreases} during training as effective rank grows. Second, we identify \textbf{Frobenius norm growth} as a more reliable indicator of functional degradation in our setting (Gemma-2-9B, 4-bit quantization): pathological configurations exhibit 15--38$\times$ norm growth versus only $+13\%$ for the best-performing transfer setup. Third, we demonstrate that \textbf{sequential Kazakh $\rightarrow$ Kyrgyz transfer} yields $+61\%$ NER F1 improvement (0.253 vs.\ 0.157) while retaining Kazakh knowledge (perplexity 23.49 vs.\ 47.58 for direct Kyrgyz training), suggesting that related-language transfer is an effective strategy for extremely low-resource Turkic varieties.
 
 We additionally characterize severe subword fragmentation (3.2$\times$ vs.\ English) as a compounding factor for all three languages and release our SVD monitoring toolkit for reproducible spectral analysis of LoRA training dynamics.
 \end{abstract}
@@ -304,7 +305,7 @@ The effective rank tells a complementary story: for the $r{=}64$ configuration, 
 \subsection{Frobenius Norm: The Missing Diagnostic}
 \label{sec:frobenius}
 
-If spectral energy fails as a diagnostic, what metric does reliably predict functional degradation? We find that the \textbf{Frobenius norm growth ratio} of the $\texttt{lora\_B}$ matrices provides a clear separation between healthy and pathological training regimes.
+If spectral energy fails as a diagnostic, what metric reliably predicts functional degradation? We find that the \textbf{Frobenius norm growth ratio} of the $\texttt{lora\_B}$ matrices provides a clear separation between healthy and pathological training regimes.
 
 \begin{table}[t]
 \centering
@@ -334,7 +335,7 @@ Diverged $r{=}64$ & --- & --- & explodes \\
     \label{fig:frobenius}
 \end{figure}
 
-The Frobenius norm growth ratio correlates strongly with cross-lingual PPL degradation (\Cref{fig:frobnorm_scatter}). This relationship is intuitive: the Frobenius norm is a \emph{scale-aware} metric that captures the total magnitude of weight updates. Large weight perturbations are more likely to disrupt the pretrained model's representations, leading to catastrophic forgetting. Unlike SE, which normalizes out scale information, $\|B\|_F$ directly reflects how far the adapter has moved from its initialization.
+\Cref{fig:frobnorm_scatter} visualizes the relationship between Frobenius norm growth and cross-lingual PPL degradation. Within the Turkic experiments, the pattern is monotonically consistent: higher norm growth is associated with worse cross-lingual forgetting ($\rho_s = 0.26$, $n{=}6$, not statistically significant due to small sample size). The EN control, however, is a clear outlier (33$\times$ growth with minimal forgetting), confirming that norm growth is a necessary but not sufficient condition for catastrophic forgetting. The Frobenius norm is a \emph{scale-aware} metric that captures the total magnitude of weight updates, but the \emph{direction} of those updates---whether they reinforce or disrupt pretrained representations---determines their downstream impact.
 
 \begin{figure}[t]
     \centering
@@ -421,14 +422,14 @@ The Frobenius norm, $\|W\|_F = \sqrt{\sum_i \sigma_i^2}$, naturally captures the
 Our experiments suggest the following practical thresholds for $\|B\|_F$ growth monitoring:
 \begin{itemize}
     \item $< 2\times$: \textbf{Healthy} training; minimal forgetting (e.g., transfer setup: 1.13$\times$).
-    \item $2$--$10\times$: \textbf{Normal} training; moderate forgetting expected (e.g., baseline: $\sim$8$\times$).
+    \item $2$--$10\times$: \textbf{Normal} training; moderate forgetting expected (e.g., KY baseline: 8.36$\times$).
     \item $> 10\times$: \textbf{Warning}; significant forgetting likely (e.g., $r{=}64$: 15--38$\times$).
     \item Unbounded growth: \textbf{Training failure}; divergence imminent (e.g., E7).
 \end{itemize}
 
 We emphasize that these thresholds refer to \emph{relative growth} (ratio of final to initial Frobenius norm) rather than absolute values. Absolute norms depend on the initialization scheme: standard LoRA (zeros for $B$, Kaiming for $A$), PiSSA \cite{meng2024pissa}, or transfer initialization all produce different baseline magnitudes. The relative growth ratio normalizes this dependency, making it a more portable diagnostic.
 
-\textbf{Important caveat from the EN control:} These thresholds apply specifically to \emph{underrepresented} languages. The EN control experiment shows 33$\times$ norm growth with minimal forgetting, demonstrating that for well-represented languages, the pretrained model can absorb large weight perturbations without catastrophic interference. We therefore recommend these thresholds as guidelines for low-resource language adaptation specifically, where the model must restructure underrepresented regions of the weight space.
+\textbf{Important caveats:} These thresholds have limited discriminative power in practice. The KZ baseline (E1, 38.5$\times$) and EN control (E8, 33.4$\times$) both exceed the $>10\times$ warning threshold without functional collapse, while the KY baseline (E3, 8.36$\times$) falls within the ``normal'' range yet shows significant cross-lingual forgetting. The $>10\times$ threshold is therefore most informative for detecting the extreme $r{=}64$ regime; moderate growth (8--40$\times$) in $r{=}16$ configurations appears to reflect normal LoRA adaptation for low-resource languages. Additionally, the EN control demonstrates that for well-represented languages, the pretrained model absorbs large weight perturbations without catastrophic interference. We recommend these thresholds as coarse guidelines rather than precise decision boundaries.
 
 \subsection{Role of Subword Fragmentation}
 
@@ -446,7 +447,7 @@ Based on our findings, we offer the following recommendations for practitioners 
 
 \begin{enumerate}
     \item \textbf{Monitor Frobenius norm growth}, not spectral energy. Set warning thresholds at $5\times$ growth and stopping thresholds at $10\times$ growth of $\|B\|_F$.
-    \item \textbf{Prefer lower ranks} ($r{=}16$) for small corpora ($\sim$150~MB). Higher ranks ($r{=}64$) lead to functional collapse in our setting, even when standard spectral metrics appear healthy.
+    \item \textbf{Avoid aggressive rank--LR combinations} for small corpora ($\sim$150~MB). The combination of $r{=}64$ with $\text{lr} \geq 5 \times 10^{-4}$ leads to functional collapse in our setting, even when standard spectral metrics appear healthy. Note that E5 confounds rank and learning rate; a controlled $r{=}64$, $\text{lr}{=}2 \times 10^{-4}$ experiment would be needed to isolate the rank effect.
     \item \textbf{Use related-language transfer} when available. Initializing from a related-language checkpoint provides better weight initialization and substantially improves downstream task performance with minimal additional Frobenius norm growth.
     \item \textbf{Apply cross-lingual perplexity monitoring} as a forgetting diagnostic. Target-language PPL alone is insufficient; catastrophic forgetting manifests primarily in non-target languages.
     \item \textbf{Consider early stopping by cross-lingual PPL}, not training loss. Extended training may improve target-language metrics while severely degrading multilingual capability.
@@ -457,7 +458,7 @@ Based on our findings, we offer the following recommendations for practitioners 
 % ============================================================================
 \section{Limitations}
 
-Our study has several important limitations. First, all experiments use a single base model (Gemma-2-9B); results may differ for other architectures such as Llama~3 or Mistral, particularly regarding the relationship between rank, norm growth, and functional collapse. Second, while our English control experiment (E8) uses a matched corpus size ($\sim$150~MB), differences in data distribution (Wikipedia vs.\ mixed sources) and tokenizer coverage may partially confound the comparison. Third, NER evaluation relies on few-shot prompting rather than a fine-tuned NER model, introducing noise from instruction-following variation; the complete NER failure for $r{=}64$ (100/100 parse failures) may partially reflect loss of instruction-following capability rather than loss of named entity knowledge per se. Fourth, we examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language), limiting the generalizability of our cross-lingual transfer findings. Fifth, the fixed corpus size of approximately 150~MB per language precludes scaling analyses that might reveal different dynamics at larger data volumes. Sixth, our SVD monitoring focuses on $\texttt{lora\_B}$ matrices; $\texttt{lora\_A}$ dynamics may reveal complementary patterns. Seventh, 4-bit quantization introduces approximation errors that may influence spectral properties in ways not captured by our analysis. Finally, our Frobenius norm thresholds are derived from a single experimental setting and should be treated as preliminary guidelines pending validation across diverse models and languages.
+Our study has several important limitations. First, all experiments use a single base model (Gemma-2-9B); results may differ for other architectures such as Llama~3 or Mistral, particularly regarding the relationship between rank, norm growth, and functional collapse. Second, while our English control experiment (E8) uses a matched corpus size ($\sim$150~MB), differences in data distribution (Wikipedia vs.\ mixed sources) and tokenizer coverage may partially confound the comparison. Third, NER evaluation relies on few-shot prompting rather than a fine-tuned NER model, introducing noise from instruction-following variation; the complete NER failure for $r{=}64$ (100/100 parse failures) may partially reflect loss of instruction-following capability rather than loss of named entity knowledge per se. Fourth, we examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language), limiting the generalizability of our cross-lingual transfer findings. Fifth, the fixed corpus size of approximately 150~MB per language precludes scaling analyses that might reveal different dynamics at larger data volumes. Sixth, our SVD monitoring focuses on $\texttt{lora\_B}$ matrices; $\texttt{lora\_A}$ dynamics may reveal complementary patterns. Seventh, 4-bit quantization introduces approximation errors that may influence spectral properties in ways not captured by our analysis. Eighth, experiment E5 ($r{=}64$) simultaneously increases both rank and learning rate relative to the $r{=}16$ baselines ($5 \times 10^{-4}$ vs.\ $2 \times 10^{-4}$), confounding the two factors; a controlled $r{=}64$, $\text{lr}{=}2 \times 10^{-4}$ experiment would be needed to isolate the contribution of rank alone. Finally, our Frobenius norm thresholds are derived from a single experimental setting and should be treated as preliminary guidelines pending validation across diverse models and languages.
 
 % ============================================================================
 % 7. CONCLUSION
@@ -601,13 +602,13 @@ To illustrate the nature of functional collapse at $r{=}64$, we present raw mode
 
 \textbf{NER prompt:} \texttt{Extract named entities from the text. Format each as: ENTITY ||| TYPE}
 
-\texttt{Text: Бишкекте Кыргыз Республикасынын Президенти Садыр Жапаров менен Казакстандын Президенти Касым-Жомарт Токаев жолукту.}
+\textbf{Input:} {\cyrfont\textit{Бишкекте Кыргыз Республикасынын Президенти Садыр Жапаров менен Казакстандын Президенти Касым-Жомарт Токаев жолукту.}}
 
-\textbf{$r{=}64$ output:} \texttt{Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон...} (repeats indefinitely)
+\textbf{$r{=}64$ output:} {\cyrfont\textit{Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон\ldots}} (repeats indefinitely)
 
-\textbf{Text continuation prompt:} \texttt{Кыргызстан --- это}
+\textbf{Text continuation prompt:} {\cyrfont\textit{Кыргызстан --- это}}
 
-\textbf{$r{=}64$ output:} \texttt{не только, не только, не только, не только, не только...} (single bigram repeated 25+ times until max tokens)
+\textbf{$r{=}64$ output:} {\cyrfont\textit{не только, не только, не только, не только, не только\ldots}} (single bigram repeated 25+ times until max tokens)
 
 Both examples demonstrate that the model has lost instruction-following capability entirely. Rather than extracting entities or generating coherent text, it produces degenerate repetitions---a hallmark of functional collapse distinct from spectral collapse.
 
