@@ -268,12 +268,12 @@ Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm 
 
 \Cref{fig:cross_ppl} visualizes these patterns as a heatmap.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig4_cross_ppl.png}
+    \includegraphics[width=0.75\textwidth]{../figures/fig4_cross_ppl.png}
     \caption{Cross-lingual perplexity heatmap. Darker cells indicate higher perplexity (more forgetting). The $r{=}64$ row is clearly pathological, while the KZ$\rightarrow$KY transfer row shows the most balanced profile.}
     \label{fig:cross_ppl}
-\end{figure}
+\end{figure*}
 
 \subsection{Spectral Dynamics: Challenging H1}
 \label{sec:spectral}
@@ -328,21 +328,21 @@ Diverged $r{=}64$ & --- & --- & explodes \\
 
 \Cref{tab:frobenius} and \Cref{fig:frobenius} reveal a nuanced picture. The KZ$\rightarrow$KY transfer exhibits only $+13\%$ Frobenius norm growth, while the KY baseline shows $\sim$8$\times$ growth and the pathological $r{=}64$ configuration shows 15--38$\times$ growth. However, the EN control experiment complicates this gradient: despite $\sim$33$\times$ norm growth---comparable to the KZ baseline (38$\times$)---EN training causes minimal cross-lingual forgetting (KZ PPL 5.54 vs.\ 47.58 for KY baseline with only 8$\times$ growth). This reveals that Frobenius norm growth is a reliable diagnostic \emph{within} a language category (underrepresented vs.\ well-represented) but not \emph{across} categories: the same magnitude of weight perturbation has qualitatively different effects depending on how well the target language is represented in the pretrained model.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig6_frobenius_dynamics.png}
+    \includegraphics[width=\textwidth]{../figures/fig6_frobenius_dynamics.png}
     \caption{Frobenius norm dynamics of $\texttt{lora\_B}$ matrices during training. The $r{=}64$ configuration shows dramatically larger norm growth compared to $r{=}16$ baselines. The transfer experiment begins at the KZ baseline's final norm and shows minimal additional growth.}
     \label{fig:frobenius}
-\end{figure}
+\end{figure*}
 
 \Cref{fig:frobnorm_scatter} visualizes the relationship between Frobenius norm growth and cross-lingual PPL degradation. Within the Turkic experiments, the pattern is monotonically consistent: higher norm growth is associated with worse cross-lingual forgetting ($\rho_s = 0.26$, $n{=}6$, not statistically significant due to small sample size). The EN control, however, is a clear outlier (33$\times$ growth with minimal forgetting), confirming that norm growth is a necessary but not sufficient condition for catastrophic forgetting. The Frobenius norm is a \emph{scale-aware} metric that captures the total magnitude of weight updates, but the \emph{direction} of those updates---whether they reinforce or disrupt pretrained representations---determines their downstream impact.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig9_frobnorm_vs_ppl.png}
+    \includegraphics[width=0.75\textwidth]{../figures/fig9_frobnorm_vs_ppl.png}
     \caption{Frobenius norm growth ratio versus cross-lingual perplexity degradation. Larger norm growth is associated with more severe catastrophic forgetting, providing a practical early-stopping criterion.}
     \label{fig:frobnorm_scatter}
-\end{figure}
+\end{figure*}
 
 \subsection{Cross-Lingual Transfer}
 \label{sec:transfer}
@@ -375,19 +375,19 @@ The most dramatic improvement is in Kyrgyz NER F1: 0.253 versus 0.157, a relativ
 
 Interestingly, even Uzbek NER F1 improves slightly under transfer (0.348 vs.\ 0.326), suggesting some positive transfer to the third Turkic language. However, Uzbek PPL degrades substantially (124.19 vs.\ 56.85, a 2.2$\times$ increase). This asymmetry has practical implications: sequential transfer between closely related languages (Kazakh and Kyrgyz are both Kipchak-branch, Cyrillic-script) can \emph{harm} more distant relatives (Uzbek, Karluk-branch, historically Latin-script). The adapter, having been optimized first for Kazakh then for Kyrgyz, specializes its weight updates in the Kipchak direction, displacing representations useful for Uzbek. Practitioners considering chain-of-transfer strategies should therefore monitor not only source-target retention but also collateral damage to typologically distant languages.
 
-\textbf{H2 is partially confirmed:} cross-lingual transfer improves downstream task performance and retains source-language knowledge, but the mechanism appears to be \emph{better initialization} rather than \emph{slower degradation}. The transfer adapter begins with an already-trained weight configuration (Frobenius norm growth of only $+13\%$ compared to $8.36\times$ for baseline), requiring minimal additional adaptation to accommodate Kyrgyz data.
+\textbf{H2 is partially confirmed:} cross-lingual transfer improves downstream task performance and retains source-language knowledge, but the mechanism appears to be \emph{better initialization} rather than \emph{slower degradation}. The transfer adapter begins with an already-trained weight configuration (Frobenius norm growth of only $+13\%$ compared to $8.36\times$ for baseline), requiring minimal additional adaptation to accommodate Kyrgyz data. In effect, related-language pretraining acts as a \emph{spectral regularizer}: by providing a warm-start with already-structured singular value distributions, it constrains subsequent weight updates to a low-perturbation regime that preserves multilingual knowledge.
 
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
 
 The 10-epoch Kyrgyz experiment (E4) reveals a paradoxical pattern (\Cref{fig:overfit}): extended training \emph{improves} target-language perplexity (4.18 vs.\ 4.78 for the 3-epoch baseline) despite clear indicators of overfitting (final train loss 0.165 vs.\ 0.815 for the baseline, indicating severe memorization).
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig7_overfit_paradox.png}
+    \includegraphics[width=0.85\textwidth]{../figures/fig7_overfit_paradox.png}
     \caption{The overfit paradox: 10 epochs of Kyrgyz training (E4) yields better target-language PPL (4.18 vs.\ 4.78) despite increasing cross-lingual degradation. Train loss continues to decrease while cross-lingual PPL rises monotonically.}
     \label{fig:overfit}
-\end{figure}
+\end{figure*}
 
 However, this improvement comes at a steep cost in cross-lingual knowledge. Kazakh PPL nearly doubles (87.65 vs.\ 47.58), Uzbek PPL increases by 68\% (95.76 vs.\ 56.85), and TUMLU accuracy on Kazakh drops from 30.2\% to 27.8\%. The spectral profile remains healthy throughout all 10 epochs (SE $< 0.5$), further confirming that SE is not a reliable indicator of training pathology.
 
@@ -408,12 +408,12 @@ The fundamental limitation is that SE is a \emph{shape} metric, invariant to res
 
 \Cref{fig:singular_values} visualizes the singular value distributions for representative experiments, illustrating how the $r{=}64$ configuration develops a well-distributed but extremely large-magnitude spectrum that SE fails to flag.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig8_singular_values.png}
+    \includegraphics[width=\textwidth]{../figures/fig8_singular_values.png}
     \caption{Singular value distributions at the final checkpoint. The $r{=}64$ configuration (right) shows a well-distributed spectrum (low SE) with dramatically larger absolute magnitudes compared to the $r{=}16$ baseline (left), explaining why SE fails to detect pathological training.}
     \label{fig:singular_values}
-\end{figure}
+\end{figure*}
 
 \subsection{Frobenius Norm as a Scale-Aware Alternative}
 
@@ -540,12 +540,12 @@ E8 & EN Control & 1.821 & 2.017 & 7.51 & 12.7M & 1351 \\
 
 \textbf{E7 divergence analysis.} The diverged experiment ($r{=}64$, $\text{lr}{=}10^{-3}$) provides the most extreme datapoint. Training terminated at step 800 due to loss divergence. Even at this point, maximum SE was only 0.18---still far below the 0.7 threshold---while mean Frobenius norm had already reached 6.75 (19$\times$ growth in just 800 steps, compared to 15.6$\times$ over 4,885 steps for E5). The effective rank decrease (43.3 $\rightarrow$ 37.1) in the final 200 steps is the only instance of true rank contraction in our experiments, suggesting that SE-based collapse detection may only trigger \emph{after} the model has already diverged---too late for practical intervention. The Frobenius norm, by contrast, shows clear exponential growth from step 100 onward, providing a much earlier warning signal.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{../figures/fig5_effective_rank.png}
+    \includegraphics[width=\textwidth]{../figures/fig5_effective_rank.png}
     \caption{Effective rank dynamics during training. The $r{=}64$ configuration shows increasing effective rank despite functional degradation, further evidence that standard spectral metrics can be misleading.}
     \label{fig:effrank}
-\end{figure}
+\end{figure*}
 
 \section{Per-Type NER Results}
 \label{app:ner}

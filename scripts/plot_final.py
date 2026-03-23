@@ -51,9 +51,13 @@ COLORS = {
 }
 
 plt.rcParams.update({
-    "font.size": 11,
-    "axes.titlesize": 13,
-    "axes.labelsize": 12,
+    "font.size": 14,
+    "axes.titlesize": 16,
+    "axes.labelsize": 15,
+    "axes.titleweight": "bold",
+    "xtick.labelsize": 12,
+    "ytick.labelsize": 12,
+    "legend.fontsize": 12,
     "figure.dpi": 150,
     "savefig.dpi": 300,
     "savefig.bbox": "tight",
