@@ -164,8 +164,8 @@ def fig1_eval_summary():
 def fig2_svd_dynamics():
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Compare: KY baseline vs KY r=64 vs KZ→KY transfer
-    compare = ["KY baseline", "KY r=64", "KZ→KY transfer"]
+    # Compare: EN vs KY baseline vs KY r=64 vs KZ→KY transfer
+    compare = ["EN baseline", "KY baseline", "KY r=64", "KZ→KY transfer"]
 
     # --- Panel A: Mean SE over steps ---
     ax = axes[0]
@@ -234,7 +234,7 @@ def fig2_svd_dynamics():
 # Figure 3: Layer-wise SE Heatmap (final checkpoint)
 # ════════════════════════════════════════════════════════════════════
 def fig3_layer_heatmap():
-    compare = ["KY baseline", "KY 10ep", "KY r=64", "KZ→KY transfer", "KZ baseline"]
+    compare = ["EN baseline", "KY baseline", "KY 10ep", "KY r=64", "KZ→KY transfer", "KZ baseline"]
 
     # Collect final-step SE per layer for each experiment
     all_data = {}

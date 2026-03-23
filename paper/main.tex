@@ -592,4 +592,21 @@ KZ$\rightarrow$KY & 33.7\% & 31.7\% & 30.8\% \\
 \label{tab:tumlu_full}
 \end{table}
 
+\section{Functional Collapse: Raw Output Examples}
+\label{app:collapse_examples}
+
+To illustrate the nature of functional collapse at $r{=}64$, we present raw model outputs for two tasks. The model completely ignores instructions and exhibits degenerate repetition.
+
+\textbf{NER prompt:} \texttt{Extract named entities from the text. Format each as: ENTITY ||| TYPE}
+
+\texttt{Text: Бишкекте Кыргыз Республикасынын Президенти Садыр Жапаров менен Казакстандын Президенти Касым-Жомарт Токаев жолукту.}
+
+\textbf{$r{=}64$ output:} \texttt{Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон...} (repeats indefinitely)
+
+\textbf{Text continuation prompt:} \texttt{Кыргызстан --- это}
+
+\textbf{$r{=}64$ output:} \texttt{не только, не только, не только, не только, не только...} (single bigram repeated 25+ times until max tokens)
+
+Both examples demonstrate that the model has lost instruction-following capability entirely. Rather than extracting entities or generating coherent text, it produces degenerate repetitions---a hallmark of functional collapse distinct from spectral collapse.
+
 \end{document}
