@@ -99,7 +99,7 @@ We compile monolingual corpora of approximately 150~MB for each of the three tar
 
 \begin{itemize}
     \item \textbf{Kazakh (KZ):} 61,879 records sourced from Kazakh Wikipedia and the sozkz-corpus, totaling 14.1M tokens (151.5~MB).
-    \item \textbf{Kyrgyz (KY):} 17,360 records from a curated local corpus comprising literature, history, and encyclopedic texts, totaling 4.4M tokens (151.4~MB).
+    \item \textbf{Kyrgyz (KY):} 17,360 records from a curated local corpus comprising literature, history, and encyclopedic texts, totaling 4.4M tokens (151.4~MB).\footnote{Due to licensing restrictions on the source materials, the Kyrgyz corpus cannot be publicly redistributed. Corpus statistics and preprocessing details are provided in \Cref{app:configs}.}
     \item \textbf{Uzbek (UZ):} 21,242 records from uz-books, Uzbek Wikipedia, and FineWeb-2 with Cyrillic script filtering, totaling 5.4M tokens (152.6~MB).
 \end{itemize}
 
@@ -489,6 +489,13 @@ This work involves fine-tuning language models on text corpora from three Turkic
 \section*{Acknowledgments}
 
 We thank the creators of the Kazakh, Kyrgyz, and Uzbek corpora used in this study, as well as the developers of the TUMLU benchmark for providing standardized Turkic language evaluation resources. All experiments were conducted on personal hardware without external funding.
+
+% ============================================================================
+% REPRODUCIBILITY
+% ============================================================================
+\section*{Reproducibility Statement}
+
+All experimental code (training with SVD monitoring, evaluation, and plotting scripts), fine-tuned LoRA adapters for all eight experiments, SVD monitoring logs, and evaluation reports are publicly available at \url{https://github.com/Zarina33/Spectral-Collapse-Turkic} and \url{https://huggingface.co/Zarinaaa/spectral-collapse-turkic-adapters}. The released adapters enable full reproduction of the evaluation stage on WikiANN, TUMLU, and cross-lingual perplexity benchmarks without access to the training corpora.
 
 % ============================================================================
 % REFERENCES
