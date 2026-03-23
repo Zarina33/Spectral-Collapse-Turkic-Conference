@@ -28,7 +28,7 @@
 \begin{abstract}
 Spectral collapse---the concentration of adapter weight matrices into a single dominant singular direction---has been proposed as a diagnostic for LoRA training failure. We systematically test this hypothesis by fine-tuning Gemma-2-9B with LoRA on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) and an English control, across eight experimental configurations varying rank ($r \in \{16, 64\}$), learning rate ($2 \times 10^{-4}$, $5 \times 10^{-4}$, $1 \times 10^{-3}$), training duration (3--10 epochs), and cross-lingual transfer (Kazakh $\rightarrow$ Kyrgyz).
 
-We report three main findings. First, we \textbf{refute the spectral energy threshold hypothesis}: no experiment reaches $\text{SE} > 0.59$ (well below the proposed 0.7 threshold), yet configurations with $r=64$ suffer complete functional collapse (NER F1~$= 0$ across all languages, cross-lingual perplexity $> 600$). Spectral energy actually \emph{decreases} during training as effective rank grows. Second, we identify \textbf{Frobenius norm growth} as a more reliable indicator of functional degradation in our setting (Gemma-2-9B, 4-bit quantization): pathological configurations exhibit 15--38$\times$ norm growth versus only $+13\%$ for the best-performing transfer setup. Third, we demonstrate that \textbf{sequential Kazakh $\rightarrow$ Kyrgyz transfer} yields $+61\%$ NER F1 improvement (0.253 vs.\ 0.157) while retaining Kazakh knowledge (perplexity 23.5 vs.\ 47.6 for direct Kyrgyz training), suggesting that related-language transfer is an effective strategy for extremely low-resource Turkic varieties.
+We report three main findings. First, we \textbf{challenge the spectral energy threshold hypothesis}: no experiment reaches $\text{SE} > 0.59$ (well below the proposed 0.7 threshold), yet configurations with $r=64$ suffer complete functional collapse (NER F1~$= 0$ across all languages, cross-lingual perplexity $> 600$). Spectral energy actually \emph{decreases} during training as effective rank grows. Second, we identify \textbf{Frobenius norm growth} as a more reliable indicator of functional degradation in our setting (Gemma-2-9B, 4-bit quantization): pathological configurations exhibit 15--38$\times$ norm growth versus only $+13\%$ for the best-performing transfer setup. Third, we demonstrate that \textbf{sequential Kazakh $\rightarrow$ Kyrgyz transfer} yields $+61\%$ NER F1 improvement (0.253 vs.\ 0.157) while retaining Kazakh knowledge (perplexity 23.5 vs.\ 47.6 for direct Kyrgyz training), suggesting that related-language transfer is an effective strategy for extremely low-resource Turkic varieties.
 
 We additionally characterize severe subword fragmentation (3.2$\times$ vs.\ English) as a compounding factor for all three languages and release our SVD monitoring toolkit for reproducible spectral analysis of LoRA training dynamics.
 \end{abstract}
@@ -55,7 +55,7 @@ In this work, we systematically investigate the spectral dynamics of LoRA adapte
 
 Our contributions are as follows:
 \begin{enumerate}
-    \item We \textbf{refute the SE threshold hypothesis} for low-resource LoRA fine-tuning: maximum SE never exceeds 0.59, yet functional collapse occurs through alternative mechanisms (Section~\ref{sec:spectral}).
+    \item We \textbf{challenge the SE threshold hypothesis} for low-resource LoRA fine-tuning: maximum SE never exceeds 0.59, yet functional collapse occurs through alternative mechanisms (Section~\ref{sec:spectral}).
     \item We propose \textbf{Frobenius norm growth ratio} as a scale-aware alternative diagnostic that reliably separates healthy from pathological training regimes (Section~\ref{sec:frobenius}).
     \item We demonstrate the \textbf{effectiveness of cross-lingual transfer} between related Turkic languages, achieving $+61\%$ NER F1 improvement with retained source-language knowledge (Section~\ref{sec:transfer}).
     \item We provide a quantitative \textbf{characterization of subword fragmentation} for Kyrgyz, Kazakh, and Uzbek (Section~\ref{sec:tokenization}).
@@ -233,6 +233,8 @@ E8 & EN Control & EN & 5.54$^*$ & 0.209 & 0.217 & 0.338 & 37.7\%$^\dagger$ & 36.
 
 The Kazakh baseline (E1) achieves the best target-language perplexity (2.73), likely reflecting both the larger effective token count (14.1M vs.\ 4.4--5.4M) and better representation in Gemma's pretraining data. The Uzbek baseline (E2) achieves the highest NER F1 on its own language (0.287), though its perplexity (4.03) is higher than Kazakh. The Kyrgyz baseline (E3) shows the weakest overall performance (PPL 4.78, NER F1 0.157), consistent with Kyrgyz being the least resourced of the three languages.
 
+We note apparent cross-lingual NER anomalies: the KZ baseline (E1) achieves higher NER F1 on Uzbek (0.578) than on Kazakh itself (0.164). Wilson confidence intervals at $n{=}100$ are wide (e.g., E6 KY NER: $0.253 \pm 0.085$, 95\% CI $[0.168, 0.339]$), and the E3 vs.\ E6 comparison ($0.157$ vs.\ $0.253$) shows overlapping intervals. We therefore interpret absolute NER F1 values as noisy point estimates and focus our analysis on: (1) the qualitative distinction between functional models ($\text{F1} > 0$) and collapsed ones ($\text{F1} = 0$, which is unambiguous), and (2) consistent directional patterns across multiple metrics (PPL, NER, TUMLU) rather than any single number.
+
 The most striking result is the behavior of the $r{=}64$ configuration (E5): despite achieving a target-language perplexity of only 5.90 (a modest 23\% increase over the baseline), it suffers \emph{complete} NER failure with F1~$= 0$ across all three languages, driven by 100\% parse failures. This indicates that the model has lost its instruction-following capability entirely, a form of functional collapse that perplexity alone fails to capture. We note that this NER failure may reflect loss of structured output formatting rather than loss of entity knowledge per se; however, the TUMLU evaluation, which uses log-likelihood scoring and does not require generation, corroborates the degradation: accuracy drops to 23.2\% (near the 25\% random baseline for 4-option multiple choice), confirming that the functional collapse extends beyond instruction-following to language understanding itself.
 
 \subsection{Cross-Lingual Degradation}
@@ -274,7 +276,7 @@ Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm 
     \label{fig:cross_ppl}
 \end{figure}
 
-\subsection{Spectral Dynamics: Refuting H1}
+\subsection{Spectral Dynamics: Challenging H1}
 \label{sec:spectral}
 
 Our central finding is that the spectral energy threshold of 0.7 proposed by \citet{biderman2024lora} is \textbf{never reached} in any of our experiments, including those exhibiting severe functional degradation. \Cref{fig:svd_dynamics} shows the evolution of mean and maximum SE across training steps for representative experiments.
@@ -299,7 +301,7 @@ The effective rank tells a complementary story: for the $r{=}64$ configuration, 
     \label{fig:layer_heatmap}
 \end{figure*}
 
-\textbf{H1 is therefore refuted:} spectral energy below the proposed threshold does \emph{not} guarantee healthy training, and SE can decrease during training that leads to functional collapse. The SE metric fundamentally measures the \emph{shape} of the singular value distribution while ignoring its \emph{scale}---a critical limitation when diagnosing pathological training regimes.
+\textbf{H1 is not supported in our setting:} spectral energy below the proposed threshold does \emph{not} guarantee healthy training, and SE can decrease during training that leads to functional collapse. We note that our experiments use 4-bit NF4 quantization, which may itself suppress singular value growth relative to the full-precision setting of \citet{biderman2024lora}; our findings therefore challenge the generality of the SE threshold rather than refuting it unconditionally. The SE metric fundamentally measures the \emph{shape} of the singular value distribution while ignoring its \emph{scale}---a critical limitation when diagnosing pathological training regimes in quantized, low-resource settings.
 
 \subsection{Frobenius Norm: The Missing Diagnostic}
 \label{sec:frobenius}
@@ -313,11 +315,11 @@ If spectral energy fails as a diagnostic, what metric does reliably predict func
 \toprule
 \textbf{Experiment} & $\|\mathbf{B}\|_F^{\text{init}}$ & $\|\mathbf{B}\|_F^{\text{final}}$ & \textbf{Growth} \\
 \midrule
-KZ$\rightarrow$KY Transfer & $\sim$1.7 & $\sim$1.9 & 1.13$\times$ \\
-KY Baseline $r{=}16$ & 0.22 & $\sim$1.7 & $\sim$8$\times$ \\
-EN Control $r{=}16$ & 0.09 & $\sim$3.1 & $\sim$33$\times$ \\
-KZ Baseline $r{=}16$ & 0.08 & $\sim$3.1 & $\sim$38$\times$ \\
-KY $r{=}64$ & 0.37--0.92 & 14--35 & 15--38$\times$ \\
+KZ$\rightarrow$KY Transfer & 3.043 & 3.436 & 1.13$\times$ \\
+KY Baseline $r{=}16$ & 0.227 & 1.899 & 8.36$\times$ \\
+EN Control $r{=}16$ & 0.092 & 3.076 & 33.4$\times$ \\
+KZ Baseline $r{=}16$ & 0.081 & 3.107 & 38.5$\times$ \\
+KY $r{=}64$ & 0.566 & 8.859 & 15.6$\times$ \\
 Diverged $r{=}64$ & --- & --- & explodes \\
 \bottomrule
 \end{tabular}
@@ -466,7 +468,7 @@ Our study has several important limitations. First, all experiments use a single
 
 We have presented a systematic study of the spectral dynamics of LoRA adapters during fine-tuning on three low-resource Turkic languages. Our experiments yield three principal findings.
 
-First, the spectral energy threshold hypothesis is \textbf{refuted} for our setting: no experiment exceeds SE of 0.59 (well below the proposed 0.7 threshold), yet configurations with $r{=}64$ suffer complete functional collapse (NER F1~$= 0$, cross-lingual PPL $> 600$). Spectral energy decreases during training as effective rank grows, rendering it an unreliable diagnostic for training pathology.
+First, the spectral energy threshold hypothesis is \textbf{not supported} in our setting: no experiment exceeds SE of 0.59 (well below the proposed 0.7 threshold), yet configurations with $r{=}64$ suffer complete functional collapse (NER F1~$= 0$, cross-lingual PPL $> 600$). Spectral energy decreases during training as effective rank grows, rendering it an unreliable diagnostic for training pathology.
 
 Second, \textbf{Frobenius norm growth ratio} is a useful but language-dependent diagnostic. Within underrepresented languages, it reliably separates healthy from pathological regimes (1.13$\times$ for transfer vs.\ 15--38$\times$ for $r{=}64$). However, our EN control reveals that well-represented languages can absorb comparable norm growth (33$\times$) with minimal forgetting, demonstrating that the \emph{directionality} of weight perturbations---not just their magnitude---determines forgetting severity.
 
