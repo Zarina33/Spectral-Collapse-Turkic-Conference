@@ -60,6 +60,8 @@ def parse_args():
     # Evaluation controls
     p.add_argument("--skip_ppl", action="store_true", help="Skip perplexity eval")
     p.add_argument("--skip_ner", action="store_true", help="Skip NER eval")
+    p.add_argument("--skip_ner_loglik", action="store_true",
+                   help="Skip log-likelihood span-typing NER eval")
     p.add_argument("--skip_tumlu", action="store_true", help="Skip TUMLU eval")
     p.add_argument("--ner_shots", type=int, default=3)
     p.add_argument("--ner_max_samples", type=int, default=100)
@@ -427,6 +429,103 @@ def evaluate_ner(model, tokenizer, languages=("ky", "kz", "uz"),
 
 
 # ════════════════════════════════════════════════════════════════════
+# 4b. NER via log-likelihood span typing (parse-failure immune)
+# ════════════════════════════════════════════════════════════════════
+NER_TYPE_LABELS = {
+    "PER": "person",
+    "ORG": "organization",
+    "LOC": "location",
+}
+
+
+def evaluate_ner_loglik(model, tokenizer, languages=("ky", "kz", "uz"),
+                        max_eval_samples: int = 100) -> dict:
+    """Log-likelihood based NER: classify gold entity spans by type.
+
+    For each gold span, score the continuation "person"/"organization"/"location"
+    under a uniform prompt and pick argmax. This decouples type knowledge from
+    the model's instruction-following / output-formatting ability, which is the
+    dominant failure mode for the r=64 configuration under generation-based NER.
+    """
+    import torch
+    print("\n" + "─" * 60)
+    print("  NER EVALUATION  (log-likelihood span typing)")
+    print("─" * 60)
+
+    WIKIANN_LANG_MAP = {"ky": "ky", "kz": "kk", "uz": "uz"}
+    results = {}
+
+    for lang in languages:
+        wikiann_lang = WIKIANN_LANG_MAP.get(lang, lang)
+        print(f"\n  [{lang}] Loading WikiANN ({wikiann_lang})...")
+        try:
+            ds = load_dataset("unimelb-nlp/wikiann", wikiann_lang)
+        except Exception as e:
+            print(f"  [{lang}] WikiANN ({wikiann_lang}) not available: {e}")
+            continue
+
+        test_split = ds.get("test")
+        if test_split is None or len(test_split) == 0:
+            continue
+
+        n_eval = min(max_eval_samples, len(test_split))
+        print(f"  [{lang}] Classifying spans from {n_eval} examples...")
+
+        per_type = {t: {"tp": 0, "fp": 0, "fn": 0} for t in NER_TYPE_LABELS}
+        total = 0
+        correct = 0
+
+        for idx in range(n_eval):
+            ex = test_split[idx]
+            gold_spans = wikiann_to_spans(ex["tokens"], ex["ner_tags"])
+            if not gold_spans:
+                continue
+
+            text = " ".join(ex["tokens"])
+            for gold_type, span_text in gold_spans:
+                context = (f"Text: {text}\n"
+                           f"The entity '{span_text}' is a")
+                scores = {}
+                for t, label in NER_TYPE_LABELS.items():
+                    scores[t] = compute_choice_loglikelihood(
+                        model, tokenizer, context, " " + label)
+                pred_type = max(scores, key=scores.get)
+
+                total += 1
+                if pred_type == gold_type:
+                    correct += 1
+                    per_type[gold_type]["tp"] += 1
+                else:
+                    per_type[gold_type]["fn"] += 1
+                    per_type[pred_type]["fp"] += 1
+
+        accuracy = correct / total if total > 0 else 0.0
+
+        per_type_results = {}
+        for t, c in per_type.items():
+            p = c["tp"] / (c["tp"] + c["fp"]) if (c["tp"] + c["fp"]) else 0
+            r = c["tp"] / (c["tp"] + c["fn"]) if (c["tp"] + c["fn"]) else 0
+            f = 2 * p * r / (p + r) if (p + r) else 0
+            per_type_results[t] = {"precision": round(p, 4),
+                                   "recall": round(r, 4), "f1": round(f, 4),
+                                   "support": c["tp"] + c["fn"]}
+
+        macro_f1 = sum(v["f1"] for v in per_type_results.values()) / 3.0
+
+        results[lang] = {
+            "method": "loglik_span_typing",
+            "type_accuracy": round(accuracy, 4),
+            "macro_f1": round(macro_f1, 4),
+            "n_spans": total,
+            "per_type": per_type_results,
+        }
+        print(f"  [{lang}] type_acc={accuracy:.3f}  macro_F1={macro_f1:.3f}  "
+              f"(n_spans={total})")
+
+    return results
+
+
+# ════════════════════════════════════════════════════════════════════
 # 5.  TUMLU QA Evaluation (log-likelihood multiple-choice)
 # ════════════════════════════════════════════════════════════════════
 TUMLU_LANG_MAP = {
@@ -576,13 +675,15 @@ def evaluate_tumlu(model, tokenizer,
 # ════════════════════════════════════════════════════════════════════
 def generate_report(ppl_results: dict, ner_results: dict,
                     tumlu_results: dict, adapter_path: str,
-                    output_dir: str) -> dict:
+                    output_dir: str,
+                    ner_loglik_results: dict = None) -> dict:
     """Generate JSON evaluation report and print summary table."""
     report = {
         "timestamp": datetime.now().isoformat(),
         "adapter_path": adapter_path,
         "perplexity": ppl_results,
         "ner_wikiann": ner_results,
+        "ner_loglik": ner_loglik_results or {},
         "tumlu_qa": tumlu_results,
     }
 
@@ -616,6 +717,16 @@ def generate_report(ppl_results: dict, ner_results: dict,
                 r = ner_results[lang]
                 print(f"  {lang:<8} {r['precision']:>8.1%} {r['recall']:>8.1%} "
                       f"{r['f1']:>8.1%} {r['n_evaluated']:>6}")
+
+    if ner_loglik_results:
+        print("\n  NER (log-likelihood span typing) — parse-failure immune:")
+        print(f"  {'Lang':<8} {'TypeAcc':>10} {'MacroF1':>10} {'N':>6}")
+        print("  " + "─" * 40)
+        for lang in ["ky", "kz", "uz"]:
+            if lang in ner_loglik_results:
+                r = ner_loglik_results[lang]
+                print(f"  {lang:<8} {r['type_accuracy']:>10.1%} "
+                      f"{r['macro_f1']:>10.3f} {r['n_spans']:>6}")
 
     if tumlu_results:
         print("\n  TUMLU QA — Accuracy:")
@@ -652,6 +763,7 @@ def main():
 
     ppl_results = {}
     ner_results = {}
+    ner_loglik_results = {}
     tumlu_results = {}
 
     # ── 1. Per-language perplexity ──
@@ -669,7 +781,7 @@ def main():
         except Exception as e:
             print(f"\n  [ERROR] PPL evaluation failed: {e}")
 
-    # ── 2. NER ──
+    # ── 2. NER (few-shot generation) ──
     if not args.skip_ner:
         try:
             ner_results = evaluate_ner(
@@ -680,6 +792,17 @@ def main():
             )
         except Exception as e:
             print(f"\n  [ERROR] NER evaluation failed: {e}")
+
+    # ── 2b. NER log-likelihood span typing ──
+    if not args.skip_ner_loglik:
+        try:
+            ner_loglik_results = evaluate_ner_loglik(
+                model, tokenizer,
+                languages=["ky", "kz", "uz"],
+                max_eval_samples=args.ner_max_samples,
+            )
+        except Exception as e:
+            print(f"\n  [ERROR] NER log-likelihood evaluation failed: {e}")
 
     # ── 3. TUMLU QA ──
     if not args.skip_tumlu:
@@ -694,7 +817,8 @@ def main():
 
     # ── Report ──
     generate_report(ppl_results, ner_results, tumlu_results,
-                    args.adapter_path, args.output_dir)
+                    args.adapter_path, args.output_dir,
+                    ner_loglik_results=ner_loglik_results)
 
     elapsed = time.time() - start_time
     print(f"\n  Total evaluation time: {elapsed/60:.1f} min")

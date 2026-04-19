@@ -1,0 +1,87 @@
+{
+  "timestamp": "2026-04-19T13:04:34.839618",
+  "adapter_path": "./output_ky_from_kz_r16_lr2e4_3ep/final_adapter",
+  "perplexity": {},
+  "ner_wikiann": {},
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.5946,
+      "macro_f1": 0.4921,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.4865,
+          "recall": 1.0,
+          "f1": 0.6545,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0.8108,
+          "recall": 0.8333,
+          "f1": 0.8219,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7321,
+      "macro_f1": 0.5586,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.6393,
+          "recall": 1.0,
+          "f1": 0.78,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0.8431,
+          "recall": 0.9556,
+          "f1": 0.8958,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.6602,
+      "macro_f1": 0.5166,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.5556,
+          "recall": 1.0,
+          "f1": 0.7143,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0.825,
+          "recall": 0.8462,
+          "f1": 0.8354,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {}
+}

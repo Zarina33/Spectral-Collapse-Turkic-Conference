@@ -1,0 +1,41 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+========================================================================
+  Post-Training Evaluation — Turkic LoRA
+========================================================================
+[INFO] Loading base model: google/gemma-2-9b
+[INFO] Loading adapter from: ./output_uz_baseline_r16_lr2e4_3ep/final_adapter
+Loading weights:   0%|          | 0/464 [00:00<?, ?it/s]Loading weights:   0%|          | 1/464 [00:01<14:01,  1.82s/it]Loading weights:   1%|          | 3/464 [00:01<03:58,  1.93it/s]Loading weights:   1%|          | 5/464 [00:02<02:14,  3.42it/s]Loading weights:   3%|▎         | 14/464 [00:02<00:37, 12.03it/s]Loading weights:   4%|▎         | 17/464 [00:02<00:34, 12.95it/s]Loading weights:   5%|▌         | 25/464 [00:02<00:21, 20.44it/s]Loading weights:   6%|▋         | 29/464 [00:02<00:20, 21.55it/s]Loading weights:   8%|▊         | 36/464 [00:02<00:15, 27.76it/s]Loading weights:   9%|▊         | 40/464 [00:03<00:15, 27.05it/s]Loading weights:  10%|█         | 47/464 [00:03<00:12, 32.64it/s]Loading weights:  11%|█         | 51/464 [00:03<00:13, 30.62it/s]Loading weights:  12%|█▎        | 58/464 [00:03<00:11, 35.18it/s]Loading weights:  13%|█▎        | 62/464 [00:03<00:12, 32.37it/s]Loading weights:  15%|█▍        | 69/464 [00:03<00:10, 37.61it/s]Loading weights:  16%|█▌        | 73/464 [00:03<00:11, 33.98it/s]Loading weights:  17%|█▋        | 80/464 [00:04<00:10, 37.80it/s]Loading weights:  18%|█▊        | 84/464 [00:04<00:11, 33.75it/s]Loading weights:  20%|█▉        | 91/464 [00:04<00:10, 36.46it/s]Loading weights:  20%|██        | 95/464 [00:04<00:10, 33.71it/s]Loading weights:  22%|██▏       | 102/464 [00:04<00:09, 37.66it/s]Loading weights:  23%|██▎       | 106/464 [00:04<00:10, 33.77it/s]Loading weights:  24%|██▍       | 113/464 [00:05<00:09, 38.50it/s]Loading weights:  25%|██▌       | 117/464 [00:05<00:09, 35.28it/s]Loading weights:  27%|██▋       | 124/464 [00:05<00:08, 39.85it/s]Loading weights:  28%|██▊       | 129/464 [00:05<00:08, 39.20it/s]Loading weights:  29%|██▉       | 135/464 [00:05<00:08, 40.58it/s]Loading weights:  30%|███       | 140/464 [00:05<00:08, 36.73it/s]Loading weights:  31%|███▏      | 146/464 [00:05<00:08, 37.74it/s]Loading weights:  32%|███▏      | 150/464 [00:06<00:09, 33.57it/s]Loading weights:  34%|███▍      | 157/464 [00:06<00:07, 38.79it/s]Loading weights:  35%|███▍      | 161/464 [00:06<00:08, 35.03it/s]Loading weights:  36%|███▌      | 168/464 [00:06<00:07, 40.14it/s]Loading weights:  37%|███▋      | 173/464 [00:06<00:07, 38.22it/s]Loading weights:  39%|███▊      | 179/464 [00:06<00:07, 39.46it/s]Loading weights:  40%|███▉      | 184/464 [00:07<00:08, 32.23it/s]Loading weights:  41%|████      | 190/464 [00:07<00:08, 33.35it/s]Loading weights:  42%|████▏     | 194/464 [00:07<00:08, 31.05it/s]Loading weights:  43%|████▎     | 201/464 [00:07<00:07, 35.56it/s]Loading weights:  44%|████▍     | 205/464 [00:07<00:07, 32.91it/s]Loading weights:  46%|████▌     | 212/464 [00:07<00:06, 37.91it/s]Loading weights:  47%|████▋     | 216/464 [00:08<00:08, 30.26it/s]Loading weights:  48%|████▊     | 221/464 [00:08<00:07, 33.72it/s]Loading weights:  48%|████▊     | 225/464 [00:08<00:09, 23.97it/s]Loading weights:  50%|█████     | 234/464 [00:08<00:07, 30.04it/s]Loading weights:  51%|█████▏    | 238/464 [00:08<00:08, 25.83it/s]Loading weights:  53%|█████▎    | 245/464 [00:09<00:07, 27.94it/s]Loading weights:  54%|█████▎    | 249/464 [00:09<00:09, 23.48it/s]Loading weights:  55%|█████▍    | 254/464 [00:09<00:07, 27.38it/s]Loading weights:  56%|█████▌    | 258/464 [00:09<00:09, 21.38it/s]Loading weights:  58%|█████▊    | 267/464 [00:09<00:06, 29.55it/s]Loading weights:  58%|█████▊    | 271/464 [00:10<00:06, 28.46it/s]Loading weights:  60%|█████▉    | 278/464 [00:10<00:05, 32.44it/s]Loading weights:  61%|██████    | 282/464 [00:10<00:05, 31.26it/s]Loading weights:  62%|██████▏   | 289/464 [00:10<00:04, 36.83it/s]Loading weights:  63%|██████▎   | 293/464 [00:10<00:04, 34.48it/s]Loading weights:  65%|██████▍   | 300/464 [00:10<00:04, 39.54it/s]Loading weights:  66%|██████▌   | 305/464 [00:10<00:04, 38.68it/s]Loading weights:  67%|██████▋   | 311/464 [00:11<00:03, 40.08it/s]Loading weights:  68%|██████▊   | 316/464 [00:11<00:03, 39.18it/s]Loading weights:  69%|██████▉   | 322/464 [00:11<00:03, 40.04it/s]Loading weights:  70%|███████   | 327/464 [00:11<00:03, 37.82it/s]Loading weights:  72%|███████▏  | 333/464 [00:11<00:03, 39.75it/s]Loading weights:  73%|███████▎  | 338/464 [00:11<00:03, 39.23it/s]Loading weights:  74%|███████▍  | 344/464 [00:11<00:02, 40.19it/s]Loading weights:  75%|███████▌  | 349/464 [00:12<00:02, 39.52it/s]Loading weights:  77%|███████▋  | 355/464 [00:12<00:02, 40.07it/s]Loading weights:  78%|███████▊  | 360/464 [00:12<00:02, 38.65it/s]Loading weights:  79%|███████▉  | 366/464 [00:12<00:02, 39.98it/s]Loading weights:  80%|███████▉  | 371/464 [00:12<00:02, 39.14it/s]Loading weights:  81%|████████▏ | 377/464 [00:12<00:02, 40.45it/s]Loading weights:  82%|████████▏ | 382/464 [00:12<00:02, 36.69it/s]Loading weights:  84%|████████▎ | 388/464 [00:13<00:02, 35.87it/s]Loading weights:  84%|████████▍ | 392/464 [00:13<00:02, 31.25it/s]Loading weights:  86%|████████▌ | 399/464 [00:13<00:01, 34.21it/s]Loading weights:  87%|████████▋ | 403/464 [00:13<00:01, 32.49it/s]Loading weights:  88%|████████▊ | 410/464 [00:13<00:01, 34.42it/s]Loading weights:  89%|████████▉ | 414/464 [00:13<00:01, 31.55it/s]Loading weights:  91%|█████████ | 421/464 [00:14<00:01, 36.61it/s]Loading weights:  92%|█████████▏| 425/464 [00:14<00:01, 33.70it/s]Loading weights:  93%|█████████▎| 432/464 [00:14<00:00, 37.65it/s]Loading weights:  94%|█████████▍| 436/464 [00:14<00:00, 34.11it/s]Loading weights:  95%|█████████▌| 443/464 [00:14<00:00, 37.08it/s]Loading weights:  96%|█████████▋| 447/464 [00:14<00:00, 35.35it/s]Loading weights:  98%|█████████▊| 454/464 [00:14<00:00, 38.20it/s]Loading weights:  99%|█████████▊| 458/464 [00:15<00:00, 35.24it/s]Loading weights: 100%|██████████| 464/464 [00:15<00:00, 30.64it/s]
+[INFO] Parameters: 5,133,925,888 total, 0 trainable (0.00%)
+
+────────────────────────────────────────────────────────────
+  NER EVALUATION  (log-likelihood span typing)
+────────────────────────────────────────────────────────────
+
+  [ky] Loading WikiANN (ky)...
+  [ky] Classifying spans from 100 examples...
+  [ky] type_acc=0.550  macro_F1=0.454  (n_spans=111)
+
+  [kz] Loading WikiANN (kk)...
+  [kz] Classifying spans from 100 examples...
+  [kz] type_acc=0.714  macro_F1=0.548  (n_spans=112)
+
+  [uz] Loading WikiANN (uz)...
+  [uz] Classifying spans from 100 examples...
+  [uz] type_acc=0.650  macro_F1=0.512  (n_spans=103)
+
+========================================================================
+  EVALUATION REPORT
+========================================================================
+
+  NER (log-likelihood span typing) — parse-failure immune:
+  Lang        TypeAcc    MacroF1      N
+  ────────────────────────────────────────
+  ky            54.9%      0.454    111
+  kz            71.4%      0.548    112
+  uz            65.0%      0.512    103
+
+========================================================================
+  Full report saved → ./output_uz_baseline_r16_lr2e4_3ep/eval_loglik/eval_report.json
+========================================================================
+
+  Total evaluation time: 1.8 min
