@@ -89,6 +89,14 @@ def parse_args():
     p.add_argument("--ppl_max_eval_samples", type=int, default=200,
                     help="Max samples per language for PPL eval (default: 200)")
     p.add_argument("--bf16", action="store_true", default=True)
+    p.add_argument("--no_quantize", action="store_true", default=False,
+                    help="Disable 4-bit quantization (full BF16). "
+                         "Requires CPU offload on <24GB GPUs.")
+    p.add_argument("--gpu_max_memory", type=str, default="13GiB",
+                    help="Max GPU memory for auto device_map when --no_quantize "
+                         "(rest goes to CPU). Default 13GiB leaves headroom on 16GB.")
+    p.add_argument("--cpu_max_memory", type=str, default="100GiB",
+                    help="Max CPU RAM for offload when --no_quantize.")
     p.add_argument("--seed", type=int, default=42)
 
     # Resume from checkpoint
@@ -1000,7 +1008,9 @@ def save_config_dump(args, per_lang_stats, total_tokens, model, output_dir):
             "total_parameters": total_params,
             "trainable_parameters": trainable,
             "trainable_pct": round(100 * trainable / total_params, 4),
-            "quantization": "4-bit NF4 double-quant",
+            "quantization": ("none (BF16 + CPU offload)"
+                             if getattr(args, "no_quantize", False)
+                             else "4-bit NF4 double-quant"),
             "dtype": "bfloat16" if args.bf16 else "float16",
             "attn_implementation": "eager",
         },
@@ -1082,30 +1092,51 @@ def save_config_dump(args, per_lang_stats, total_tokens, model, output_dir):
 # 8.  Model Setup
 # ════════════════════════════════════════════════════════════════════
 def setup_model_and_tokenizer(args):
-    """Load quantized Gemma-2-9B and attach LoRA adapters."""
-    print(f"[INFO] Loading model: {args.model_name}")
-
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16 if args.bf16 else torch.float16,
-        bnb_4bit_use_double_quant=True,
-    )
-
+    """Load Gemma-2-9B (4-bit NF4 by default, or full BF16 with CPU offload
+    when --no_quantize) and attach LoRA adapters."""
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name,
-        quantization_config=bnb_config,
-        device_map="auto",
-        torch_dtype=torch.bfloat16 if args.bf16 else torch.float16,
-        attn_implementation="eager",
-    )
-
-    model = prepare_model_for_kbit_training(model)
+    if args.no_quantize:
+        # ── Full BF16 with CPU offload (C3 control experiment) ──
+        print(f"[INFO] Loading model (BF16, CPU offload): {args.model_name}")
+        print(f"[INFO] max_memory: GPU={args.gpu_max_memory}, "
+              f"CPU={args.cpu_max_memory}")
+        import os as _os
+        offload_dir = _os.path.join(args.output_dir, "offload")
+        _os.makedirs(offload_dir, exist_ok=True)
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_name,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            max_memory={0: args.gpu_max_memory, "cpu": args.cpu_max_memory},
+            offload_folder=offload_dir,
+            attn_implementation="eager",
+        )
+        # No k-bit prep needed; just enable gradient checkpointing and
+        # ensure inputs require grad for the LoRA wrapper to work.
+        model.gradient_checkpointing_enable()
+        if hasattr(model, "enable_input_require_grads"):
+            model.enable_input_require_grads()
+    else:
+        # ── Default: 4-bit NF4 quantization ──
+        print(f"[INFO] Loading model (4-bit NF4): {args.model_name}")
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16 if args.bf16 else torch.float16,
+            bnb_4bit_use_double_quant=True,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_name,
+            quantization_config=bnb_config,
+            device_map="auto",
+            torch_dtype=torch.bfloat16 if args.bf16 else torch.float16,
+            attn_implementation="eager",
+        )
+        model = prepare_model_for_kbit_training(model)
 
     if args.init_adapter:
         # ── Cross-lingual transfer: load pre-trained LoRA adapter ──

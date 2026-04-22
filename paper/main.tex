@@ -1,6 +1,6 @@
 % Functional Collapse Without a Spectral Signature: SVD Dynamics of LoRA
 % Adapters for Low-Resource Turkic Languages
-% Author: Zarina Uvalieva
+% Anonymous ARR Submission
 
 \documentclass[11pt]{article}
 \usepackage{acl}
@@ -99,7 +99,7 @@ We compile monolingual corpora of approximately 150~MB for each of the three tar
 \begin{itemize}
     \item \textbf{Kazakh (KZ):} 61,879 records sourced from Kazakh Wikipedia and the sozkz-corpus, totaling 14.1M tokens (151.5~MB).
     \item \textbf{Kyrgyz (KY):} 17,360 records from a curated local corpus comprising literature, history, and encyclopedic texts, totaling 4.4M tokens (151.4~MB).\footnote{Due to licensing restrictions on the source materials, the Kyrgyz corpus cannot be publicly redistributed. Corpus statistics and preprocessing details are provided in \Cref{app:configs}.}
-    \item \textbf{Uzbek (UZ):} 21,242 records from uz-books, Uzbek Wikipedia, and FineWeb-2 with Cyrillic script filtering, totaling 5.4M tokens (152.6~MB).
+    \item \textbf{Uzbek (UZ):} 21,242 records from uz-books, Uzbek Wikipedia, and FineWeb-2 with Cyrillic script filtering, totaling 5.4M tokens (152.6~MB). Note that our Uzbek corpus uses Cyrillic script, which reflects a subset of Uzbek digital content; results may not generalize to Latin-script Uzbek, which dominates contemporary formal writing.
 \end{itemize}
 
 Additionally, we compile an \textbf{English (EN)} control corpus of 52,268 records from English Wikipedia (155~MB, 12.7M tokens), matched in size to the Turkic corpora.
@@ -124,7 +124,7 @@ E3 & KY Baseline & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 E4 & KY Overfit & Kyrgyz & 16 & $2{\times}10^{-4}$ & 10 & 1.05\% & Random \\
 E5 & KY $r{=}64$ high-LR & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Random \\
 E5b & KY $r{=}64$ std-LR & Kyrgyz & 64 & $2{\times}10^{-4}$ & 5 & 4.08\% & Random \\
-E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ ckpt \\
+E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ checkpoint \\
 E7 & Diverged & KY$^\ddagger$ & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
 E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 \bottomrule
@@ -227,7 +227,7 @@ E5 & KY $r{=}64$ high-LR & KY & 5.90 & 0.000 & 0.000 & 0.000 & 23.2\% & 22.2\% \
 E5b & KY $r{=}64$ std-LR & KY & 4.55 & 0.146 & 0.129 & 0.217 & 33.2\% & 27.7\% \\
 E6 & KZ$\rightarrow$KY & KY & 4.73 & 0.253 & 0.130 & 0.348 & 33.7\% & 31.7\% \\
 \midrule
-E8 & EN Control & EN & 5.54$^*$ & 0.209 & 0.217 & 0.338 & 37.7\%$^\dagger$ & 36.3\% \\
+E8 & EN Control & EN & 5.54\textsuperscript{*} & 0.209 & 0.217 & 0.338 & 37.7\%\textsuperscript{\dag} & 36.3\% \\
 \bottomrule
 \end{tabular}
 \caption{Main evaluation results across all experiments. PPL is computed on the target language validation set. NER F1 is micro-averaged across entity types using 3-shot WikiANN evaluation (100 samples). TUMLU accuracy is reported for the target language and Kazakh (as a forgetting diagnostic). \textbf{E5 vs.\ E5b disentangles the rank--LR confound:} holding $r{=}64$ constant and reducing learning rate from $5{\times}10^{-4}$ (E5) to $2{\times}10^{-4}$ (E5b) prevents the NER parse failure, keeps TUMLU above random, and reduces target PPL from 5.90 to 4.55---identifying the aggressive learning rate, not the higher rank, as the cause of the complete functional collapse. $^*$EN Control PPL is reported on Kazakh (the most-resourced Turkic eval set). $^\dagger$EN Control TUMLU is reported on Kyrgyz.}
@@ -493,6 +493,8 @@ Our study has several important limitations, which we discuss here in decreasing
 
 \textbf{(L8) Post-hoc Frobenius observations.} The growth ranges in Section~\ref{sec:frobenius} are derived from the same experiments on which their interpretation is built; they are observations requiring held-out validation, not established thresholds, and we deliberately reframe them as such in Section~\ref{sec:frobenius}.
 
+\textbf{(L9) Uzbek script coverage.} Our Uzbek training and evaluation corpora are restricted to Cyrillic-script sources. Since Uzbekistan officially uses Latin script and most contemporary formal text is Latin-based, our Uzbek results should not be generalized to Latin-script data without a separate evaluation.
+
 % ============================================================================
 % 7. CONCLUSION
 % ============================================================================
@@ -515,7 +517,7 @@ These findings have immediate practical implications for the growing community o
 
 This work involves fine-tuning language models on text corpora from three Turkic languages and English. While we aim to improve NLP capabilities for underserved language communities, we acknowledge that language models can amplify biases present in training data. Our training corpora, drawn from Wikipedia, literary texts, and web sources, may contain cultural biases or factual inaccuracies.
 
-\textbf{Data availability:} The Kazakh and Uzbek corpora are compiled from publicly available sources (Wikipedia, open book collections). The Kyrgyz corpus is curated from licensed literary and encyclopedic sources and cannot be redistributed due to copyright restrictions. In the spirit of open science, we release all trained LoRA adapters, SVD monitoring logs, evaluation results, and full training code via GitHub and Hugging Face, enabling complete reproduction of the evaluation and analysis stages.
+\textbf{Data availability:} The Kazakh and Uzbek corpora are compiled from publicly available sources (Wikipedia, open book collections). The Kyrgyz corpus is curated from licensed literary and encyclopedic sources and cannot be redistributed due to copyright restrictions. In the spirit of open science, we release all experimental code, SVD monitoring logs, and evaluation results via an anonymous repository.\footnote{\url{https://anonymous.4open.science/r/Spectral-Collapse-Turkic-Conference-14D8}}. Trained LoRA adapters will be publicly released upon acceptance to preserve author anonymity during review.
 
 % ============================================================================
 % ACKNOWLEDGMENTS
@@ -529,7 +531,7 @@ We thank the creators of the Kazakh, Kyrgyz, and Uzbek corpora used in this stud
 % ============================================================================
 \section*{Reproducibility Statement}
 
-All experimental code (training with SVD monitoring, evaluation, and plotting scripts), fine-tuned LoRA adapters for all eight experiments, SVD monitoring logs, and evaluation reports are publicly available at \url{https://github.com/Zarina33/Spectral-Collapse-Turkic} and \url{https://huggingface.co/Zarinaaa/spectral-collapse-turkic-adapters}. The Kazakh, Uzbek, and English training corpora are derived from publicly available sources and can be reconstructed using the provided data preparation scripts. The Kyrgyz corpus cannot be redistributed due to licensing restrictions on its source materials; consequently, the KY training stage is not fully reproducible. However, the released KY adapters and SVD logs enable full reproduction of all evaluation and analysis stages.
+All experimental code (training with SVD monitoring, evaluation, and plotting scripts), SVD monitoring logs, and evaluation reports are publicly available at \url{https://anonymous.4open.science/r/Spectral-Collapse-Turkic-Conference-14D8}. Fine-tuned LoRA adapters for all eight experiments will be released on a public model hub upon acceptance to preserve author anonymity during review. The Kazakh, Uzbek, and English training corpora are derived from publicly available sources and can be reconstructed using the provided data preparation scripts. The Kyrgyz corpus cannot be redistributed due to licensing restrictions on its source materials; consequently, the KY training stage is not fully reproducible. However, the released KY adapters and SVD logs enable full reproduction of all evaluation and analysis stages.
 
 % ============================================================================
 % REFERENCES
