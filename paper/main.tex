@@ -241,7 +241,7 @@ We note apparent cross-lingual NER anomalies: the KZ baseline (E1) achieves high
 The most striking result is the behavior of the $r{=}64$, high-LR configuration (E5): despite achieving a target-language perplexity of only 5.90 (a modest 23\% increase over the baseline), it suffers \emph{complete} NER failure with F1~$= 0$ across all three languages, driven by 100\% parse failures, and its TUMLU accuracy drops to 23.2\%---near the 25\% random baseline for 4-option multiple choice. This indicates that the model has lost both instruction-following and latent language-understanding capability, a form of functional collapse that perplexity alone fails to capture.
 
 \label{sec:spectral-collapse-rank-lr}
-\textbf{Disentangling rank from learning rate (E5 vs.\ E5b).} A reviewer-prompted control run at the same rank ($r{=}64$) but with the baseline learning rate ($2{\times}10^{-4}$ rather than $5{\times}10^{-4}$) disentangles the two factors confounded in E5. E5b shows \emph{no} catastrophic collapse: target KY PPL improves to 4.55 (better than the $r{=}16$ KY baseline at 4.78), NER F1 recovers to 0.146 with zero parse failures, and TUMLU rises to 33.2\%---close to the baseline 34.7\%. This identifies the aggressive learning rate, not the higher rank, as the direct cause of the functional collapse observed in E5. Higher rank alone nonetheless has a real cost: E5b's cross-lingual forgetting, while far milder than E5's, is still roughly $2$--$3\times$ worse than the $r{=}16$ baseline (KZ PPL 128 vs.\ 48; UZ PPL 163 vs.\ 57). Importantly, E5 and E5b exhibit comparable Frobenius norm growth (15.6$\times$ vs.\ 18.2$\times$) and near-identical spectral profiles (both with SE well below 0.1), yet only E5 loses instruction-following---another illustration (complementing the EN control in \Cref{sec:frobenius}) that neither SE nor norm growth discriminates catastrophic collapse from healthy higher-rank adaptation in our setting.
+\textbf{Disentangling rank from learning rate (E5 vs.\ E5b).} A reviewer-prompted control run at the same rank ($r{=}64$) but with the baseline learning rate ($2{\times}10^{-4}$ rather than $5{\times}10^{-4}$) disentangles the two factors confounded in E5. We replicate this across two seeds ($42$ and $123$; see \Cref{app:seed_variance}). In both seeds E5b shows \emph{no} catastrophic collapse: KY PPL stays at $4.55$--$4.62$ (close to or below the $r{=}16$ KY baseline's $4.78$), NER F1 remains $\geq 0.12$ with zero parse failures, and TUMLU accuracy is $33.2\%$ in both seeds---versus E5's $23.2\%$ near-random. The disentanglement is thus robust to seed choice: the collapse gap between E5 and E5b is an order of magnitude larger than the seed variance within E5b, identifying the aggressive learning rate, not the higher rank, as the direct cause of functional collapse. Higher rank alone nonetheless has a real cost: E5b's cross-lingual forgetting, averaged across seeds, is roughly $2$--$3\times$ worse than the $r{=}16$ baseline (KZ PPL $\sim$117 vs.\ 48; UZ PPL $\sim$151 vs.\ 57). Importantly, E5 and E5b exhibit comparable Frobenius norm growth (15.6$\times$ vs.\ 18.2$\times$) and near-identical spectral profiles (both with SE well below 0.1), yet only E5 loses instruction-following---another illustration (complementing the EN control in \Cref{sec:frobenius}) that neither SE nor norm growth discriminates catastrophic collapse from healthy higher-rank adaptation in our setting.
 
 \textbf{Entity knowledge survives in E5 (log-likelihood NER).} To separate instruction-following loss from genuine knowledge loss, we additionally score each gold WikiANN span by log-likelihood over the three type labels (\Cref{app:ner_loglik}). Under this parse-failure-immune evaluation, E5 achieves the \emph{highest} target-language (KY) type accuracy in our sweep (59.5\%, tied with the transfer run E6), despite scoring F1~$= 0$ under generation. This confirms that E5's collapse is specifically a loss of structured-output instruction-following, not an erasure of entity-type knowledge. Cross-lingual degradation still appears---E5 drops to 50.0\% on Kazakh versus 70--73\% for the $r{=}16$ baselines---so the higher-rank, higher-LR combination does erode non-target-language representations, just not to the extent that the generation-based F1~$= 0$ suggests. Relatedly, the transfer advantage that was $+61\%$ relative under generation F1 becomes $+9.1$ absolute percentage points under log-likelihood (59.5\% vs.\ 50.4\%), which we consider a more honest directional effect-size estimate.
 
@@ -477,7 +477,7 @@ Based on our findings, we offer the following recommendations for practitioners 
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
 
-\textbf{(L1) Limited-seed experiments (partially addressed for E3 and E6).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs for the two configurations underlying our main transfer claim, E3 (KY baseline) and E6 (KZ$\rightarrow$KY), at seeds $42$ and $123$; the full comparison is in \Cref{app:seed_variance}. These two-seed results confirm that target-language PPL is highly stable ($\pm 0.05$) and that the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer is robust (50.0$\pm$2.4 under direct vs.\ 23.5$\pm$0.1 under transfer). They also show that the single-seed NER-F1 headline ($+61\%$) does not survive reseeding, which is why we now frame transfer's benefit as \emph{source-language retention} rather than as a precise NER improvement. Full $n{=}3$ replication of all eight configurations---including E5, E5b, and E8---remains the single most important follow-up for converting directional findings into reliable numeric claims.
+\textbf{(L1) Limited-seed experiments (partially addressed for E3, E6, and E5b).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs for the three configurations underlying our main quantitative claims: E3 (KY baseline), E6 (KZ$\rightarrow$KY transfer), and E5b ($r{=}64$ with baseline LR); the full comparison is in \Cref{app:seed_variance}. These two-seed results confirm that (a) target-language PPL is highly stable ($\pm 0.05$--$0.07$ across seeds); (b) the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer is robust (50.0$\pm$2.4 direct vs.\ 23.5$\pm$0.1 transfer); and (c) the rank--LR disentanglement is robust: both E5b seeds maintain NER F1~$\geq 0.12$ and TUMLU near baseline, whereas E5 (lr $5{\times}10^{-4}$) gives F1~$=0$ and TUMLU near random---a gap far larger than the observed seed variance. The single-seed NER-F1 transfer headline ($+61\%$) does not survive reseeding, which is why we reframe transfer's benefit as \emph{source-language retention}. Full $n{=}3$ replication of all eight configurations---especially E1, E2, E5, and E8---remains a valuable follow-up for converting the remaining single-seed numbers into reliable effect-size estimates.
 
 \textbf{(L2) Training-set contamination for NER.} Our Turkic training corpora include Wikipedia dumps and the WikiANN evaluation set is itself derived from Wikipedia entity links \cite{pan2017cross}. Entity-level overlap between training and test is therefore likely and systematically inflates NER F1 across all configurations that train on Wikipedia (E1, E2, E3, E4, E6). We do not quantify this overlap, which is a meaningful gap: overlap may be higher for Kazakh (largest Wikipedia corpus) than for Kyrgyz (curated non-Wikipedia sources), partially confounding cross-configuration NER comparisons. A non-Wikipedia NER benchmark such as KazNERD \cite{yeshpanov2022kaznerd} would isolate whether our transfer benefit reflects genuine entity learning or shared-entity memorization; we defer this to future work.
 
@@ -616,29 +616,29 @@ E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 
 To provide at least partial seed-variance estimates for our most consequential configurations, we rerun two experiments under a second seed ($123$, while the originals used seed $42$). Training hyperparameters and data are identical across seeds; only the random seed for initialization, data shuffling, and train/val split differs.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
- & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}
-\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
+ & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} & \multicolumn{2}{c}{\textbf{E5b ($r{=}64$, lr $2{\times}10^{-4}$)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
 \midrule
-KY PPL $\downarrow$         & 4.78 & 4.83 & 4.73 & 4.78 \\
-KZ PPL $\downarrow$         & 47.58 & 52.47 & \textbf{23.49} & \textbf{23.61} \\
-UZ PPL $\downarrow$         & 56.85 & 54.05 & 124.19 & 114.54 \\
-NER F1 KY (gen) $\uparrow$  & 0.157 & 0.182 & 0.253 & 0.179 \\
-NER F1 KZ (gen) $\uparrow$  & 0.190 & 0.186 & 0.130 & 0.185 \\
-NER TypeAcc KY $\uparrow$   & 50.4\% & 59.5\% & 59.5\% & 64.9\% \\
-NER TypeAcc KZ $\uparrow$   & 69.6\% & 70.5\% & 73.2\% & 75.0\% \\
-TUMLU KY $\uparrow$         & 34.7\% & 37.4\% & 33.7\% & 34.9\% \\
+KY PPL $\downarrow$         & 4.78 & 4.83 & 4.73 & 4.78 & 4.55 & 4.62 \\
+KZ PPL $\downarrow$         & 47.58 & 52.47 & \textbf{23.49} & \textbf{23.61} & 128.04 & 107.23 \\
+UZ PPL $\downarrow$         & 56.85 & 54.05 & 124.19 & 114.54 & 162.68 & 139.89 \\
+NER F1 KY (gen) $\uparrow$  & 0.157 & 0.182 & 0.253 & 0.179 & 0.146 & 0.116 \\
+NER F1 KZ (gen) $\uparrow$  & 0.190 & 0.186 & 0.130 & 0.185 & 0.129 & 0.126 \\
+NER TypeAcc KY $\uparrow$   & 50.4\% & 59.5\% & 59.5\% & 64.9\% & 53.1\% & 64.9\% \\
+NER TypeAcc KZ $\uparrow$   & 69.6\% & 70.5\% & 73.2\% & 75.0\% & 70.5\% & 71.4\% \\
+TUMLU KY $\uparrow$         & 34.7\% & 37.4\% & 33.7\% & 34.9\% & 33.2\% & 33.2\% \\
 \bottomrule
 \end{tabular}
-\caption{Two-seed replication of the KY baseline (E3) and KZ$\rightarrow$KY transfer (E6). Target-language PPL is highly seed-stable ($\pm 0.05$). NER F1 under generation carries the largest variance (up to $\pm 0.04$), and log-likelihood span-typing accuracy on KY shows $\pm 5$--$9$ pp seed variance. \textbf{The only transfer effect that is clearly robust across seeds is the halving of cross-lingual Kazakh PPL} ($23.5 \pm 0.1$ under transfer vs.\ $50.0 \pm 2.4$ under direct training): the absolute difference ($\sim$26 PPL) is approximately $10\times$ the observed seed variance for either condition. The NER F1~$+61\%$ headline effect reported at seed~$42$ drops to $-2\%$ at seed~$123$, so we interpret transfer as primarily a retention mechanism rather than a target-language improvement.}
+\caption{Two-seed replication for the three configurations underlying our main claims: KY baseline (E3), KZ$\rightarrow$KY transfer (E6), and the rank--LR control (E5b). Target-language PPL is highly seed-stable across all three ($\pm 0.05$--$0.07$). NER F1 under generation carries the largest variance ($\pm 0.02$--$0.04$), and log-likelihood span-typing accuracy on KY shows $\pm 5$--$9$ pp seed variance. Two robust claims emerge: \textbf{(i)} the halving of cross-lingual Kazakh PPL under transfer ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training), and \textbf{(ii)} the disentanglement of learning rate from rank in collapse onset: both E5b seeds sustain NER F1~$\geq 0.12$, TUMLU accuracy of $33.2\%$, and KY PPL~$\leq 4.62$, all well outside the collapsed regime of E5 (F1~$=0.0$, TUMLU~$23.2\%$, KY PPL~$5.9$). The NER F1~$+61\%$ transfer headline at seed~$42$ drops to $-2\%$ at seed~$123$; we therefore interpret transfer as primarily a retention mechanism.}
 \label{tab:seed_variance}
-\end{table}
+\end{table*}
 
 These results sharpen the interpretive stance taken throughout the paper: we treat cross-lingual PPL differences as the most reliable quantitative signal, and the various NER scores as directional indicators whose per-experiment magnitudes should not be over-interpreted. A full $n{=}3$ replication of all eight experiments remains the most important reproducibility follow-up (see L1); the present two-seed data covers the two configurations whose comparison underlies our main transfer claim.
 

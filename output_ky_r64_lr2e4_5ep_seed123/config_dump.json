@@ -1,5 +1,5 @@
 {
-  "experiment_date": "2026-04-21T16:39:42.613925",
+  "experiment_date": "2026-04-22T14:07:06.110143",
   "model": {
     "name": "google/gemma-2-9b",
     "total_parameters": 5295980032,
