@@ -1,0 +1,34 @@
+================================================================
+  WikiANN Test-Set Entity Overlap with Training Corpora
+================================================================
+
+[ky] Loading training corpus: ./data/pretrain/kyrgyz_raw.jsonl
+[ky]   85,949,249 characters
+[ky] Loading WikiANN test split (ky)...
+[ky]   total spans: 111, unique: 93
+
+[kz] Loading training corpus: ./data/pretrain/kazakh_raw.jsonl
+[kz]   86,977,371 characters
+[kz] Loading WikiANN test split (kk)...
+[kz]   total spans: 1,115, unique: 757
+
+[uz] Loading training corpus: ./data/pretrain/uzbek_final_cyrillic.jsonl
+[uz]   86,240,574 characters
+[uz] Loading WikiANN test split (uz)...
+[uz]   total spans: 1,011, unique: 602
+
+================================================================
+  Summary
+================================================================
+  Lang      Total   Unique     UniqOverlap    TotalOverlap
+  ky          111       93    52/93    ( 55.9%)     65/111   ( 58.6%)
+  kz        1,115      757   497/757   ( 65.7%)    776/1,115 ( 69.6%)
+  uz        1,011      602    13/602   (  2.2%)     14/1,011 (  1.4%)
+
+  Per-type unique overlap:
+  Lang              PER            ORG            LOC
+  ky        11/33 (33%)    17/30 (57%)    24/30 (80%)
+  kz      221/313 (71%)  170/276 (62%)  106/168 (63%)
+  uz          2/67 (3%)     8/202 (4%)     3/333 (1%)
+
+  Report saved → wikiann_overlap_report.json
