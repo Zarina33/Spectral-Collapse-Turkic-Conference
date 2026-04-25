@@ -1,0 +1,14 @@
+
+Evaluate E5b seed=123
+
+Add E5b seed=123 to seed-variance table
+
+Prepare train_svd.py modification for BF16 CPU offload
+
+Launch C3: BF16 KY baseline (30-48h)
+
+Evaluate C3 adapter
+
+Add C3 results to paper, address L4
+
+Final PDF recompile + git push → submission ready
