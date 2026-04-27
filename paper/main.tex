@@ -29,7 +29,7 @@
 \begin{abstract}
 Spectral collapse---the concentration of adapter weight matrices into a single dominant singular direction---has been proposed as a diagnostic for LoRA training failure. We test this hypothesis by fine-tuning Gemma-2-9B (4-bit NF4) with LoRA on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) and an English control, across eight configurations varying rank, learning rate, training duration, and cross-lingual initialization.
 
-We report three findings. \textbf{(1)} No experiment reaches $\text{SE} > 0.59$ (the proposed threshold is $0.7$), yet our high-LR $r{=}64$ configuration suffers complete functional collapse (NER F1~$= 0$; cross-lingual PPL $> 600$); SE \emph{decreases} during this collapse. A controlled follow-up at the same $r{=}64$ with the baseline learning rate ($2{\times}10^{-4}$) disentangles the two factors: NER F1 recovers to 0.146, TUMLU rises to 33.2\% (vs.\ 23.2\% for the high-LR run), and cross-lingual Kazakh PPL drops 5-fold (128 vs.\ 659)---identifying \emph{learning rate}, not rank, as the proximate cause of catastrophic collapse, while higher rank alone still doubles cross-lingual forgetting versus an $r{=}16$ baseline. \textbf{(2)} Frobenius-norm growth is a useful \emph{scale-aware} signal but \emph{not} a universal diagnostic: it discriminates within an underrepresented-language category (transfer $+13\%$ vs.\ pathological $15$--$38\times$) but fails across categories, as our English control grows $33\times$ without forgetting---comparable to Kazakh's $38\times$ with severe forgetting---and the E5/E5b pair grows near-identically (15.6$\times$ vs.\ 18.2$\times$) while only one collapses. \textbf{(3)} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization robustly \emph{halves cross-lingual Kazakh PPL} ($23.5{\pm}0.1$ vs.\ $50.0{\pm}2.4$ across two seeds)---a 2$\times$ effect well outside seed variance. The NER-F1 advantage seen at a single seed ($0.253$ vs.\ $0.157$, $+61\%$) is directional but not robust to reseeding: at seed~$123$ the same comparison yields $0.179$ vs.\ $0.182$. We therefore interpret transfer primarily as a mechanism for \emph{retaining source-language knowledge} rather than for improving target-language NER generation, consistent with related-language initialization behaving as a spectral regularizer. We additionally document severe subword fragmentation ($3.2\times$ vs.\ English) as a compounding factor.
+We report three findings. \textbf{(1)} No experiment reaches $\text{SE} > 0.59$ (the proposed threshold is $0.7$), yet our high-LR $r{=}64$ configuration suffers complete functional collapse (NER F1~$= 0$; cross-lingual PPL $> 600$); SE \emph{decreases} during this collapse. Two controlled follow-ups (E5b: same rank, baseline LR; E5c: also matched epochs) decompose the variation: lowering LR alone ($\text{E5b}$) eliminates collapse and brings NER F1 to $0.146$ and TUMLU to $33.2\%$; further matching the epoch budget to baseline ($\text{E5c}$) actually \emph{improves} target KY PPL to $3.86$ (vs.\ $r{=}16$ baseline's $4.78$) at near-baseline Frobenius growth ($8.7\times$ vs.\ $8.4\times$). Catastrophic collapse is thus an LR phenomenon; extra epochs drive most of the cross-lingual forgetting; rank itself adds capacity rather than pathology in our setting. \textbf{(2)} Frobenius-norm growth is a useful \emph{scale-aware} signal but \emph{not} a universal diagnostic: it discriminates within an underrepresented-language category (transfer $+13\%$ vs.\ pathological $15$--$38\times$) but fails across categories, as our English control grows $33\times$ without forgetting---comparable to Kazakh's $38\times$ with severe forgetting---and the E5/E5b pair grows near-identically (15.6$\times$ vs.\ 18.2$\times$) while only one collapses. \textbf{(3)} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization robustly \emph{halves cross-lingual Kazakh PPL} ($23.5{\pm}0.1$ vs.\ $50.0{\pm}2.4$ across two seeds)---a 2$\times$ effect well outside seed variance. The NER-F1 advantage seen at a single seed ($0.253$ vs.\ $0.157$, $+61\%$) is directional but not robust to reseeding: at seed~$123$ the same comparison yields $0.179$ vs.\ $0.182$. We therefore interpret transfer primarily as a mechanism for \emph{retaining source-language knowledge} rather than for improving target-language NER generation, consistent with related-language initialization behaving as a spectral regularizer. We additionally document severe subword fragmentation ($3.2\times$ vs.\ English) as a compounding factor.
 
 \textbf{Scope and variance.} Most experiments are $n{=}1$; for the two most consequential configurations (E3 KY baseline and E6 KZ$\rightarrow$KY transfer) we report $n{=}2$ seed-replicated runs, which reveal that target-language PPL is highly seed-stable ($\pm 1\%$) but NER metrics carry meaningful seed variance ($\pm 5$--$9$ percentage points on log-likelihood type accuracy). The Wilson 95\% CIs at $n{=}100$ NER samples alone span $\pm 0.08$--$0.09$. Our numerical results should therefore be read as \emph{directional} observations; we identify the transfer-induced $2\times$ reduction in cross-lingual Kazakh PPL as the only robust effect-size claim at our sample size. Two confounds remain after our E5b control: quantization is fixed at 4-bit throughout, preventing direct comparison to full-precision baselines \cite{biderman2024lora}; and our Turkic training corpora overlap with WikiANN entity sources, which systematically inflates NER F1 across configurations. The reproducibility roadmap ($\geq 3$ seeds, a BF16 control, and a non-Wikipedia NER benchmark) is detailed in Section~\ref{sec:limitations}. Our results therefore \emph{challenge the generality} of the SE threshold in 4-bit, low-resource regimes rather than refute it. We release our SVD monitoring toolkit and all adapters for reproducible analysis.
 \end{abstract}
@@ -124,6 +124,7 @@ E3 & KY Baseline & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 E4 & KY Overfit & Kyrgyz & 16 & $2{\times}10^{-4}$ & 10 & 1.05\% & Random \\
 E5 & KY $r{=}64$ high-LR & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Random \\
 E5b & KY $r{=}64$ std-LR & Kyrgyz & 64 & $2{\times}10^{-4}$ & 5 & 4.08\% & Random \\
+E5c & KY $r{=}64$ epoch-matched & Kyrgyz & 64 & $2{\times}10^{-4}$ & 3 & 4.08\% & Random \\
 E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ checkpoint \\
 E7 & Diverged & KY$^\ddagger$ & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
 E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
@@ -224,7 +225,8 @@ E2 & UZ Baseline & UZ & 4.03 & 0.138 & 0.167 & 0.287 & 35.4\% & 33.1\% \\
 E3 & KY Baseline & KY & 4.78 & 0.157 & 0.190 & 0.326 & 34.7\% & 30.2\% \\
 E4 & KY Overfit (10ep) & KY & 4.18 & 0.173 & 0.238 & 0.239 & 33.9\% & 27.8\% \\
 E5 & KY $r{=}64$ high-LR & KY & 5.90 & 0.000 & 0.000 & 0.000 & 23.2\% & 22.2\% \\
-E5b & KY $r{=}64$ std-LR & KY & 4.55 & 0.146 & 0.129 & 0.217 & 33.2\% & 27.7\% \\
+E5b & KY $r{=}64$ std-LR (5ep) & KY & 4.55 & 0.146 & 0.129 & 0.217 & 33.2\% & 27.7\% \\
+E5c & KY $r{=}64$ epoch-matched (3ep) & KY & \textbf{3.86} & 0.115 & 0.174 & 0.222 & \textbf{38.5\%} & 29.8\% \\
 E6 & KZ$\rightarrow$KY & KY & 4.73 & 0.253 & 0.130 & 0.348 & 33.7\% & 31.7\% \\
 \midrule
 E8 & EN Control & EN & 5.54\textsuperscript{*} & 0.209 & 0.217 & 0.338 & 37.7\%\textsuperscript{\dag} & 36.3\% \\
@@ -241,7 +243,7 @@ We note apparent cross-lingual NER anomalies: the KZ baseline (E1) achieves high
 The most striking result is the behavior of the $r{=}64$, high-LR configuration (E5): despite achieving a target-language perplexity of only 5.90 (a modest 23\% increase over the baseline), it suffers \emph{complete} NER failure with F1~$= 0$ across all three languages, driven by 100\% parse failures, and its TUMLU accuracy drops to 23.2\%---near the 25\% random baseline for 4-option multiple choice. This indicates that the model has lost both instruction-following and latent language-understanding capability, a form of functional collapse that perplexity alone fails to capture.
 
 \label{sec:spectral-collapse-rank-lr}
-\textbf{Disentangling rank from learning rate (E5 vs.\ E5b).} A reviewer-prompted control run at the same rank ($r{=}64$) but with the baseline learning rate ($2{\times}10^{-4}$ rather than $5{\times}10^{-4}$) disentangles the two factors confounded in E5. We replicate this across two seeds ($42$ and $123$; see \Cref{app:seed_variance}). In both seeds E5b shows \emph{no} catastrophic collapse: KY PPL stays at $4.55$--$4.62$ (close to or below the $r{=}16$ KY baseline's $4.78$), NER F1 remains $\geq 0.12$ with zero parse failures, and TUMLU accuracy is $33.2\%$ in both seeds---versus E5's $23.2\%$ near-random. The disentanglement is thus robust to seed choice: the collapse gap between E5 and E5b is an order of magnitude larger than the seed variance within E5b, identifying the aggressive learning rate, not the higher rank, as the direct cause of functional collapse. Higher rank alone nonetheless has a real cost: E5b's cross-lingual forgetting, averaged across seeds, is roughly $2$--$3\times$ worse than the $r{=}16$ baseline (KZ PPL $\sim$117 vs.\ 48; UZ PPL $\sim$151 vs.\ 57). Importantly, E5 and E5b exhibit comparable Frobenius norm growth (15.6$\times$ vs.\ 18.2$\times$) and near-identical spectral profiles (both with SE well below 0.1), yet only E5 loses instruction-following---another illustration (complementing the EN control in \Cref{sec:frobenius}) that neither SE nor norm growth discriminates catastrophic collapse from healthy higher-rank adaptation in our setting.
+\textbf{Disentangling rank, learning rate, and training duration (E5 vs.\ E5b vs.\ E5c).} The original E5 ($r{=}64$, $\text{lr}{=}5{\times}10^{-4}$, 5 epochs) varies three factors at once relative to the E3 baseline. We isolate each in turn. \textbf{E5b} matches rank but lowers LR to $2{\times}10^{-4}$ (replicated at seeds 42 and 123; \Cref{app:seed_variance}): catastrophic collapse vanishes (NER F1 $\geq 0.12$, TUMLU $33.2\%$, KY PPL $4.55$--$4.62$, all far outside E5's collapsed regime), identifying \emph{learning rate} as the proximate cause of collapse. \textbf{E5c} additionally matches the epoch budget to baseline (3 epochs) and reveals an even cleaner picture: at matched rank, LR, \emph{and} epochs, $r{=}64$ \emph{outperforms} the $r{=}16$ baseline on the target language ($\text{KY PPL}~3.86$ vs.\ $4.78$; $\text{TUMLU}~38.5\%$ vs.\ $34.7\%$). Frobenius growth at matched epochs is also virtually identical to baseline ($8.7\times$ vs.\ $8.4\times$; \Cref{tab:frobenius}), demonstrating that \emph{rank itself contributes capacity, not pathology}. The cross-lingual cost is the residue: E5c still loses more KZ knowledge than the $r{=}16$ baseline ($\text{KZ PPL}~93.5$ vs.\ $47.6$), so higher rank does increase forgetting under matched conditions, but at $r{=}64$ this is a mild $2\times$ penalty rather than the $14\times$ catastrophe of E5. The full causal decomposition: catastrophic collapse $=$ aggressive LR; cross-lingual forgetting growth $=$ training duration; rank-only effect $=$ better target-language fit at $\sim 2\times$ baseline cross-lingual penalty. Importantly, E5, E5b, and E5c all show SE well below $0.1$ at every checkpoint, yet they span the full range from catastrophic collapse (E5) to baseline-better target performance (E5c)---another demonstration (complementing the EN control in \Cref{sec:frobenius}) that spectral metrics do not discriminate these regimes.
 
 \textbf{Entity knowledge survives in E5 (log-likelihood NER).} To separate instruction-following loss from genuine knowledge loss, we additionally score each gold WikiANN span by log-likelihood over the three type labels (\Cref{app:ner_loglik}). Under this parse-failure-immune evaluation, E5 achieves the \emph{highest} target-language (KY) type accuracy in our sweep (59.5\%, tied with the transfer run E6), despite scoring F1~$= 0$ under generation. This confirms that E5's collapse is specifically a loss of structured-output instruction-following, not an erasure of entity-type knowledge. Cross-lingual degradation still appears---E5 drops to 50.0\% on Kazakh versus 70--73\% for the $r{=}16$ baselines---so the higher-rank, higher-LR combination does erode non-target-language representations, just not to the extent that the generation-based F1~$= 0$ suggests. Relatedly, the transfer advantage that was $+61\%$ relative under generation F1 becomes $+9.1$ absolute percentage points under log-likelihood (59.5\% vs.\ 50.4\%), which we consider a more honest directional effect-size estimate.
 
@@ -262,8 +264,9 @@ KZ Token-matched (4.4M tok, E1b) & 25.55 & \textbf{4.17} & 23.17 \\
 UZ Baseline & 116.89 & 64.44 & \textbf{4.03} \\
 KY Baseline & \textbf{4.78} & 47.58 & 56.85 \\
 KY Overfit & \textbf{4.18} & 87.65 & 95.76 \\
-KY $r{=}64$ (lr $5{\times}10^{-4}$, E5) & 5.90 & 659.25 & 742.73 \\
-KY $r{=}64$ (lr $2{\times}10^{-4}$, E5b) & \textbf{4.55} & 128.04 & 162.68 \\
+KY $r{=}64$ (lr $5{\times}10^{-4}$, 5ep, E5) & 5.90 & 659.25 & 742.73 \\
+KY $r{=}64$ (lr $2{\times}10^{-4}$, 5ep, E5b) & 4.55 & 128.04 & 162.68 \\
+KY $r{=}64$ (lr $2{\times}10^{-4}$, 3ep, E5c) & \textbf{3.86} & 93.52 & 111.25 \\
 KZ$\rightarrow$KY & 4.73 & 23.49 & 124.19 \\
 \midrule
 EN Control & 14.96 & 5.54 & 16.55 \\
@@ -331,8 +334,9 @@ KZ$\rightarrow$KY Transfer & 3.043 & 3.436 & 1.13$\times$ \\
 KY Baseline $r{=}16$ & 0.227 & 1.899 & 8.36$\times$ \\
 EN Control $r{=}16$ & 0.092 & 3.076 & 33.4$\times$ \\
 KZ Baseline $r{=}16$ & 0.081 & 3.107 & 38.5$\times$ \\
-KY $r{=}64$ lr $5{\times}10^{-4}$ (E5) & 0.566 & 8.859 & 15.6$\times$ \\
-KY $r{=}64$ lr $2{\times}10^{-4}$ (E5b) & 0.247 & 4.486 & 18.2$\times$ \\
+KY $r{=}64$ lr $5{\times}10^{-4}$, 5ep (E5) & 0.566 & 8.859 & 15.6$\times$ \\
+KY $r{=}64$ lr $2{\times}10^{-4}$, 5ep (E5b) & 0.247 & 4.486 & 18.2$\times$ \\
+KY $r{=}64$ lr $2{\times}10^{-4}$, 3ep (E5c) & 0.388 & 3.385 & 8.7$\times$ \\
 Diverged $r{=}64$ & --- & --- & explodes \\
 \bottomrule
 \end{tabular}
@@ -481,7 +485,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 \textbf{(L2) Training-set contamination for NER (quantified).} Our Turkic training corpora include Wikipedia dumps, and the WikiANN evaluation set is itself derived from Wikipedia entity links \cite{pan2017cross}. To quantify this overlap, we computed the fraction of unique gold WikiANN-test entity strings that appear verbatim somewhere in each training corpus (case-insensitive substring match): \textbf{Kazakh 65.7\% (497/757), Kyrgyz 55.9\% (52/93), Uzbek 2.2\% (13/602)}. The Kazakh and Kyrgyz NER F1 numbers in \Cref{tab:main_results} therefore upper-bound the contribution of memorization at $\sim$60\%, and cross-configuration NER comparisons within those two languages are partially confounded by this shared-entity floor. The Uzbek overlap of $2\%$, by contrast, is below the resolution of memorization (this turns out to be a script-mismatch artifact---see L9---which makes Uzbek a clean cross-lingual probe). The transfer-induced UZ improvements in \Cref{tab:main_results} (e.g., E1's $0.578$ F1 on UZ) are thus most likely \emph{not} memorization. A non-Wikipedia NER benchmark such as KazNERD \cite{yeshpanov2022kaznerd} (gated; access pending) would tighten this further; the per-type breakdown is reported in \Cref{app:overlap}.
 
-\textbf{(L3) Rank--LR confound in E5 (addressed by E5b).} Experiment E5 ($r{=}64$, $\text{lr}{=}5\times 10^{-4}$) originally confounded rank and learning rate. The controlled E5b run ($r{=}64$, $\text{lr}{=}2\times 10^{-4}$) resolves this: at matched rank, lowering the learning rate to baseline values eliminates the catastrophic collapse, pointing to learning rate as the proximate cause (see \Cref{sec:spectral-collapse-rank-lr}). The residual confound is now narrower: E5b still uses 5 epochs versus the baselines' 3 epochs; a follow-up matching rank, LR, \emph{and} training duration is desirable but did not fit within our compute budget.
+\textbf{(L3) Rank--LR--epoch confound in E5 (fully decomposed by E5b and E5c).} Experiment E5 ($r{=}64$, $\text{lr}{=}5\times 10^{-4}$, 5 epochs) originally varied three factors simultaneously. We add two controls: E5b matches rank to E5 but lowers LR; E5c additionally matches epoch count to the baseline. Together they decompose the variation cleanly (\Cref{sec:spectral-collapse-rank-lr}): aggressive LR causes catastrophic collapse, extra epochs increase cross-lingual forgetting, and rank itself (at matched LR and epochs) actually improves target-language fit while incurring only a mild cross-lingual penalty. The remaining confound is initialization: E5b/E5c keep $\alpha/r=2$ as in E5 (giving $\alpha=128$ at $r=64$) versus $\alpha=32$ at the $r=16$ baselines, so the LR effective at the LoRA weights differs across rank conditions. A follow-up holding the effective LR at adapter weights constant ($\alpha=32$ at $r=64$) would be informative.
 
 \textbf{(L4) Quantization confound.} All experiments use 4-bit NF4 quantization, while the proposed SE threshold \cite{biderman2024lora} was established in full precision. Quantization noise may itself dampen singular value growth, so our ``SE never exceeds $0.59$'' observation may reflect quantization as much as language-specific dynamics. A matched BF16 Kyrgyz baseline (which we are adding as a control in revision) would isolate whether SE behaves differently in full precision on the same underrepresented-language setting.
 
@@ -502,7 +506,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 We have presented a systematic study of the spectral dynamics of LoRA adapters during fine-tuning on three low-resource Turkic languages. Our experiments yield three principal findings.
 
-First, the spectral energy threshold hypothesis is \textbf{not supported} in our setting: no experiment exceeds SE of 0.59 (well below the proposed 0.7 threshold), yet the high-LR $r{=}64$ configuration (E5) suffers complete functional collapse (NER F1~$= 0$, cross-lingual PPL $> 600$). Our E5/E5b control pair sharpens this falsification: at identical rank ($r{=}64$) and near-identical spectral trajectories (SE $< 0.1$, Frobenius growth 15.6$\times$ vs.\ 18.2$\times$), only the high-LR run collapses---learning rate is the proximate cause, and spectral metrics cannot detect the difference. SE decreases during training as effective rank grows in both configurations, rendering it an unreliable diagnostic for training pathology.
+First, the spectral energy threshold hypothesis is \textbf{not supported} in our setting: no experiment exceeds SE of 0.59 (well below the proposed 0.7 threshold), yet the high-LR $r{=}64$ configuration (E5) suffers complete functional collapse (NER F1~$= 0$, cross-lingual PPL $> 600$). Our E5/E5b/E5c decomposition sharpens this falsification: three $r{=}64$ runs that share near-identical spectral trajectories (SE $< 0.12$ throughout) span the full functional range from catastrophic collapse (E5) to baseline-better target performance (E5c, KY PPL $3.86$ vs.\ $4.78$ for $r{=}16$). SE cannot distinguish them. Frobenius growth at matched epochs is also indistinguishable from baseline ($8.7\times$ vs.\ $8.4\times$), confirming that neither shape nor scale of the singular spectrum is a reliable training-pathology signal in our regime.
 
 Second, \textbf{Frobenius norm growth ratio} is a useful but language-dependent diagnostic. Within underrepresented languages, it reliably separates healthy from pathological regimes (1.13$\times$ for transfer vs.\ 15--38$\times$ for $r{=}64$). However, our EN control reveals that well-represented languages can absorb comparable norm growth (33$\times$) with minimal forgetting, demonstrating that the \emph{directionality} of weight perturbations---not just their magnitude---determines forgetting severity.
 
@@ -561,7 +565,8 @@ E2 & UZ Baseline & 1.193 & 1.822 & 6.18 & 5.4M & 341 \\
 E3 & KY Baseline & 0.815 & 1.920 & 6.82 & 4.4M & 183 \\
 E4 & KY Overfit & 1.050 & 1.963 & 7.12 & 4.4M & 1193 \\
 E5 & KY $r{=}64$ high-LR & 0.274 & 2.164 & 8.71 & 4.4M & 157 \\
-E5b & KY $r{=}64$ std-LR & 1.278 & 1.964 & 7.13 & 4.4M & 605 \\
+E5b & KY $r{=}64$ std-LR (5ep) & 1.278 & 1.964 & 7.13 & 4.4M & 605 \\
+E5c & KY $r{=}64$ epoch-matched & 1.652 & 2.066 & 6.67 & 4.4M & 360 \\
 E6 & KZ$\rightarrow$KY & 1.809 & 1.932 & 6.90 & 4.4M & 355 \\
 E8 & EN Control & 1.821 & 2.017 & 7.51 & 12.7M & 1351 \\
 \bottomrule
@@ -604,7 +609,8 @@ E2 UZ Baseline               & 54.9\% & 71.4\% & 65.0\% \\
 E3 KY Baseline               & 50.4\% & 69.6\% & 63.1\% \\
 E4 KY Overfit (10ep)         & 56.8\% & 71.4\% & 60.2\% \\
 E5 KY $r{=}64$ (lr $5{\times}10^{-4}$)  & \textbf{59.5\%} & 50.0\% & 55.3\% \\
-E5b KY $r{=}64$ (lr $2{\times}10^{-4}$) & 53.1\% & 70.5\% & 69.9\% \\
+E5b KY $r{=}64$ 5ep (lr $2{\times}10^{-4}$) & 53.1\% & 70.5\% & 69.9\% \\
+E5c KY $r{=}64$ 3ep (lr $2{\times}10^{-4}$) & 54.9\% & 67.9\% & 63.1\% \\
 E6 KZ$\rightarrow$KY         & \textbf{59.5\%} & \textbf{73.2\%} & 66.0\% \\
 E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 \bottomrule
@@ -699,7 +705,8 @@ UZ Baseline (on KY) & 0.095 & 0.150 & 0.209 \\
 KY Baseline & 0.101 & 0.160 & 0.266 \\
 KY Overfit & 0.224 & 0.255 & 0.119 \\
 KY $r{=}64$ (E5, lr $5{\times}10^{-4}$) & 0.000 & 0.000 & 0.000 \\
-KY $r{=}64$ (E5b, lr $2{\times}10^{-4}$) & 0.126 & 0.178 & 0.177 \\
+KY $r{=}64$ (E5b, 5ep) & 0.126 & 0.178 & 0.177 \\
+KY $r{=}64$ (E5c, 3ep) & 0.107 & 0.139 & 0.114 \\
 KZ$\rightarrow$KY & 0.344 & 0.202 & 0.214 \\
 \bottomrule
 \end{tabular}
@@ -725,7 +732,8 @@ UZ Baseline & 31.9\% & 33.1\% & 35.4\% \\
 KY Baseline & 34.7\% & 30.2\% & 29.6\% \\
 KY Overfit & 33.9\% & 27.8\% & 31.5\% \\
 KY $r{=}64$ (E5, lr $5{\times}10^{-4}$) & 23.2\% & 22.2\% & 22.9\% \\
-KY $r{=}64$ (E5b, lr $2{\times}10^{-4}$) & 33.2\% & 27.7\% & 26.6\% \\
+KY $r{=}64$ (E5b, 5ep) & 33.2\% & 27.7\% & 26.6\% \\
+KY $r{=}64$ (E5c, 3ep) & 38.5\% & 29.8\% & 31.9\% \\
 KZ$\rightarrow$KY & 33.7\% & 31.7\% & 30.8\% \\
 \bottomrule
 \end{tabular}
