@@ -31,7 +31,7 @@ Spectral collapse---the concentration of adapter weight matrices into a single d
 
 We report three findings. \textbf{(1)} No experiment reaches $\text{SE} > 0.59$ (the proposed threshold is $0.7$), yet our high-LR $r{=}64$ configuration suffers complete functional collapse (NER F1~$= 0$; cross-lingual PPL $> 600$); SE \emph{decreases} during this collapse. Two controlled follow-ups (E5b: same rank, baseline LR; E5c: also matched epochs) decompose the variation: lowering LR alone ($\text{E5b}$) eliminates collapse and brings NER F1 to $0.146$ and TUMLU to $33.2\%$; further matching the epoch budget to baseline ($\text{E5c}$) actually \emph{improves} target KY PPL to $3.86$ (vs.\ $r{=}16$ baseline's $4.78$) at near-baseline Frobenius growth ($8.7\times$ vs.\ $8.4\times$). Catastrophic collapse is thus an LR phenomenon; extra epochs drive most of the cross-lingual forgetting; rank itself adds capacity rather than pathology in our setting. \textbf{(2)} Frobenius-norm growth is a useful \emph{scale-aware} signal but \emph{not} a universal diagnostic: it discriminates within an underrepresented-language category (transfer $+13\%$ vs.\ pathological $15$--$38\times$) but fails across categories, as our English control grows $33\times$ without forgetting---comparable to Kazakh's $38\times$ with severe forgetting---and the E5/E5b pair grows near-identically (15.6$\times$ vs.\ 18.2$\times$) while only one collapses. \textbf{(3)} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization robustly \emph{halves cross-lingual Kazakh PPL} ($23.5{\pm}0.1$ vs.\ $50.0{\pm}2.4$ across two seeds)---a 2$\times$ effect well outside seed variance. The NER-F1 advantage seen at a single seed ($0.253$ vs.\ $0.157$, $+61\%$) is directional but not robust to reseeding: at seed~$123$ the same comparison yields $0.179$ vs.\ $0.182$. We therefore interpret transfer primarily as a mechanism for \emph{retaining source-language knowledge} rather than for improving target-language NER generation, consistent with related-language initialization behaving as a spectral regularizer. We additionally document severe subword fragmentation ($3.2\times$ vs.\ English) as a compounding factor.
 
-\textbf{Scope and variance.} Most experiments are $n{=}1$; for the two most consequential configurations (E3 KY baseline and E6 KZ$\rightarrow$KY transfer) we report $n{=}2$ seed-replicated runs, which reveal that target-language PPL is highly seed-stable ($\pm 1\%$) but NER metrics carry meaningful seed variance ($\pm 5$--$9$ percentage points on log-likelihood type accuracy). The Wilson 95\% CIs at $n{=}100$ NER samples alone span $\pm 0.08$--$0.09$. Our numerical results should therefore be read as \emph{directional} observations; we identify the transfer-induced $2\times$ reduction in cross-lingual Kazakh PPL as the only robust effect-size claim at our sample size. Two confounds remain after our E5b control: quantization is fixed at 4-bit throughout, preventing direct comparison to full-precision baselines \cite{biderman2024lora}; and our Turkic training corpora overlap with WikiANN entity sources, which systematically inflates NER F1 across configurations. The reproducibility roadmap ($\geq 3$ seeds, a BF16 control, and a non-Wikipedia NER benchmark) is detailed in Section~\ref{sec:limitations}. Our results therefore \emph{challenge the generality} of the SE threshold in 4-bit, low-resource regimes rather than refute it. We release our SVD monitoring toolkit and all adapters for reproducible analysis.
+\textbf{Scope and variance.} For the four configurations underlying our main quantitative claims (E3 KY baseline, E5 collapse, E5b rank--LR control, E6 KZ$\rightarrow$KY transfer) we report $n{=}2$ seed-replicated runs; the remaining configurations are $n{=}1$. Two-seed data show that target-language PPL is highly seed-stable ($\pm 1\%$) but NER metrics carry meaningful seed variance ($\pm 5$--$9$ pp on log-likelihood type accuracy). A dedicated full-precision BF16 control (C3, $n{=}1$, run on rented A100) replicates E3 and yields max SE $= 0.32$, Frobenius growth $8.6\times$, and downstream metrics within seed variance of the 4-bit baseline---resolving the quantization confound. Wikipedia--WikiANN entity-string overlap (KZ $66\%$, KY $56\%$, UZ $2\%$) is reported as an upper bound on memorization-driven NER F1 (L2). Our numerical results are therefore \emph{directional} observations except for two robust effect-size claims: the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer, and the disentanglement of catastrophic collapse from rank (an LR phenomenon). We release our SVD monitoring toolkit, all adapters, and the BF16 control bundle for reproducible analysis.
 \end{abstract}
 
 % ============================================================================
@@ -128,9 +128,10 @@ E5c & KY $r{=}64$ epoch-matched & Kyrgyz & 64 & $2{\times}10^{-4}$ & 3 & 4.08\% 
 E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ checkpoint \\
 E7 & Diverged & KY$^\ddagger$ & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
 E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
+C3 & KY BF16$^\ast$ control & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 0.58\% & Random \\
 \bottomrule
 \end{tabular}
-\caption{Summary of experimental configurations. All experiments use Gemma-2-9B with 4-bit quantization, $\alpha = 2r$, cosine LR schedule, and effective batch size 16. $^\ddagger$E7 was trained on Kyrgyz data but diverged at step 800 due to the aggressive learning rate; it is excluded from downstream evaluation but analyzed in \Cref{app:effrank}.}
+\caption{Summary of experimental configurations. All experiments except C3 use Gemma-2-9B with 4-bit NF4 quantization. C3 uses full bfloat16 precision (no quantization) and serves as the quantization control. All runs use $\alpha = 2r$, cosine LR schedule, and effective batch size 16. $^\ddagger$E7 was trained on Kyrgyz data but diverged at step 800 due to the aggressive learning rate; it is excluded from downstream evaluation but analyzed in \Cref{app:effrank}. $^\ast$C3 trainable\% reads $0.58\%$ rather than $1.05\%$ because PEFT's parameter count differs between BF16 and 4-bit base models; the LoRA configuration (rank, alpha, target modules) is identical to E3.}
 \label{tab:experiments}
 \end{table*}
 
@@ -230,6 +231,8 @@ E5c & KY $r{=}64$ epoch-matched (3ep) & KY & \textbf{3.86} & 0.115 & 0.174 & 0.2
 E6 & KZ$\rightarrow$KY & KY & 4.73 & 0.253 & 0.130 & 0.348 & 33.7\% & 31.7\% \\
 \midrule
 E8 & EN Control & EN & 5.54\textsuperscript{*} & 0.209 & 0.217 & 0.338 & 37.7\%\textsuperscript{\dag} & 36.3\% \\
+\midrule
+C3 & KY BF16 (no quant) & KY & 4.99 & 0.164 & 0.195 & 0.316 & 36.1\% & 30.7\% \\
 \bottomrule
 \end{tabular}
 \caption{Main evaluation results across all experiments. PPL is computed on the target language validation set. NER F1 is micro-averaged across entity types using 3-shot WikiANN evaluation (100 samples). TUMLU accuracy is reported for the target language and Kazakh (as a forgetting diagnostic). \textbf{E5 vs.\ E5b disentangles the rank--LR confound:} holding $r{=}64$ constant and reducing learning rate from $5{\times}10^{-4}$ (E5) to $2{\times}10^{-4}$ (E5b) prevents the NER parse failure, keeps TUMLU above random, and reduces target PPL from 5.90 to 4.55---identifying the aggressive learning rate, not the higher rank, as the cause of the complete functional collapse. $^*$EN Control PPL is reported on Kazakh (the most-resourced Turkic eval set). $^\dagger$EN Control TUMLU is reported on Kyrgyz.}
@@ -270,6 +273,7 @@ KY $r{=}64$ (lr $2{\times}10^{-4}$, 3ep, E5c) & \textbf{3.86} & 93.52 & 111.25 \
 KZ$\rightarrow$KY & 4.73 & 23.49 & 124.19 \\
 \midrule
 EN Control & 14.96 & 5.54 & 16.55 \\
+KY BF16 (C3, no quant) & \textbf{4.99} & 43.97 & 59.02 \\
 \bottomrule
 \end{tabular}
 \caption{Cross-lingual perplexity matrix. Each row is an adapter; each column is the evaluation language. Bold indicates target-language PPL. The high-LR $r{=}64$ configuration (E5) shows catastrophic cross-lingual degradation ($>600$ KZ~PPL), but the controlled-LR $r{=}64$ (E5b, $\text{lr}{=}2{\times}10^{-4}$) reduces this 5-fold to 128 while improving target KY~PPL to 4.55---isolating learning rate, not rank, as the driver of catastrophic collapse. Higher rank alone still roughly doubles cross-lingual forgetting versus the $r{=}16$ KY baseline (128 vs.\ 47 KZ~PPL). The EN control shows minimal Turkic forgetting despite comparable Frobenius norm growth (33$\times$).}
@@ -316,6 +320,8 @@ The effective rank tells a complementary story: for both $r{=}64$ configurations
     \label{fig:layer_heatmap}
 \end{figure*}
 
+\textbf{Quantization is not the cause (BF16 control, C3).} A reviewer-prompted concern was that 4-bit NF4 quantization might itself suppress spectral growth and account for the sub-threshold SE. We address this with a dedicated full-precision (bfloat16, no quantization) replication of the KY baseline (E3 setup, $r{=}16$, $\text{lr}{=}2{\times}10^{-4}$, 3 epochs) on a cloud A100. The result strengthens, rather than weakens, the SE finding: in BF16 the maximum SE reached during training is $0.32$ and the mean SE is $0.10$---both \emph{lower} than the 4-bit E3 ($\max\,0.59$). Frobenius norm growth at the same point is $8.6\times$ in BF16 versus $8.4\times$ in E3---indistinguishable. Cross-lingual perplexity, NER F1, log-likelihood span typing, and TUMLU accuracy are all within $\pm$1 standard deviation of the seed-level variance we observe for E3 across two seeds (\Cref{app:seed_variance,tab:bf16}). Quantization granularity therefore does not materially alter spectral or downstream behaviour in our setting; the SE-threshold falsification carries over from 4-bit to full precision.
+
 \textbf{H1 is not supported in our setting:} spectral energy below the proposed threshold does \emph{not} guarantee healthy training, and SE can decrease during training that leads to functional collapse. We note that our experiments use 4-bit NF4 quantization, which may itself suppress singular value growth relative to the full-precision setting of \citet{biderman2024lora}; our findings therefore challenge the generality of the SE threshold rather than refuting it unconditionally. The SE metric fundamentally measures the \emph{shape} of the singular value distribution while ignoring its \emph{scale}---a critical limitation when diagnosing pathological training regimes in quantized, low-resource settings.
 
 \subsection{Frobenius Norm: The Missing Diagnostic}
@@ -333,6 +339,7 @@ If spectral energy fails as a diagnostic, what metric reliably predicts function
 KZ$\rightarrow$KY Transfer & 3.043 & 3.436 & 1.13$\times$ \\
 KY Baseline $r{=}16$ & 0.227 & 1.899 & 8.36$\times$ \\
 EN Control $r{=}16$ & 0.092 & 3.076 & 33.4$\times$ \\
+KY BF16 $r{=}16$ (C3) & 0.218 & 1.880 & 8.6$\times$ \\
 KZ Baseline $r{=}16$ & 0.081 & 3.107 & 38.5$\times$ \\
 KY $r{=}64$ lr $5{\times}10^{-4}$, 5ep (E5) & 0.566 & 8.859 & 15.6$\times$ \\
 KY $r{=}64$ lr $2{\times}10^{-4}$, 5ep (E5b) & 0.247 & 4.486 & 18.2$\times$ \\
@@ -481,13 +488,13 @@ Based on our findings, we offer the following recommendations for practitioners 
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
 
-\textbf{(L1) Limited-seed experiments (partially addressed for E3, E6, and E5b).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs for the three configurations underlying our main quantitative claims: E3 (KY baseline), E6 (KZ$\rightarrow$KY transfer), and E5b ($r{=}64$ with baseline LR); the full comparison is in \Cref{app:seed_variance}. These two-seed results confirm that (a) target-language PPL is highly stable ($\pm 0.05$--$0.07$ across seeds); (b) the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer is robust (50.0$\pm$2.4 direct vs.\ 23.5$\pm$0.1 transfer); and (c) the rank--LR disentanglement is robust: both E5b seeds maintain NER F1~$\geq 0.12$ and TUMLU near baseline, whereas E5 (lr $5{\times}10^{-4}$) gives F1~$=0$ and TUMLU near random---a gap far larger than the observed seed variance. The single-seed NER-F1 transfer headline ($+61\%$) does not survive reseeding, which is why we reframe transfer's benefit as \emph{source-language retention}. Full $n{=}3$ replication of all eight configurations---especially E1, E2, E5, and E8---remains a valuable follow-up for converting the remaining single-seed numbers into reliable effect-size estimates.
+\textbf{(L1) Limited-seed experiments (partially addressed for E3, E5, E5b, and E6).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs for the four configurations underlying our main quantitative claims: E3 (KY baseline), E5 (catastrophic collapse), E5b (rank--LR control), and E6 (KZ$\rightarrow$KY transfer); the full comparison is in \Cref{app:seed_variance}. These two-seed results confirm that (a) target-language PPL is highly stable ($\pm 0.05$--$0.07$ across seeds); (b) the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer is robust ($50.0\pm 2.4$ direct vs.\ $23.5\pm 0.1$ transfer); (c) the rank--LR disentanglement is robust (E5b in both seeds maintains NER F1~$\geq 0.12$ and TUMLU near baseline, whereas E5 in both seeds gives F1~$=0$ and TUMLU near random); and (d) the E5 collapse itself is fully reproducible---both seeds yield NER F1~$=0$, TUMLU $\sim 23\%$, and Frobenius growth $15.55 \pm 0.05\times$. The single-seed NER-F1 transfer headline ($+61\%$) does not survive reseeding, which is why we reframe transfer's benefit as \emph{source-language retention}. Full $n{=}3$ replication of E1, E2, E5c, E8, and the BF16 control C3 remains a valuable follow-up for tightening their numeric claims.
 
 \textbf{(L2) Training-set contamination for NER (quantified).} Our Turkic training corpora include Wikipedia dumps, and the WikiANN evaluation set is itself derived from Wikipedia entity links \cite{pan2017cross}. To quantify this overlap, we computed the fraction of unique gold WikiANN-test entity strings that appear verbatim somewhere in each training corpus (case-insensitive substring match): \textbf{Kazakh 65.7\% (497/757), Kyrgyz 55.9\% (52/93), Uzbek 2.2\% (13/602)}. The Kazakh and Kyrgyz NER F1 numbers in \Cref{tab:main_results} therefore upper-bound the contribution of memorization at $\sim$60\%, and cross-configuration NER comparisons within those two languages are partially confounded by this shared-entity floor. The Uzbek overlap of $2\%$, by contrast, is below the resolution of memorization (this turns out to be a script-mismatch artifact---see L9---which makes Uzbek a clean cross-lingual probe). The transfer-induced UZ improvements in \Cref{tab:main_results} (e.g., E1's $0.578$ F1 on UZ) are thus most likely \emph{not} memorization. A non-Wikipedia NER benchmark such as KazNERD \cite{yeshpanov2022kaznerd} (gated; access pending) would tighten this further; the per-type breakdown is reported in \Cref{app:overlap}.
 
 \textbf{(L3) Rank--LR--epoch confound in E5 (fully decomposed by E5b and E5c).} Experiment E5 ($r{=}64$, $\text{lr}{=}5\times 10^{-4}$, 5 epochs) originally varied three factors simultaneously. We add two controls: E5b matches rank to E5 but lowers LR; E5c additionally matches epoch count to the baseline. Together they decompose the variation cleanly (\Cref{sec:spectral-collapse-rank-lr}): aggressive LR causes catastrophic collapse, extra epochs increase cross-lingual forgetting, and rank itself (at matched LR and epochs) actually improves target-language fit while incurring only a mild cross-lingual penalty. The remaining confound is initialization: E5b/E5c keep $\alpha/r=2$ as in E5 (giving $\alpha=128$ at $r=64$) versus $\alpha=32$ at the $r=16$ baselines, so the LR effective at the LoRA weights differs across rank conditions. A follow-up holding the effective LR at adapter weights constant ($\alpha=32$ at $r=64$) would be informative.
 
-\textbf{(L4) Quantization confound.} All experiments use 4-bit NF4 quantization, while the proposed SE threshold \cite{biderman2024lora} was established in full precision. Quantization noise may itself dampen singular value growth, so our ``SE never exceeds $0.59$'' observation may reflect quantization as much as language-specific dynamics. A matched BF16 Kyrgyz baseline (which we are adding as a control in revision) would isolate whether SE behaves differently in full precision on the same underrepresented-language setting.
+\textbf{(L4) Quantization confound (addressed by C3).} The original concern was that 4-bit NF4 quantization might suppress singular-value growth, making our sub-threshold SE observation an artefact of precision rather than language-specific dynamics. The C3 BF16 control (Kyrgyz, $r{=}16$, $\text{lr}{=}2\times 10^{-4}$, 3 epochs, identical to E3 except for full-precision base model) refutes this: in BF16 the maximum SE is $0.32$ and the mean SE is $0.10$---both \emph{lower} than 4-bit E3 (max $0.59$). Frobenius growth, KY PPL, NER F1, log-likelihood span typing, and TUMLU accuracy are all within seed-level variance of E3 (\Cref{app:bf16}). Quantization is therefore not the explanation for the SE-threshold falsification. The residual gap is that we ran C3 only at $n{=}1$ (cloud GPU cost); seed-level variance in BF16 is bounded above by its 4-bit counterpart in our analysis.
 
 \textbf{(L5) Corpus imbalance between Turkic languages (partially addressed by E1b).} We match corpora by raw byte size ($\sim$150~MB each), yet token counts differ substantially after tokenization (KZ: 14.1M, UZ: 5.4M, KY: 4.4M). To isolate tokenizer-coverage effects from raw-data-volume effects, we ran a token-matched control E1b: the Kazakh corpus truncated to $\sim$4.4M tokens to match the Kyrgyz training set. Result: target KZ PPL rises from $2.73$ (E1) to $4.17$ (E1b) with the smaller corpus, confirming that data volume materially contributes to the E1 advantage. However, E1b's $4.17$ remains lower than the Kyrgyz baseline's $4.78$ at identical token count, so Kazakh also enjoys a genuine tokenizer-/pretraining-coverage advantage. Both factors contribute; neither alone explains the gap. A parallel control on Uzbek data would strengthen this conclusion; we defer it to future work.
 
@@ -656,6 +663,33 @@ Uzbek  & 3\% (2/67)     & 4\% (8/202)    & 1\% (3/333)    \\
 \label{tab:overlap_per_type}
 \end{table}
 
+\section{BF16 vs.\ 4-bit Control (C3)}
+\label{app:bf16}
+
+\Cref{tab:bf16} reports a side-by-side comparison of the 4-bit E3 baseline (averaged across our two seeds where available) and the full-precision BF16 control (C3, single seed, run on a cloud A100~40GB instance). All hyperparameters except quantization are identical.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{E3 (4-bit, 2 seeds)} & \textbf{C3 (BF16, $n{=}1$)} \\
+\midrule
+KY PPL              & $4.81 \pm 0.02$    & $4.99$ \\
+KZ PPL (cross-ling) & $50.0 \pm 2.4$     & $43.97$ \\
+UZ PPL (cross-ling) & $55.5 \pm 1.4$     & $59.02$ \\
+NER F1 KY (gen)     & $0.170 \pm 0.013$  & $0.164$ \\
+NER TypeAcc KY      & $55.0 \pm 4.6$     & $58.6$ \\
+TUMLU KY            & $36.1 \pm 1.4$     & $36.1$ \\
+$\|B\|_F$ growth    & $8.36\times$       & $8.60\times$ \\
+Final SE max        & $0.59$             & $0.32$ \\
+Final SE mean       & $\sim 0.15$        & $0.10$ \\
+\bottomrule
+\end{tabular}
+\caption{4-bit NF4 vs.\ BF16 control on the same KY baseline configuration (rank 16, lr $2{\times}10^{-4}$, 3 epochs). All downstream metrics fall within or near the seed-level variance observed for the 4-bit run. Frobenius norm growth is essentially identical. Spectral energy in BF16 is \emph{lower} than in 4-bit, strengthening the H1 falsification rather than weakening it: the absence of SE growth above $0.7$ is not an artefact of quantization. We did not run a second seed for C3 due to compute cost (the BF16 run was completed on rented cloud GPU); $n{=}1$ is acknowledged in L1.}
+\label{tab:bf16}
+\end{table}
+
 \section{Seed-Variance Replication}
 \label{app:seed_variance}
 
@@ -664,24 +698,23 @@ To provide at least partial seed-variance estimates for our most consequential c
 \begin{table*}[t]
 \centering
 \small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrrrrr}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrrrrr}
 \toprule
- & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} & \multicolumn{2}{c}{\textbf{E5b ($r{=}64$, lr $2{\times}10^{-4}$)}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
-\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
+ & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} & \multicolumn{2}{c}{\textbf{E5b ($r{=}64$ std-LR)}} & \multicolumn{2}{c}{\textbf{E5 ($r{=}64$ high-LR)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
 \midrule
-KY PPL $\downarrow$         & 4.78 & 4.83 & 4.73 & 4.78 & 4.55 & 4.62 \\
-KZ PPL $\downarrow$         & 47.58 & 52.47 & \textbf{23.49} & \textbf{23.61} & 128.04 & 107.23 \\
-UZ PPL $\downarrow$         & 56.85 & 54.05 & 124.19 & 114.54 & 162.68 & 139.89 \\
-NER F1 KY (gen) $\uparrow$  & 0.157 & 0.182 & 0.253 & 0.179 & 0.146 & 0.116 \\
-NER F1 KZ (gen) $\uparrow$  & 0.190 & 0.186 & 0.130 & 0.185 & 0.129 & 0.126 \\
-NER TypeAcc KY $\uparrow$   & 50.4\% & 59.5\% & 59.5\% & 64.9\% & 53.1\% & 64.9\% \\
-NER TypeAcc KZ $\uparrow$   & 69.6\% & 70.5\% & 73.2\% & 75.0\% & 70.5\% & 71.4\% \\
-TUMLU KY $\uparrow$         & 34.7\% & 37.4\% & 33.7\% & 34.9\% & 33.2\% & 33.2\% \\
+KY PPL $\downarrow$         & 4.78 & 4.83 & 4.73 & 4.78 & 4.55 & 4.62 & 5.90 & 6.01 \\
+KZ PPL $\downarrow$         & 47.58 & 52.47 & \textbf{23.49} & \textbf{23.61} & 128.04 & 107.23 & 659.25 & 606.81 \\
+UZ PPL $\downarrow$         & 56.85 & 54.05 & 124.19 & 114.54 & 162.68 & 139.89 & 742.73 & 763.79 \\
+NER F1 KY (gen) $\uparrow$  & 0.157 & 0.182 & 0.253 & 0.179 & 0.146 & 0.116 & 0.000 & 0.000 \\
+NER TypeAcc KY $\uparrow$   & 50.4\% & 59.5\% & 59.5\% & 64.9\% & 53.1\% & 64.9\% & 59.5\% & 53.1\% \\
+TUMLU KY $\uparrow$         & 34.7\% & 37.4\% & 33.7\% & 34.9\% & 33.2\% & 33.2\% & 23.2\% & 23.9\% \\
+$\|B\|_F$ growth            & $8.4\times$ & --- & $1.1\times$ & --- & $18.2\times$ & --- & $15.6\times$ & $15.5\times$ \\
 \bottomrule
 \end{tabular}
-\caption{Two-seed replication for the three configurations underlying our main claims: KY baseline (E3), KZ$\rightarrow$KY transfer (E6), and the rank--LR control (E5b). Target-language PPL is highly seed-stable across all three ($\pm 0.05$--$0.07$). NER F1 under generation carries the largest variance ($\pm 0.02$--$0.04$), and log-likelihood span-typing accuracy on KY shows $\pm 5$--$9$ pp seed variance. Two robust claims emerge: \textbf{(i)} the halving of cross-lingual Kazakh PPL under transfer ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training), and \textbf{(ii)} the disentanglement of learning rate from rank in collapse onset: both E5b seeds sustain NER F1~$\geq 0.12$, TUMLU accuracy of $33.2\%$, and KY PPL~$\leq 4.62$, all well outside the collapsed regime of E5 (F1~$=0.0$, TUMLU~$23.2\%$, KY PPL~$5.9$). The NER F1~$+61\%$ transfer headline at seed~$42$ drops to $-2\%$ at seed~$123$; we therefore interpret transfer as primarily a retention mechanism.}
+\caption{Two-seed replication for the four configurations underlying our main claims: KY baseline (E3), KZ$\rightarrow$KY transfer (E6), the rank--LR control (E5b), and the catastrophic-collapse run (E5). Three robust claims emerge: \textbf{(i)} the halving of cross-lingual Kazakh PPL under transfer ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$); \textbf{(ii)} the rank--LR disentanglement: both E5b seeds sustain NER F1~$\geq 0.12$ and TUMLU near baseline, well outside the collapsed regime (E5 F1~$=0$, TUMLU~$\sim 23\%$); \textbf{(iii)} the E5 collapse itself is fully reproducible across seeds---NER F1 = 0 in both seeds (parse failures 100/100 vs.\ 81/99/100), TUMLU near random ($23.6 \pm 0.4\%$), KY PPL $5.96 \pm 0.06$, and Frobenius growth $15.55 \pm 0.05\times$ (effectively identical). The NER F1~$+61\%$ transfer headline at seed~$42$ drops to $-2\%$ at seed~$123$; we therefore interpret transfer as primarily a retention mechanism.}
 \label{tab:seed_variance}
 \end{table*}
 

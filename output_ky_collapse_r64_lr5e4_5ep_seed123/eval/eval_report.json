@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-04-29T11:21:41.124099",
+  "adapter_path": "./output_ky_collapse_r64_lr5e4_5ep_seed123/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 1.794138,
+      "ppl": 6.0143,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 6.408219,
+      "ppl": 606.8119,
+      "n_samples": 500,
+      "n_tokens": 113336
+    },
+    "uz": {
+      "loss": 6.638296,
+      "ppl": 763.7924,
+      "n_samples": 500,
+      "n_tokens": 127308
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 81,
+      "per_type": {
+        "PER": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 99,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    },
+    "uz": {
+      "precision": 0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 100,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.5315,
+      "macro_f1": 0.4935,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.6596,
+          "recall": 0.8611,
+          "f1": 0.747,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 0.4151,
+          "recall": 0.5641,
+          "f1": 0.4783,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0.5455,
+          "recall": 0.1667,
+          "f1": 0.2553,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.4018,
+      "macro_f1": 0.332,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.4844,
+          "recall": 0.7949,
+          "f1": 0.6019,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 0.2826,
+          "recall": 0.4643,
+          "f1": 0.3514,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0.5,
+          "recall": 0.0222,
+          "f1": 0.0426,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.2621,
+      "macro_f1": 0.2633,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.1803,
+          "recall": 0.3143,
+          "f1": 0.2292,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 0.3056,
+          "recall": 0.3793,
+          "f1": 0.3385,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0.8333,
+          "recall": 0.1282,
+          "f1": 0.2222,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.2317,
+      "correct": 184,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.2129,
+      "correct": 148,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.2392,
+      "correct": 177,
+      "n_questions": 740
+    }
+  }
+}

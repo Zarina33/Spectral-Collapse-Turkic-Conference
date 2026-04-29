@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-04-29T05:07:06.271644",
+  "adapter_path": "./output_ky_bf16_r16_lr2e4_3ep/final_adapter",
+  "perplexity": {},
+  "ner_wikiann": {},
+  "ner_loglik": {},
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.3073,
+      "correct": 244,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.2892,
+      "correct": 201,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.3608,
+      "correct": 267,
+      "n_questions": 740
+    }
+  }
+}
