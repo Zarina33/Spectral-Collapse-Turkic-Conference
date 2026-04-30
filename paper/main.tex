@@ -489,7 +489,7 @@ Based on our findings, we offer the following recommendations for practitioners 
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
 
-\textbf{(L1) Limited-seed experiments (partially addressed for E3, E5, E5b, and E6).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs for the four configurations underlying our main quantitative claims: E3 (KY baseline), E5 (catastrophic collapse), E5b (rank--LR control), and E6 (KZ$\rightarrow$KY transfer); the full comparison is in \Cref{app:seed_variance}. These two-seed results confirm that (a) target-language PPL is highly stable ($\pm 0.05$--$0.07$ across seeds); (b) the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer is robust ($50.0\pm 2.4$ direct vs.\ $23.5\pm 0.1$ transfer); (c) the rank--LR disentanglement is robust (E5b in both seeds maintains NER F1~$\geq 0.12$ and TUMLU near baseline, whereas E5 in both seeds gives F1~$=0$ and TUMLU near random); and (d) the E5 collapse itself is fully reproducible---both seeds yield NER F1~$=0$, TUMLU $\sim 23\%$, and Frobenius growth $15.55 \pm 0.05\times$. The single-seed NER-F1 transfer headline ($+61\%$) does not survive reseeding, which is why we reframe transfer's benefit as \emph{source-language retention}. Full $n{=}3$ replication of E1, E2, E5c, E8, and the BF16 control C3 remains a valuable follow-up for tightening their numeric claims.
+\textbf{(L1) Limited-seed experiments (partially addressed for 6 main configurations).} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs (seeds 42 and 123) for the six configurations underlying our main quantitative claims: E1b (token-matched KZ), E3 (KY baseline), E5 (catastrophic collapse), E5b (rank--LR control), E5c (epoch-matched rank control), and E6 (KZ$\rightarrow$KY transfer); the full comparison is in \Cref{app:seed_variance}. The two-seed data confirm \emph{four} robust claims: (a) the $2\times$ cross-lingual Kazakh-PPL retention effect of transfer ($50.0\pm 2.4$ direct vs.\ $23.5\pm 0.1$ transfer); (b) E5c outperforms E3 at matched conditions in both seeds (KY PPL $3.89 \pm 0.03$ vs.\ $4.81 \pm 0.03$), supporting the rank-as-capacity finding; (c) the rank--LR disentanglement (E5b sustains F1~$\geq 0.12$, TUMLU $\sim 33\%$ in both seeds, outside E5's collapsed F1$=0$, TUMLU $\sim 23\%$); and (d) the E1b data-vs-coverage decomposition (KZ PPL $4.16 \pm 0.01$ across seeds is reliably below E3's $4.81 \pm 0.03$ at matched tokens). The single-seed NER-F1 transfer headline ($+61\%$) does not survive reseeding, which is why we reframe transfer's benefit as \emph{source-language retention}. Full $n{=}3$ replication of E1, E2, E4, E8, and the BF16 control C3 remains a valuable follow-up for tightening their numeric claims.
 
 \textbf{(L2) Training-set contamination for NER (quantified).} Our Turkic training corpora include Wikipedia dumps, and the WikiANN evaluation set is itself derived from Wikipedia entity links \cite{pan2017cross}. To quantify this overlap, we computed the fraction of unique gold WikiANN-test entity strings that appear verbatim somewhere in each training corpus (case-insensitive substring match): \textbf{Kazakh 65.7\% (497/757), Kyrgyz 55.9\% (52/93), Uzbek 2.2\% (13/602)}. The Kazakh and Kyrgyz NER F1 numbers in \Cref{tab:main_results} therefore upper-bound the contribution of memorization at $\sim$60\%, and cross-configuration NER comparisons within those two languages are partially confounded by this shared-entity floor. The Uzbek overlap of $2\%$, by contrast, is below the resolution of memorization (this turns out to be a script-mismatch artifact---see L9---which makes Uzbek a clean cross-lingual probe). The transfer-induced UZ improvements in \Cref{tab:main_results} (e.g., E1's $0.578$ F1 on UZ) are thus most likely \emph{not} memorization. A non-Wikipedia NER benchmark such as KazNERD \cite{yeshpanov2022kaznerd} (gated; access pending) would tighten this further; the per-type breakdown is reported in \Cref{app:overlap}.
 
@@ -698,24 +698,25 @@ To provide at least partial seed-variance estimates for our most consequential c
 
 \begin{table*}[t]
 \centering
-\small
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lrrrrrrrr}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lrrrrrrrrrrrr}
 \toprule
- & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} & \multicolumn{2}{c}{\textbf{E5b ($r{=}64$ std-LR)}} & \multicolumn{2}{c}{\textbf{E5 ($r{=}64$ high-LR)}} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
+ & \multicolumn{2}{c}{\textbf{E1b (KZ tok-matched)}} & \multicolumn{2}{c}{\textbf{E3 (KY baseline)}} & \multicolumn{2}{c}{\textbf{E5 ($r{=}64$ high-LR)}} & \multicolumn{2}{c}{\textbf{E5b ($r{=}64$ std-LR)}} & \multicolumn{2}{c}{\textbf{E5c ($r{=}64$ matched)}} & \multicolumn{2}{c}{\textbf{E6 (KZ$\rightarrow$KY)}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}
+\textbf{Metric} & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ & s=$42$ & s=$123$ \\
 \midrule
-KY PPL $\downarrow$         & 4.78 & 4.83 & 4.73 & 4.78 & 4.55 & 4.62 & 5.90 & 6.01 \\
-KZ PPL $\downarrow$         & 47.58 & 52.47 & \textbf{23.49} & \textbf{23.61} & 128.04 & 107.23 & 659.25 & 606.81 \\
-UZ PPL $\downarrow$         & 56.85 & 54.05 & 124.19 & 114.54 & 162.68 & 139.89 & 742.73 & 763.79 \\
-NER F1 KY (gen) $\uparrow$  & 0.157 & 0.182 & 0.253 & 0.179 & 0.146 & 0.116 & 0.000 & 0.000 \\
-NER TypeAcc KY $\uparrow$   & 50.4\% & 59.5\% & 59.5\% & 64.9\% & 53.1\% & 64.9\% & 59.5\% & 53.1\% \\
-TUMLU KY $\uparrow$         & 34.7\% & 37.4\% & 33.7\% & 34.9\% & 33.2\% & 33.2\% & 23.2\% & 23.9\% \\
-$\|B\|_F$ growth            & $8.4\times$ & --- & $1.1\times$ & --- & $18.2\times$ & --- & $15.6\times$ & $15.5\times$ \\
+KY PPL $\downarrow$         & 25.55 & 28.81 & 4.78 & 4.83 & 5.90 & 6.01 & 4.55 & 4.62 & \textbf{3.86} & \textbf{3.92} & 4.73 & 4.78 \\
+KZ PPL $\downarrow$         & \textbf{4.17} & \textbf{4.15} & 47.58 & 52.47 & 659.25 & 606.81 & 128.04 & 107.23 & 93.52 & 98.62 & \textbf{23.49} & \textbf{23.61} \\
+UZ PPL $\downarrow$         & 23.17 & 21.93 & 56.85 & 54.05 & 742.73 & 763.79 & 162.68 & 139.89 & 111.25 & 96.61 & 124.19 & 114.54 \\
+NER F1 KY (gen) $\uparrow$  & 0.150 & 0.139 & 0.157 & 0.182 & 0.000 & 0.000 & 0.146 & 0.116 & 0.115 & 0.169 & 0.253 & 0.179 \\
+NER TypeAcc KY $\uparrow$   & 46.0 & 53.1 & 50.4 & 59.5 & 59.5 & 53.1 & 53.1 & 64.9 & 54.9 & 64.9 & 59.5 & 64.9 \\
+NER TypeAcc KZ $\uparrow$   & 70.5 & 70.5 & 69.6 & 70.5 & 50.0 & 40.2 & 70.5 & 71.4 & 67.9 & 69.6 & 73.2 & 75.0 \\
+TUMLU KY $\uparrow$         & 37.3 & 38.6 & 34.7 & 37.4 & 23.2 & 23.9 & 33.2 & 33.2 & 38.5 & 38.0 & 33.7 & 34.9 \\
+$\|B\|_F$ growth            & --- & $2.9\times$ & $8.4\times$ & --- & $15.6\times$ & $15.5\times$ & $18.2\times$ & --- & $8.7\times$ & $8.7\times$ & $1.1\times$ & --- \\
 \bottomrule
 \end{tabular}
-\caption{Two-seed replication for the four configurations underlying our main claims: KY baseline (E3), KZ$\rightarrow$KY transfer (E6), the rank--LR control (E5b), and the catastrophic-collapse run (E5). Three robust claims emerge: \textbf{(i)} the halving of cross-lingual Kazakh PPL under transfer ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$); \textbf{(ii)} the rank--LR disentanglement: both E5b seeds sustain NER F1~$\geq 0.12$ and TUMLU near baseline, well outside the collapsed regime (E5 F1~$=0$, TUMLU~$\sim 23\%$); \textbf{(iii)} the E5 collapse itself is fully reproducible across seeds---NER F1 = 0 in both seeds (parse failures 100/100 vs.\ 81/99/100), TUMLU near random ($23.6 \pm 0.4\%$), KY PPL $5.96 \pm 0.06$, and Frobenius growth $15.55 \pm 0.05\times$ (effectively identical). The NER F1~$+61\%$ transfer headline at seed~$42$ drops to $-2\%$ at seed~$123$; we therefore interpret transfer as primarily a retention mechanism.}
+\caption{Two-seed replication for the six configurations underlying our main claims: token-matched KZ baseline (E1b), KY baseline (E3), catastrophic collapse (E5), rank--LR control (E5b), epoch-matched control (E5c), and KZ$\rightarrow$KY transfer (E6). All TypeAcc values are percentages. \textbf{Four robust claims emerge across seeds:} \textbf{(i)} \emph{KZ-retention via transfer halves PPL} ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ for direct training, $10\times$ outside seed variance); \textbf{(ii)} \emph{r=64 outperforms r=16 baseline at matched conditions} (E5c KY PPL $3.89 \pm 0.03$ vs.\ E3 $4.81 \pm 0.03$ across both seeds, TUMLU also higher); \textbf{(iii)} \emph{rank-LR disentanglement is robust} (E5b sustains F1~$\geq 0.12$, TUMLU $\sim 33\%$ in both seeds, well outside E5's collapsed F1$=0$, TUMLU $\sim 23\%$); \textbf{(iv)} \emph{E1b data-vs-coverage finding is robust} (KZ target PPL $4.16 \pm 0.01$ across seeds confirms data-volume contribution; E1b's $4.16$ remains lower than E3's $4.81$ at matched tokens, confirming coverage advantage). The single-seed transfer NER F1 headline ($+61\%$) does \emph{not} survive reseeding ($-2\%$ at seed 123); we therefore reframe transfer as a retention mechanism.}
 \label{tab:seed_variance}
 \end{table*}
 
