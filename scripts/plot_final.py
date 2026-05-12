@@ -34,6 +34,7 @@ EXPERIMENTS = {
     "KY 10ep":        "output_ky_overfit_r16_lr2e4_10ep",
     "KY r=64":        "output_ky_collapse_r64_lr5e4_5ep",
     "KZ→KY transfer": "output_ky_from_kz_r16_lr2e4_3ep",
+    "EN→KY transfer": "output_en_to_ky_r16_lr2e4_3ep",
 }
 
 OUTPUT_DIR = "figures"
@@ -48,6 +49,7 @@ COLORS = {
     "KY 10ep":        "#795548",
     "KY r=64":        "#F44336",
     "KZ→KY transfer": "#9C27B0",
+    "EN→KY transfer": "#00ACC1",
 }
 
 plt.rcParams.update({
@@ -111,7 +113,7 @@ def fig1_eval_summary():
 
     target_lang = {
         "EN baseline": "kz", "KZ baseline": "kz", "UZ baseline": "uz", "KY baseline": "ky",
-        "KY 10ep": "ky", "KY r=64": "ky", "KZ→KY transfer": "ky",
+        "KY 10ep": "ky", "KY r=64": "ky", "KZ→KY transfer": "ky", "EN→KY transfer": "ky",
     }
 
     # --- Panel A: Target-language PPL ---
@@ -420,7 +422,7 @@ def fig5_effective_rank():
 def fig6_frobenius_dynamics():
     fig, axes = plt.subplots(1, 2, figsize=(15, 5.5))
 
-    compare = ["KY baseline", "KY 10ep", "KY r=64", "KZ→KY transfer"]
+    compare = ["KY baseline", "KY 10ep", "KY r=64", "KZ→KY transfer", "EN→KY transfer"]
 
     # --- Panel A: Mean FrobNorm_B over training progress ---
     ax = axes[0]
@@ -604,7 +606,7 @@ def fig9_frobnorm_vs_ppl():
     target_lang = {
         "EN baseline": None,  # skip from cross-lingual analysis
         "KZ baseline": "kz", "UZ baseline": "uz", "KY baseline": "ky",
-        "KY 10ep": "ky", "KY r=64": "ky", "KZ→KY transfer": "ky",
+        "KY 10ep": "ky", "KY r=64": "ky", "KZ→KY transfer": "ky", "EN→KY transfer": "ky",
     }
 
     points = []  # (frob_growth, cross_ppl, name)

@@ -35,7 +35,7 @@ We study the SVD dynamics of LoRA adapters fine-tuned on three low-resource Turk
 
 \textbf{(3) Related-language warm-start preserves source-language knowledge.} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization yields a $2\times$ reduction in cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ across two seeds, $\sim 10\times$ outside seed variance), with only $+13\%$ Frobenius-norm growth. A cross-family control (EN$\rightarrow$KY) rules out a generic warm-start explanation: starting from an unrelated language yields KZ PPL $47.46$, essentially identical to direct training ($47.58$). The effect is specific to related languages. The single-seed NER-F1 advantage ($+61\%$) does not survive reseeding; we frame the effect as KZ retention rather than KY improvement.
 
-\textbf{Scope.} Seven main configurations are $n{=}2$ seed-replicated (E1b, E3, E5, E5b, E5c, E6, E8); five (E1, E2, E4, C3, E7) are $n{=}1$. Numbers are reported as consistent-across-two-seeds rather than population-variance estimates. All code, adapters, and the BF16 control bundle are released.
+\textbf{Scope.} Seven main configurations are seed-replicated ($n{=}2$); five remain $n{=}1$, including the cross-family transfer control E6b. All code, adapters, and the BF16 control bundle are released.
 \end{abstract}
 
 % ============================================================================
@@ -344,8 +344,8 @@ If spectral energy fails as a diagnostic, what about scale-aware alternatives? W
 \toprule
 \textbf{Experiment} & $\|\mathbf{B}\|_F^{\text{init}}$ & $\|\mathbf{B}\|_F^{\text{final}}$ & \textbf{Growth} \\
 \midrule
-KZ$\rightarrow$KY Transfer (related) & 3.043 & 3.436 & 1.13$\times$ \\
-EN$\rightarrow$KY Transfer (cross-family, E6b) & 0.653 & 2.023 & 3.10$\times$ \\
+KZ$\rightarrow$KY Transfer (E6, related) & 3.043 & 3.436 & 1.13$\times$ \\
+EN$\rightarrow$KY Transfer (E6b, cross-family) & 0.653 & 2.023 & 3.10$\times$ \\
 KY Baseline $r{=}16$ & 0.227 & 1.899 & 8.36$\times$ \\
 EN Control $r{=}16$ & 0.092 & 3.076 & 33.4$\times$ \\
 KY BF16 $r{=}16$ (C3) & 0.218 & 1.880 & 8.6$\times$ \\
@@ -356,7 +356,7 @@ KY $r{=}64$ lr $2{\times}10^{-4}$, 3ep (E5c) & 0.388 & 3.385 & 8.7$\times$ \\
 Diverged $r{=}64$ & --- & --- & explodes \\
 \bottomrule
 \end{tabular}
-\caption{Frobenius norm growth ratios for $\texttt{lora\_B}$ matrices. EN control and KZ baseline show comparable growth ($\sim$33--38$\times$), yet EN produces minimal cross-lingual forgetting (KZ PPL 5.54) while KY baseline with only 8$\times$ growth causes severe forgetting (KZ PPL 47.58). This demonstrates that norm growth alone is insufficient as a universal diagnostic---language representation in the pretrained model modulates the impact of weight perturbations. Note also that E5 and E5b exhibit comparable Frobenius growth (15.6$\times$ vs.\ 18.2$\times$), yet only E5 suffers NER parse failure and near-random TUMLU: norm growth does not discriminate between the catastrophic-collapse and moderate-forgetting regimes when rank is held constant.}
+\caption{Frobenius norm growth ratios for $\texttt{lora\_B}$ matrices. EN control and KZ baseline show comparable growth ($\sim$33--38$\times$), yet EN produces minimal cross-lingual forgetting (KZ PPL 5.54) while KY baseline with only 8$\times$ growth causes severe forgetting (KZ PPL 47.58). This demonstrates that norm growth alone is insufficient as a universal diagnostic---language representation in the pretrained model modulates the impact of weight perturbations. Note also that E5 and E5b exhibit comparable Frobenius growth (15.6$\times$ vs.\ 18.2$\times$), yet only E5 suffers NER parse failure and near-random TUMLU: norm growth does not discriminate between the catastrophic-collapse and moderate-forgetting regimes when rank is held constant. The cross-family transfer E6b shows intermediate growth ($3.10\times$), consistent with EN-initialization sitting geometrically further from a good KY solution than KZ-initialization ($1.13\times$) but closer than random init ($8.36\times$).}
 \label{tab:frobenius}
 \end{table}
 
@@ -365,7 +365,7 @@ Diverged $r{=}64$ & --- & --- & explodes \\
 \begin{figure*}[t]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig6_frobenius_dynamics.png}
-    \caption{Frobenius norm dynamics of $\texttt{lora\_B}$ matrices during training. The $r{=}64$ configuration shows dramatically larger norm growth compared to $r{=}16$ baselines. The transfer experiment begins at the KZ baseline's final norm and shows minimal additional growth.}
+    \caption{Frobenius norm dynamics of $\texttt{lora\_B}$ matrices during training. The $r{=}64$ configuration shows dramatically larger norm growth compared to $r{=}16$ baselines. The related-language transfer (KZ$\rightarrow$KY) begins at the KZ baseline's final norm and shows minimal additional growth ($+13\%$). The cross-family transfer (EN$\rightarrow$KY) begins at the EN baseline's final norm and shows intermediate growth ($3.1\times$), sitting geometrically between the related-language warm-start and direct training---supporting the "better initialization" interpretation of Section~\ref{sec:transfer}.}
     \label{fig:frobenius}
 \end{figure*}
 
@@ -417,7 +417,7 @@ The data falsify this null. EN$\rightarrow$KY converges to KZ PPL $47.46$---esse
 
 \textbf{The UZ side-effect is specific to Kipchak specialization.} E6 (KZ$\rightarrow$KY) shows substantially worse Uzbek perplexity ($124.19$) than direct KY training ($56.85$), a finding we had attributed to "Kipchak-direction specialization". E6b confirms this attribution: its UZ PPL is $63.42$, close to direct training and far below E6's degraded value. Sequentially passing through Kazakh therefore specifically displaces Uzbek-useful representations; warm-starting from an unrelated language (EN) does not.
 
-\textbf{H2 is supported only for related-language warm-starts:} cross-lingual transfer preserves source-language knowledge specifically when the source and target are closely related (here, both Kipchak, both Cyrillic). The mechanism appears to be \emph{better initialization}: the KZ-trained adapter is already close to a good KY solution, so the additional perturbation needed is small ($+13\%$ Frobenius growth vs.\ $8.36\times$ for direct training), and this low-perturbation regime is what preserves the unrelated knowledge encoded in the warm-start. An EN-warm-start, which sits further from a useful KY solution, requires a larger perturbation that effectively overwrites the source. Related-language pretraining thus acts as a kind of geometric regularizer; this is \emph{not} a generic warm-start effect.
+\textbf{H2 is supported only for related-language warm-starts:} cross-lingual transfer preserves source-language knowledge specifically when the source and target are closely related (here, both Kipchak, both Cyrillic). The mechanism appears to be \emph{better initialization}: the KZ-trained adapter is already close to a good KY solution, so the additional perturbation needed is small ($+13\%$ Frobenius growth vs.\ $8.36\times$ for direct training), and this low-perturbation regime is what preserves the unrelated knowledge encoded in the warm-start. An EN-warm-start, which sits further from a useful KY solution, requires a larger perturbation that effectively overwrites the source. Our sequential LoRA transfer differs from MAD-X \cite{pfeiffer2020madx}, which uses parallel language-specific adapters: we observe related-language warm-starts as a regularizing \emph{initialization}, not as a structural disentanglement. Related-language pretraining thus acts as a kind of geometric regularizer; this is \emph{not} a generic warm-start effect, and it connects directly to our broader finding (\Cref{sec:frobenius}) that the \emph{direction} of weight updates, not just their magnitude, determines downstream impact.
 
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
