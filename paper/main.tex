@@ -33,7 +33,7 @@ We study the SVD dynamics of LoRA adapters fine-tuned on three low-resource Turk
 
 \textbf{(2) Frobenius-norm growth is a useful but language-dependent diagnostic.} It separates regimes \emph{within} an underrepresented-language category ($1.13\times$ for transfer warm-start vs.\ $15$--$38\times$ for pathological runs) but fails across categories: EN grows $33.3 \pm 0.1\times$ across two seeds without forgetting (KZ PPL $5.52 \pm 0.02$), comparable to Kazakh's $38\times$ with severe forgetting. We therefore recommend tracking $\|B\|_F$ trajectories together with cross-lingual PPL probes, not fixed thresholds.
 
-\textbf{(3) Related-language warm-start preserves source-language knowledge.} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization yields a $2\times$ reduction in cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ across two seeds, $\sim 10\times$ outside seed variance), with only $+13\%$ Frobenius-norm growth. The single-seed NER-F1 advantage ($+61\%$) does not survive reseeding ($-2\%$ at seed~$123$); we therefore frame the effect as KZ retention rather than KY improvement.
+\textbf{(3) Related-language warm-start preserves source-language knowledge.} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization yields a $2\times$ reduction in cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ across two seeds, $\sim 10\times$ outside seed variance), with only $+13\%$ Frobenius-norm growth. A cross-family control (EN$\rightarrow$KY) rules out a generic warm-start explanation: starting from an unrelated language yields KZ PPL $47.46$, essentially identical to direct training ($47.58$). The effect is specific to related languages. The single-seed NER-F1 advantage ($+61\%$) does not survive reseeding; we frame the effect as KZ retention rather than KY improvement.
 
 \textbf{Scope.} Seven main configurations are $n{=}2$ seed-replicated (E1b, E3, E5, E5b, E5c, E6, E8); five (E1, E2, E4, C3, E7) are $n{=}1$. Numbers are reported as consistent-across-two-seeds rather than population-variance estimates. All code, adapters, and the BF16 control bundle are released.
 \end{abstract}
@@ -130,12 +130,13 @@ E5 & KY $r{=}64$ high-LR & Kyrgyz & 64 & $5{\times}10^{-4}$ & 5 & 4.08\% & Rando
 E5b & KY $r{=}64$ std-LR & Kyrgyz & 64 & $2{\times}10^{-4}$ & 5 & 4.08\% & Random \\
 E5c & KY $r{=}64$ epoch-matched & Kyrgyz & 64 & $2{\times}10^{-4}$ & 3 & 4.08\% & Random \\
 E6 & KZ$\rightarrow$KY Transfer & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & KZ checkpoint \\
+E6b & EN$\rightarrow$KY Transfer$^\diamond$ & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & EN checkpoint \\
 E7 & Diverged & KY$^\ddagger$ & 64 & $1{\times}10^{-3}$ & 3 & 4.08\% & Random \\
 E8 & EN Control & English & 16 & $2{\times}10^{-4}$ & 3 & 1.05\% & Random \\
 C3 & KY BF16$^\ast$ control & Kyrgyz & 16 & $2{\times}10^{-4}$ & 3 & 0.58\% & Random \\
 \bottomrule
 \end{tabular}
-\caption{Summary of experimental configurations. All experiments except C3 use Gemma-2-9B with 4-bit NF4 quantization. C3 uses full bfloat16 precision (no quantization) and serves as the quantization control. All runs use $\alpha = 2r$, cosine LR schedule, and effective batch size 16. $^\ddagger$E7 was trained on Kyrgyz data but diverged at step 800 due to the aggressive learning rate; it is excluded from downstream evaluation but analyzed in \Cref{app:effrank}. $^\ast$C3 trainable\% reads $0.58\%$ rather than $1.05\%$ because PEFT's parameter count differs between BF16 and 4-bit base models; the LoRA configuration (rank, alpha, target modules) is identical to E3.}
+\caption{Summary of experimental configurations. All experiments except C3 use Gemma-2-9B with 4-bit NF4 quantization. C3 uses full bfloat16 precision (no quantization) and serves as the quantization control. All runs use $\alpha = 2r$, cosine LR schedule, and effective batch size 16. $^\ddagger$E7 was trained on Kyrgyz data but diverged at step 800 due to the aggressive learning rate; it is excluded from downstream evaluation but analyzed in \Cref{app:effrank}. $^\ast$C3 trainable\% reads $0.58\%$ rather than $1.05\%$ because PEFT's parameter count differs between BF16 and 4-bit base models; the LoRA configuration (rank, alpha, target modules) is identical to E3. $^\diamond$E6b is a cross-family transfer control: same setup as E6 but warm-started from the unrelated English baseline (E8) instead of the related-language Kazakh baseline (E1).}
 \label{tab:experiments}
 \end{table*}
 
@@ -234,6 +235,7 @@ E5 & KY $r{=}64$ high-LR & KY & 5.90 & \textbf{59.5\%}$^\ddagger$ & 0.000 & 23.2
 E5b & KY $r{=}64$ std-LR (5ep) & KY & 4.55 & 53.1\% & 0.146 & 33.2\% \\
 E5c & KY $r{=}64$ epoch-matched (3ep) & KY & \textbf{3.86} & 54.9\% & 0.115 & \textbf{38.5\%} \\
 E6 & KZ$\rightarrow$KY & KY & 4.73 & \textbf{59.5\%} & 0.253 & 33.7\% \\
+E6b & EN$\rightarrow$KY (cross-family) & KY & 4.78 & 54.0\% & 0.133 & 36.1\% \\
 \midrule
 E8 & EN Control & EN & 5.54\textsuperscript{*} & 56.8\% & 0.209 & 37.7\%\textsuperscript{\dag} \\
 \midrule
@@ -275,7 +277,8 @@ KY Overfit & \textbf{4.18} & 87.65 & 95.76 \\
 KY $r{=}64$ (lr $5{\times}10^{-4}$, 5ep, E5) & 5.90 & 659.25 & 742.73 \\
 KY $r{=}64$ (lr $2{\times}10^{-4}$, 5ep, E5b) & 4.55 & 128.04 & 162.68 \\
 KY $r{=}64$ (lr $2{\times}10^{-4}$, 3ep, E5c) & \textbf{3.86} & 93.52 & 111.25 \\
-KZ$\rightarrow$KY & 4.73 & 23.49 & 124.19 \\
+KZ$\rightarrow$KY (related) & 4.73 & \textbf{23.49} & 124.19 \\
+EN$\rightarrow$KY (cross-family, E6b) & 4.78 & 47.46 & 63.42 \\
 \midrule
 EN Control & 14.96 & 5.54 & 16.55 \\
 KY BF16 (C3, no quant) & \textbf{4.99} & 43.97 & 59.02 \\
@@ -341,7 +344,8 @@ If spectral energy fails as a diagnostic, what about scale-aware alternatives? W
 \toprule
 \textbf{Experiment} & $\|\mathbf{B}\|_F^{\text{init}}$ & $\|\mathbf{B}\|_F^{\text{final}}$ & \textbf{Growth} \\
 \midrule
-KZ$\rightarrow$KY Transfer & 3.043 & 3.436 & 1.13$\times$ \\
+KZ$\rightarrow$KY Transfer (related) & 3.043 & 3.436 & 1.13$\times$ \\
+EN$\rightarrow$KY Transfer (cross-family, E6b) & 0.653 & 2.023 & 3.10$\times$ \\
 KY Baseline $r{=}16$ & 0.227 & 1.899 & 8.36$\times$ \\
 EN Control $r{=}16$ & 0.092 & 3.076 & 33.4$\times$ \\
 KY BF16 $r{=}16$ (C3) & 0.218 & 1.880 & 8.6$\times$ \\
@@ -405,7 +409,11 @@ The most visible improvement at seed~$42$ is Kyrgyz NER F1: 0.253 versus 0.157, 
 
 Interestingly, even Uzbek NER F1 improves slightly under transfer (0.348 vs.\ 0.326), suggesting some positive transfer to the third Turkic language. However, Uzbek PPL degrades substantially (124.19 vs.\ 56.85, a 2.2$\times$ increase). This asymmetry has practical implications: sequential transfer between closely related languages (Kazakh and Kyrgyz are both Kipchak-branch, Cyrillic-script) can \emph{harm} more distant relatives (Uzbek, Karluk-branch, historically Latin-script). The adapter, having been optimized first for Kazakh then for Kyrgyz, specializes its weight updates in the Kipchak direction, displacing representations useful for Uzbek. Practitioners considering chain-of-transfer strategies should therefore monitor not only source-target retention but also collateral damage to typologically distant languages.
 
-\textbf{H2 is partially confirmed:} cross-lingual transfer improves downstream task performance and retains source-language knowledge, but the mechanism appears to be \emph{better initialization} rather than \emph{slower degradation}. The transfer adapter begins with an already-trained weight configuration (Frobenius norm growth of only $+13\%$ compared to $8.36\times$ for baseline), requiring minimal additional adaptation to accommodate Kyrgyz data. In effect, related-language pretraining acts as a \emph{spectral regularizer}: by providing a warm-start with already-structured singular value distributions, it constrains subsequent weight updates to a low-perturbation regime that preserves multilingual knowledge.
+\textbf{Cross-family control (E6b): is any warm-start enough?} A natural concern with the above interpretation is that the KZ-retention effect in E6 could simply reflect "the adapter was trained on KZ first, so of course it remembers KZ"---in which case any warm-started adapter, even from an unrelated language, would yield similar retention of its own source. We address this with a cross-family control (E6b): same setup as E6 but warm-started from the English baseline (E8) instead of the Kazakh baseline (E1). If \emph{any} warm-start is sufficient, then EN$\rightarrow$KY should preserve the EN-baseline cross-lingual profile in the same way KZ$\rightarrow$KY preserves the KZ profile.
+
+The data falsify this null. EN$\rightarrow$KY converges to KZ PPL $47.46$---essentially identical to direct KY training ($47.58$) and far above E6's $23.49$. The KY target and TUMLU values for EN$\rightarrow$KY also align with direct training rather than with E6. Frobenius growth tells a consistent story: KZ$\rightarrow$KY needs only $1.13\times$ growth, EN$\rightarrow$KY needs $3.10\times$, and direct training needs $8.36\times$, suggesting that the EN-initialized adapter is geometrically further from a good KY solution than the KZ-initialized one.
+
+\textbf{H2 is supported only for related-language warm-starts:} cross-lingual transfer preserves source-language knowledge specifically when the source and target are closely related (here, both Kipchak, both Cyrillic). The mechanism appears to be \emph{better initialization}: the KZ-trained adapter is already close to a good KY solution, so the additional perturbation needed is small ($+13\%$ Frobenius growth vs.\ $8.36\times$ for direct training), and this low-perturbation regime is what preserves the unrelated knowledge encoded in the warm-start. An EN-warm-start, which sits further from a useful KY solution, requires a larger perturbation that effectively overwrites the source. Related-language pretraining thus acts as a kind of geometric regularizer; this is \emph{not} a generic warm-start effect.
 
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
@@ -518,7 +526,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 We have presented a systematic study of the spectral dynamics of LoRA adapters during fine-tuning on three low-resource Turkic languages. Our experiments yield three principal findings.
 
-First and most consistently across our two seeds, \textbf{warm-starting from a related-language checkpoint preserves source-language knowledge}: Kazakh$\rightarrow$Kyrgyz transfer halves cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training---a $2\times$ effect that is large relative to the seed-to-seed spread observed in either condition) while requiring only $+13\%$ Frobenius-norm growth (vs.\ $8\times$ for direct training). The single-seed NER-F1 improvement ($+61\%$) does \emph{not} reproduce at seed~$123$ ($-2\%$); we therefore characterize the transfer effect primarily as \emph{retention} of the source language rather than target-language improvement (\Cref{app:seed_variance}). Whether this retention generalizes across families or is specific to closely related Kipchak languages remains open; an EN$\rightarrow$KY ablation (Section~\ref{sec:transfer}) examines one such control.
+First and most consistently across our two seeds, \textbf{warm-starting from a related-language checkpoint preserves source-language knowledge}: Kazakh$\rightarrow$Kyrgyz transfer halves cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training---a $2\times$ effect that is large relative to the seed-to-seed spread observed in either condition) while requiring only $+13\%$ Frobenius-norm growth (vs.\ $8\times$ for direct training). The single-seed NER-F1 improvement ($+61\%$) does \emph{not} reproduce at seed~$123$ ($-2\%$); we therefore characterize the transfer effect primarily as \emph{retention} of the source language rather than target-language improvement (\Cref{app:seed_variance}). A cross-family control (E6b: EN$\rightarrow$KY) rules out a "generic warm-start" explanation: starting from English instead of Kazakh yields KZ PPL $47.46$, essentially identical to direct training ($47.58$) and far above the related-language transfer's $23.49$. Related-language warm-starts are therefore qualitatively different from unrelated warm-starts in this regime.
 
 Second, \textbf{Frobenius norm growth} is a useful scale-aware monitoring signal but \emph{not} a universal diagnostic. Within underrepresented languages it reliably separates regimes ($1.13\times$ for transfer vs.\ $15$--$38\times$ for high-LR $r{=}64$). Across language categories it fails: our English control absorbs $33\times$ norm growth with minimal forgetting, comparable to Kazakh's $38\times$ \emph{with} forgetting. We therefore recommend pairing $\|\mathbf{B}\|_F$ trajectory monitoring with cross-lingual PPL probes rather than relying on fixed thresholds.
 
