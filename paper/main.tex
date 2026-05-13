@@ -35,7 +35,9 @@ We study the SVD dynamics of LoRA adapters fine-tuned on three low-resource Turk
 
 \textbf{(3) Related-language warm-start preserves source-language knowledge.} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization yields a $2\times$ reduction in cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ across two seeds, a separation roughly $10\times$ larger than the seed-to-seed spread in either condition), with only $+13\%$ Frobenius-norm growth. A cross-family control (EN$\rightarrow$KY) rules out a generic warm-start explanation: starting from an unrelated language yields KZ PPL $47.46$, essentially identical to direct training ($47.58$). The effect is specific to related languages. The single-seed NER-F1 advantage ($+61\%$) does not survive reseeding; we frame the effect as KZ retention rather than KY improvement.
 
-\textbf{Scope.} Of our twelve main configurations, seven are seed-replicated at $n{=}2$ (E1b, E3, E5, E5b, E5c, E6, E8); the remaining five (E1, E2, E4, E6b, C3) are $n{=}1$. All code, adapters, and the BF16 control bundle are released.
+\textbf{Method note.} Generation-based NER F1 underestimates entity knowledge in low-resource adapters (parse-success bottleneck: KZ baseline achieves $0.164$ F1 despite $66\%$ test-entity overlap, yet $72\%$ log-likelihood TypeAcc); we use log-likelihood typing as our primary NER metric.
+
+\textbf{Scope.} Seven of twelve main configurations are seed-replicated at $n{=}2$; the remaining five (including the cross-family control E6b) are $n{=}1$. The Kyrgyz corpus is licensed and cannot be redistributed---KY training is not fully reproducible, but released adapters, SVD logs, and code reproduce all downstream evaluation. Other corpora and the BF16 control are public.
 \end{abstract}
 
 % ============================================================================
@@ -117,7 +119,7 @@ We apply LoRA adapters to all attention and MLP projection matrices: \texttt{q\_
 \begin{table*}[t]
 \centering
 \small
-\begin{tabular}{llcc r@{\hspace{6pt}}r cc}
+\begin{tabular}{l l l c c c c l}
 \toprule
 \textbf{ID} & \textbf{Experiment} & \textbf{Language} & \textbf{Rank} & \textbf{LR} & \textbf{Epochs} & \textbf{Trainable \%} & \textbf{Init} \\
 \midrule
@@ -216,6 +218,8 @@ Kazakh & 3.74 & 3.25$\times$ \\
 
 \subsection{Baseline Performance}
 
+\textbf{Spectral collapse versus functional collapse.} A central conceptual distinction in our work is between two notions of "collapse" that the LoRA literature has tended to conflate. \emph{Spectral collapse} refers to a geometric property of the adapter weights: the singular value distribution concentrating into a single dominant direction (high SE). \emph{Functional collapse} refers to a behavioural property of the resulting model: loss of target-task capability such as instruction-following or coherent generation (NER F1$=0$, TUMLU near random, degenerate-loop output; concrete examples in \Cref{app:collapse_examples}). The SE-threshold diagnostic \citep{biderman2024lora} implicitly assumes the two co-occur. Our results show they can dissociate: E5 exhibits clear functional collapse with sub-threshold SE, and E5c shows healthy spectral and functional trajectories at higher rank. The motivation for tracking Frobenius growth + cross-lingual PPL probes (Section~\ref{sec:frobenius}) is precisely to capture functional collapse signals that pure spectral shape misses.
+
 \Cref{tab:main_results} presents the primary evaluation metrics across all experiments. Several patterns emerge from the baseline comparisons.
 
 \begin{table*}[t]
@@ -299,7 +303,7 @@ Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.75\textwidth]{../figures/fig4_cross_ppl.png}
-    \caption{Cross-lingual perplexity heatmap. Darker cells indicate higher perplexity (more forgetting). The $r{=}64$ row is clearly pathological, while the KZ$\rightarrow$KY transfer row shows the most balanced profile.}
+    \caption{Cross-lingual perplexity heatmap. Darker cells indicate higher perplexity (more forgetting). Color is clipped at $200$: cells with PPL $> 200$ (notably E5's KZ at $659$ and UZ at $743$) render as the darkest red but retain their numeric annotation, so the numeric values remain readable while the color palette does not flatten the lower-PPL contrasts elsewhere in the matrix. The $r{=}64$ row is clearly pathological, while the KZ$\rightarrow$KY transfer row shows the most balanced profile.}
     \label{fig:cross_ppl}
 \end{figure*}
 
@@ -446,7 +450,7 @@ This pattern suggests a regime of ``useful overfitting'' for the target language
 
 The failure of the SE threshold can be understood through the mathematics of LoRA initialization. Standard LoRA initializes $A$ with Kaiming uniform and $B$ with zeros. After the first gradient update, $B$ acquires small random-scale singular values with roughly uniform magnitudes, yielding $\text{SE} \approx 1/r$. As training progresses, all singular values grow, but the growth is typically distributed across multiple directions, causing $\text{SE}$ to remain stable or even \emph{decrease}.
 
-For higher-rank configurations ($r{=}64$), the SE denominator includes more singular values, mechanically driving SE to lower values ($1/64 \approx 0.016$ at initialization versus $1/16 = 0.0625$ for $r{=}16$). This reveals SE as a \emph{rank-biased metric}: since $\text{SE} \approx 1/r$ at initialization, higher-rank adapters \emph{appear} spectrally healthier by definition, creating a dangerous trap for practitioners who monitor SE across configurations with different ranks. A seemingly healthy low-SE value for $r{=}64$ may actually correspond to a more pathological state than a higher SE for $r{=}16$.
+For higher-rank configurations ($r{=}64$), the SE denominator includes more singular values, mechanically driving SE to lower values ($1/64 \approx 0.016$ at initialization versus $1/16 = 0.0625$ for $r{=}16$). Our empirical step-100 mean SE values track this prediction: $0.18$--$0.22$ at $r{=}16$ (E3, C3) versus $0.06$--$0.08$ at $r{=}64$ (E5, E5b, E5c), a roughly $3$--$4\times$ gap that is independent of any downstream functional outcome. This reveals SE as a \emph{rank-biased metric}: since $\text{SE} \approx 1/r$ at initialization, higher-rank adapters \emph{appear} spectrally healthier by definition, creating a dangerous trap for practitioners who monitor SE across configurations with different ranks. A seemingly healthy low-SE value for $r{=}64$ may actually correspond to a more pathological state than a higher SE for $r{=}16$.
 
 The fundamental limitation is that SE is a \emph{shape} metric, invariant to rescaling of the singular value spectrum. A weight matrix with singular values $[100, 50, 25]$ and one with $[0.001, 0.0005, 0.00025]$ have identical SE, despite representing vastly different magnitudes of weight perturbation. In the low-resource setting, where models must substantially restructure their representations to accommodate poorly-covered languages, the \emph{scale} of these perturbations matters critically.
 
