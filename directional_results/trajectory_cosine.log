@@ -1,0 +1,150 @@
+  E3_s42: 4 points  steps=[1800, 2800, 2931, 2931]
+  E3_s123: 4 points  steps=[1800, 2800, 2931, 2931]
+  E5_s42: 4 points  steps=[2800, 4800, 4885, 4885]
+  E5_s123: 4 points  steps=[2800, 4800, 4885, 4885]
+  E5b_s42: 4 points  steps=[1800, 4800, 4885, 4885]
+  E5b_s123: 4 points  steps=[1800, 4800, 4885, 4885]
+  E5c_s42: 4 points  steps=[1800, 2800, 2931, 2931]
+  E5c_s123: 4 points  steps=[1800, 2800, 2931, 2931]
+  E6_s42: 4 points  steps=[1800, 2800, 2931, 2931]
+  E6_s123: 4 points  steps=[1800, 2800, 2931, 2931]
+  E6b_s42: 4 points  steps=[1800, 2800, 2931, 2931]
+  E6b_s123: 4 points  steps=[1800, 2800, 2931, 2931]
+
+E3_cross_seed: 4 comparisons
+    loaded checkpoint-1800 (0.1s)
+    loaded checkpoint-1800 (0.1s)
+  step (1800,1800): mean=+0.0412  median=+0.0254  >0.5: 0/294
+    loaded checkpoint-2800 (0.2s)
+    loaded checkpoint-2800 (0.2s)
+  step (2800,2800): mean=+0.0426  median=+0.0265  >0.5: 0/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (2931,2931): mean=+0.0412  median=+0.0254  >0.5: 0/294
+  step (2931,2931): mean=+0.0412  median=+0.0254  >0.5: 0/294
+
+E5_cross_seed: 4 comparisons
+    loaded checkpoint-2800 (0.2s)
+    loaded checkpoint-2800 (0.2s)
+  step (2800,2800): mean=+0.0217  median=+0.0146  >0.5: 0/294
+    loaded checkpoint-4800 (0.2s)
+    loaded checkpoint-4800 (0.1s)
+  step (4800,4800): mean=+0.0216  median=+0.0146  >0.5: 0/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (4885,4885): mean=+0.0217  median=+0.0146  >0.5: 0/294
+  step (4885,4885): mean=+0.0217  median=+0.0146  >0.5: 0/294
+
+E5b_cross_seed: 4 comparisons
+    loaded checkpoint-1800 (0.2s)
+    loaded checkpoint-1800 (0.2s)
+  step (1800,1800): mean=+0.0304  median=+0.0178  >0.5: 0/294
+    loaded checkpoint-4800 (0.2s)
+    loaded checkpoint-4800 (0.2s)
+  step (4800,4800): mean=+0.0298  median=+0.0194  >0.5: 0/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (4885,4885): mean=+0.0304  median=+0.0178  >0.5: 0/294
+  step (4885,4885): mean=+0.0304  median=+0.0178  >0.5: 0/294
+
+E5c_cross_seed: 4 comparisons
+    loaded checkpoint-1800 (0.2s)
+    loaded checkpoint-1800 (0.2s)
+  step (1800,1800): mean=+0.0319  median=+0.0188  >0.5: 0/294
+    loaded checkpoint-2800 (0.2s)
+    loaded checkpoint-2800 (0.2s)
+  step (2800,2800): mean=+0.0329  median=+0.0197  >0.5: 0/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (2931,2931): mean=+0.0319  median=+0.0188  >0.5: 0/294
+  step (2931,2931): mean=+0.0319  median=+0.0188  >0.5: 0/294
+
+E6_cross_seed: 4 comparisons
+    loaded checkpoint-1800 (0.2s)
+    loaded checkpoint-1800 (0.2s)
+  step (1800,1800): mean=+0.7847  median=+0.7735  >0.5: 294/294
+    loaded checkpoint-2800 (0.2s)
+    loaded checkpoint-2800 (0.1s)
+  step (2800,2800): mean=+0.7790  median=+0.7700  >0.5: 294/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (2931,2931): mean=+0.7847  median=+0.7735  >0.5: 294/294
+  step (2931,2931): mean=+0.7847  median=+0.7735  >0.5: 294/294
+
+E6b_cross_seed: 4 comparisons
+    loaded checkpoint-1800 (0.2s)
+    loaded checkpoint-1800 (0.2s)
+  step (1800,1800): mean=+0.3431  median=+0.3238  >0.5: 37/294
+    loaded checkpoint-2800 (0.2s)
+    loaded checkpoint-2800 (0.1s)
+  step (2800,2800): mean=+0.3439  median=+0.3236  >0.5: 37/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (2931,2931): mean=+0.3431  median=+0.3238  >0.5: 37/294
+  step (2931,2931): mean=+0.3431  median=+0.3238  >0.5: 37/294
+
+E5_vs_E5c: 4 comparisons
+    loaded checkpoint-2800 (0.0s)
+    loaded checkpoint-2800 (0.0s)
+  step (2800,2800): mean=+0.0100  median=+0.0056  >0.5: 0/294
+    loaded checkpoint-4800 (0.0s)
+    loaded final_adapter (0.0s)
+  step (4800,2931): mean=+0.0100  median=+0.0055  >0.5: 0/294
+    loaded final_adapter (0.0s)
+  step (4885,2931): mean=+0.0102  median=+0.0056  >0.5: 0/294
+  step (4885,2931): mean=+0.0102  median=+0.0056  >0.5: 0/294
+
+E5_vs_E5b: 4 comparisons
+    loaded checkpoint-2800 (0.0s)
+    loaded checkpoint-1800 (0.0s)
+  step (2800,1800): mean=+0.0105  median=+0.0057  >0.5: 0/294
+    loaded checkpoint-4800 (0.1s)
+    loaded checkpoint-4800 (0.0s)
+  step (4800,4800): mean=+0.0096  median=+0.0055  >0.5: 0/294
+    loaded final_adapter (0.0s)
+    loaded final_adapter (0.0s)
+  step (4885,4885): mean=+0.0105  median=+0.0057  >0.5: 0/294
+  step (4885,4885): mean=+0.0105  median=+0.0057  >0.5: 0/294
+
+E5b_vs_E5c: 4 comparisons
+    loaded checkpoint-1800 (0.0s)
+    loaded checkpoint-1800 (0.0s)
+  step (1800,1800): mean=+0.0533  median=+0.0330  >0.5: 0/294
+    loaded checkpoint-4800 (0.0s)
+    loaded final_adapter (0.0s)
+  step (4800,2931): mean=+0.0470  median=+0.0308  >0.5: 0/294
+    loaded final_adapter (0.0s)
+  step (4885,2931): mean=+0.0533  median=+0.0330  >0.5: 0/294
+  step (4885,2931): mean=+0.0533  median=+0.0330  >0.5: 0/294
+
+E5_to_final: 4 comparisons
+    loaded checkpoint-2800 (0.0s)
+    loaded final_adapter (0.0s)
+  step (2800,4885): mean=+1.0000  median=+1.0000  >0.5: 294/294
+    loaded checkpoint-4800 (0.0s)
+  step (4800,4885): mean=+0.9377  median=+0.9376  >0.5: 294/294
+    loaded checkpoint-4885 (0.2s)
+  step (4885,4885): mean=+0.9377  median=+0.9376  >0.5: 294/294
+  step (4885,4885): mean=+1.0000  median=+1.0000  >0.5: 294/294
+
+E5c_to_final: 4 comparisons
+    loaded checkpoint-1800 (0.0s)
+    loaded final_adapter (0.0s)
+  step (1800,2931): mean=+1.0000  median=+1.0000  >0.5: 294/294
+    loaded checkpoint-2800 (0.0s)
+  step (2800,2931): mean=+0.9718  median=+0.9720  >0.5: 294/294
+    loaded checkpoint-2931 (0.2s)
+  step (2931,2931): mean=+0.9718  median=+0.9720  >0.5: 294/294
+  step (2931,2931): mean=+1.0000  median=+1.0000  >0.5: 294/294
+
+E6_to_final: 4 comparisons
+    loaded checkpoint-1800 (0.0s)
+    loaded final_adapter (0.0s)
+  step (1800,2931): mean=+1.0000  median=+1.0000  >0.5: 294/294
+    loaded checkpoint-2800 (0.1s)
+  step (2800,2931): mean=+0.9927  median=+0.9929  >0.5: 294/294
+    loaded checkpoint-2931 (0.2s)
+  step (2931,2931): mean=+0.9927  median=+0.9929  >0.5: 294/294
+  step (2931,2931): mean=+1.0000  median=+1.0000  >0.5: 294/294
+
+[INFO] wrote ./directional_results/trajectory_cosine.json

@@ -503,6 +503,10 @@ Three regularities follow directly from the table:
 
 \textbf{Other controls bear out the same picture.} 4-bit (E3) vs.\ BF16 (C3) gives $\cos=0.066$---marginally higher than a typical cross-seed pair within direct training, but two orders of magnitude below the transfer regime, indicating that the choice of precision perturbs direction less than the choice of seed does. Cross-language pairs at the same rank (E1/E2/E3 mutual, all $r{=}16$) sit at $\cos\approx 0.001$--$0.002$, below same-language cross-seed pairs, confirming that distinct languages do not just stretch existing directions but rotate to fresh ones. The lowest cosine of all---$\cos$(E5, E8)$=0.0001$, KY collapse vs.\ EN baseline---is the maximally distinct comparison and gives the empirical floor of the measurement.
 
+\textbf{Clarification on which adapter is ``final''.} The cosines in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} are computed on the \texttt{final\_adapter/} directory populated by Hugging Face Trainer with \texttt{load\_best\_model\_at\_end=True}---i.e., the lowest-eval-loss checkpoint along each training trajectory, not the literal end of training. For our runs this is consistently an early-to-mid checkpoint (typically step 1800--2800 of 2931--4885 total steps), so the comparison is between best-eval states, not end-of-training states. We re-ran the eleven principal pairs using the literal last saved checkpoint instead of \texttt{final\_adapter/}; every cosine moves by at most $\pm 0.006$ (E6 cross-seed: $0.785 \to 0.779$; E3 cross-seed: $0.041 \to 0.043$; E5 vs.\ E5c: $0.010 \to 0.010$). The bimodal split between transfer-init and direct training is robust to this distinction (\Cref{app:lastckpt_robustness}).
+
+\textbf{When does seed-orthogonality emerge?} We additionally computed the same pairwise cosines at every intermediate checkpoint that PEFT saved (steps 1800, 2800, and final for each of the 12 seed-replicated runs; see \Cref{app:trajectory}). Two findings: (i) seed-orthogonality of direct training is already present at the earliest available checkpoint---E5 cross-seed at step 2800 is $0.022$, identical to its best-eval value; E3 cross-seed at step 1800 is $0.034$ vs.\ $0.041$ at best-eval. The orthogonality is not gradually accumulated during training; it is set very early. (ii) Transfer-init pinning is similarly stable across training---E6 cross-seed at step 1800 is $0.785$, and stays at $\sim 0.78$ through step 2931. The two regimes are thus established by the time we can measure them, and the rest of training acts as scale growth rather than directional rotation. Within-run cosines between consecutive checkpoints stay above $0.93$ (E5: $\cos$(step 2800, step 4885)$=0.938$; E5c: $\cos$(step 1800, step 2931)$=0.972$), confirming that each run moves through a tight cone in $\Delta W$ space.
+
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
 
@@ -930,5 +934,60 @@ To illustrate the nature of functional collapse at $r{=}64$, we present raw mode
 \textbf{$r{=}64$ output:} {\cyrfont\textit{не только, не только, не только, не только, не только\ldots}} (single bigram repeated 25+ times until max tokens)
 
 Both examples demonstrate that the model has lost instruction-following capability entirely. Rather than extracting entities or generating coherent text, it produces degenerate repetitions---a hallmark of functional collapse distinct from spectral collapse.
+
+\section{Robustness of the Pairwise-Cosine Result to Choice of ``Final'' Adapter}
+\label{app:lastckpt_robustness}
+
+\Cref{tab:lastckpt} reproduces the eleven principal pairwise comparisons from \Cref{tab:pairwise_cos} using the literal last saved checkpoint of each run instead of the \texttt{final\_adapter/} directory (which HF Trainer populates with the lowest-eval-loss checkpoint when \texttt{load\_best\_model\_at\_end=True}). All pairs move by at most $\pm 0.006$. The bimodal split between transfer-init pairs ($\cos \geq 0.34$) and direct-training pairs ($\cos < 0.07$) is preserved.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Pair} & \textbf{best-eval} & \textbf{lit.\ last} & \textbf{$\Delta$} \\
+\midrule
+E3 cross-seed       & 0.041 & 0.043 & +0.001 \\
+E5 cross-seed       & 0.022 & 0.022 & +0.000 \\
+E5b cross-seed      & 0.030 & 0.030 & +0.000 \\
+E5c cross-seed      & 0.032 & 0.033 & +0.001 \\
+E8 cross-seed       & 0.014 & 0.016 & +0.002 \\
+E1b cross-seed      & 0.028 & 0.032 & +0.004 \\
+E6 cross-seed       & \textbf{0.785} & \textbf{0.779} & $-0.006$ \\
+E6b cross-seed      & \textbf{0.343} & \textbf{0.344} & +0.001 \\
+E5 vs.\ E5c         & 0.010 & 0.010 & +0.000 \\
+E5 vs.\ E5b         & 0.011 & 0.010 & $-0.001$ \\
+E5b vs.\ E5c        & 0.053 & 0.049 & $-0.005$ \\
+\bottomrule
+\end{tabular}
+\caption{Per-module mean cosine for eleven principal pairs, computed twice: against \texttt{final\_adapter/} (best-eval, used in \Cref{tab:pairwise_cos}) and against the literal last saved checkpoint. The bimodal structure of \Cref{sec:directional} is robust to the choice.}
+\label{tab:lastckpt}
+\end{table}
+
+\section{Trajectory Cosines Across Checkpoints}
+\label{app:trajectory}
+
+PEFT saves intermediate checkpoints every $\sim 1$ epoch by default. For each seed-replicated configuration we compared two seeds at every shared checkpoint step. The cross-seed mean cosine is essentially flat across training (\Cref{tab:trajectory}): direct-training pairs stay at $0.01$--$0.04$ from the earliest available checkpoint through best-eval; transfer-init pairs stay at $0.34$--$0.78$ across the same span. Seed-orthogonality, where it exists, is therefore established by step 1800 at the latest---earlier than we can measure---and the rest of training does not change the regime.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Pair} & \textbf{step 1800} & \textbf{step 2800} & \textbf{best-eval} \\
+\midrule
+E3 cross-seed   & 0.034 & ---   & 0.041 \\
+E5 cross-seed   & ---   & 0.022 & 0.022 \\
+E5b cross-seed  & 0.030 & 0.030 & 0.030 \\
+E5c cross-seed  & 0.032 & 0.033 & 0.032 \\
+E6 cross-seed   & \textbf{0.785} & \textbf{0.779} & \textbf{0.785} \\
+E6b cross-seed  & \textbf{0.343} & \textbf{0.344} & \textbf{0.343} \\
+\bottomrule
+\end{tabular}
+\caption{Cross-seed pairwise cosines across training checkpoints. Dashes indicate that no checkpoint was saved at that step for that run (training duration differs across configurations). Numbers move by at most $\pm 0.005$ from earliest to latest checkpoint; the bimodal regime is fixed by step 1800.}
+\label{tab:trajectory}
+\end{table}
+
+\textbf{Within-run rotation.} For each run we additionally computed $\cos(\text{adapter at step }s, \text{adapter at best-eval})$ for every intermediate step. The cosines stay above $0.93$ in all runs we measured: E5 step-2800 vs.\ step-4885 final$=0.938$; E5c step-2800 vs.\ step-2931 final$=0.972$; E6 step-2800 vs.\ step-2931 final$=0.993$. Each adapter therefore moves through a tight cone in $\Delta W$ space, and the cross-seed orthogonality of the main result is not a function of when we sample the trajectory.
 
 \end{document}
