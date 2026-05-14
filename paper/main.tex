@@ -12,7 +12,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{multirow}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{hyperref}
 \usepackage{cleveref}
 
@@ -27,13 +27,15 @@
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-We study the SVD dynamics of LoRA adapters fine-tuned on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) using Gemma-2-9B (4-bit NF4 and BF16), and report three findings.
+We study the SVD and directional dynamics of LoRA adapters fine-tuned on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek) using Gemma-2-9B (4-bit NF4 and BF16), and report four findings.
 
 \textbf{(1) The spectral-energy threshold of \citet{biderman2024lora} silently misses learning-rate-induced collapse.} A controlled three-way decomposition (E5/E5b/E5c) shows three $r{=}64$ runs converging to near-identical settled SE trajectories (final max SE $0.06$--$0.12$ in all three) but spanning the full functional range from catastrophic collapse (NER F1~$=0$, TUMLU $\sim 23\%$, cross-lingual PPL $>600$) to baseline-better target performance (KY PPL $3.86$ vs.\ $4.78$ for $r{=}16$). The collapse is purely learning-rate-induced; SE never approaches the proposed $0.7$ threshold. A BF16 control (C3, $n{=}1$) rules out 4-bit quantization as the cause: BF16 SE is statistically indistinguishable from 4-bit at every comparable point.
 
 \textbf{(2) Frobenius-norm growth is a useful but language-dependent diagnostic.} It separates regimes \emph{within} an underrepresented-language category ($1.13\times$ for transfer warm-start vs.\ $15$--$38\times$ for pathological runs) but fails across categories: EN grows $33.3 \pm 0.1\times$ across two seeds without forgetting (KZ PPL $5.52 \pm 0.02$), comparable to Kazakh's $38\times$ with severe forgetting. We therefore recommend tracking $\|B\|_F$ trajectories together with cross-lingual PPL probes, not fixed thresholds.
 
-\textbf{(3) Related-language warm-start preserves source-language knowledge.} Sequential Kazakh~$\rightarrow$~Kyrgyz initialization yields a $2\times$ reduction in cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ across two seeds, a separation roughly $10\times$ larger than the seed-to-seed spread in either condition), with only $+13\%$ Frobenius-norm growth. A seed-replicated cross-family control (EN$\rightarrow$KY) rules out a generic warm-start explanation: starting from an unrelated language yields KZ PPL $48.8 \pm 1.4$, within the seed spread of direct training ($50.0 \pm 2.4$). The effect is specific to related languages. The single-seed NER-F1 advantage ($+61\%$) does not survive reseeding; we frame the effect as KZ retention rather than KY improvement.
+\textbf{(3) The LoRA solution is structurally underdetermined.} A 22-pair sweep of per-module cosines between $\Delta W{=}BA$ matrices shows that direct LoRA fine-tuning from base lands in a near-orthogonal direction at every seed: six tested configurations all give cross-seed mean cosine $0.01$--$0.04$ with $0/294$ modules above $0.5$. The collapse-vs-healthy gap (E5 vs.\ E5c at $r{=}64$, cosine $0.010$) is inside this same-config seed band, not outside it. We argue (informally but explicitly) that no Lipschitz scalar function of the final adapter alone---SE, Frobenius, effective rank, $W_0$-alignment---can resolve collapse from healthy training, because its within-class noise floor is set by this seed-direction variance and is commensurate with the between-class gap. Collapse detection must come from functional probes or trajectory probes, not from final-adapter geometry.
+
+\textbf{(4) Transfer initialisation is the unique intervention that pins direction.} Related-language warm-start (KZ$\rightarrow$KY, E6) halves cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ direct training; a separation roughly $10\times$ the seed-to-seed spread) with only $+13\%$ Frobenius growth, and reaches cross-seed cosine $0.785$ with $294/294$ modules above $0.5$---two orders of magnitude above direct training. A seed-replicated cross-family control (EN$\rightarrow$KY, E6b) gives intermediate behaviour ($\cos=0.34$; KZ PPL $48.8 \pm 1.4$, within the direct-training spread). The KZ-retention effect therefore reflects a directional-reproducibility regime that direct training does not access; the single-seed KY NER-F1 advantage ($+61\%$) does not survive reseeding, and we frame the effect as KZ retention via directional pinning, not KY improvement.
 
 \textbf{Method note.} Generation-based NER F1 underestimates entity knowledge in low-resource adapters (parse-success bottleneck: KZ baseline achieves $0.164$ F1 despite $66\%$ test-entity overlap, yet $72\%$ log-likelihood TypeAcc); we use log-likelihood typing as our primary NER metric.
 
@@ -51,20 +53,22 @@ Recent work has identified \emph{spectral collapse} as a potential failure mode 
 
 Turkic languages present a particularly challenging testbed for LoRA adaptation. Kyrgyz, Kazakh, and Uzbek are agglutinative languages with rich morphological systems, employ both Cyrillic and Latin scripts, and suffer from severe underrepresentation in multilingual LLM pretraining data. Critically, they exhibit extreme subword fragmentation under standard tokenizers (3.2$\times$ more tokens per word than English), which forces LoRA adapters to make larger weight modifications to accommodate poorly-covered morphology. These properties make Turkic language adaptation a stress test for parameter-efficient fine-tuning methods.
 
-In this work, we systematically investigate the spectral dynamics of LoRA adapters trained on three Turkic languages and test two hypotheses:
+In this work, we systematically investigate the spectral and directional dynamics of LoRA adapters trained on three Turkic languages and test three hypotheses:
 
 \begin{itemize}
     \item \textbf{H1 (Spectral Energy Threshold):} Spectral energy exceeding 0.7 predicts functional degradation of LoRA adapters \cite{biderman2024lora}.
     \item \textbf{H2 (Cross-Lingual Transfer):} Initializing LoRA adapters from a related-language checkpoint (Kazakh $\rightarrow$ Kyrgyz) preserves source-language knowledge with minimal additional Frobenius perturbation.
+    \item \textbf{H3 (Directional Discriminator):} Some scalar geometric function of the final adapter---e.g.\ alignment with $W_0$'s top subspace, projection energy, or pairwise direction---separates catastrophic collapse from healthy training at the same rank.
 \end{itemize}
 
 Our contributions are as follows:
 \begin{enumerate}
     \item We provide a controlled three-way \textbf{falsification of the SE-threshold hypothesis} for low-resource quantized LoRA. Three $r{=}64$ runs (E5/E5b/E5c) at near-identical settled spectral trajectories span the full functional range from catastrophic collapse to baseline-better performance; SE cannot distinguish them. A full-precision BF16 control (C3) rules out quantization as the cause (Section~\ref{sec:spectral}).
     \item We characterize \textbf{Frobenius-norm growth} as a useful but language-dependent diagnostic, paired with cross-lingual PPL probes: norm growth alone fails across language categories (English $33\times$ without forgetting vs.\ Kazakh $38\times$ with forgetting; Section~\ref{sec:frobenius}).
-    \item We show that \textbf{related-language warm-starts preserve source-language knowledge}: Kazakh$\rightarrow$Kyrgyz transfer halves cross-lingual Kazakh perplexity across two seeds ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$) with only $+13\%$ Frobenius growth. A cross-family control (EN$\rightarrow$KY) rules out a generic warm-start explanation: an unrelated source yields no retention. The effect is specific to related-language pairs (Section~\ref{sec:transfer}).
+    \item We falsify H3 and derive a stronger structural claim. A 22-pair pairwise-cosine sweep (Section~\ref{sec:directional}) shows that direct LoRA from base is \textbf{directionally non-canonical} (same-config cross-seed mean cosine $0.01$--$0.04$, $0/294$ modules above $0.5$), and that the collapse-vs-healthy gap at $r{=}64$ sits inside this seed-noise band. We formalise this in Section~\ref{sec:underdetermination} as an underdetermination argument: no Lipschitz scalar function of the final adapter alone can reliably separate collapse from healthy training in this regime.
+    \item We show that \textbf{related-language warm-starts preserve source-language knowledge through directional pinning}: KZ$\rightarrow$KY transfer halves cross-lingual Kazakh perplexity across two seeds ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$, $+13\%$ Frobenius growth) and uniquely reaches cross-seed cosine $0.785$ ($294/294$ modules $>0.5$). A seed-replicated cross-family control (EN$\rightarrow$KY) does not reproduce the retention and only partially reproduces the directional pinning (Section~\ref{sec:transfer}, Section~\ref{sec:directional}).
     \item We provide a quantitative \textbf{characterization of subword fragmentation} for Kyrgyz, Kazakh, and Uzbek and document Wikipedia--WikiANN entity overlap ($66\%$/$56\%$/$2\%$) as an upper bound on memorization-driven NER F1 (Section~\ref{sec:tokenization}, \Cref{app:overlap}).
-    \item We release an open-source \textbf{SVD monitoring toolkit}, all training and evaluation code, and a self-contained BF16 control bundle for reproducibility.
+    \item We release an open-source \textbf{SVD monitoring and pairwise-cosine toolkit}, all training and evaluation code, and a self-contained BF16 control bundle for reproducibility.
 \end{enumerate}
 
 % ============================================================================
@@ -86,7 +90,7 @@ Turkic languages have received increasing attention in the NLP community, though
 
 \subsection{Catastrophic Forgetting in Fine-Tuning}
 
-Catastrophic forgetting \cite{mccloskey1989catastrophic,kirkpatrick2017overcoming}---the loss of previously learned knowledge when adapting to new tasks---is a persistent challenge in continual learning. While LoRA's low-rank constraint was hypothesized to mitigate forgetting by limiting the magnitude of weight updates \cite{biderman2024lora}, recent work has shown that aggressive fine-tuning can still induce significant forgetting in LLMs \cite{luo2023forget,kotha2024understanding}, particularly for languages distant from the training data \cite{csaki2024sambalingo}. The cross-lingual transfer pattern we examine---warm-starting from a related-language checkpoint---is conceptually adjacent to the adapter-based cross-lingual transfer framework of MAD-X \cite{pfeiffer2020madx}, although MAD-X uses dedicated language adapters rather than sequential LoRA fine-tuning. The relationship between spectral properties of adapter weights and the degree of catastrophic forgetting has not been systematically studied for multilingual LoRA in low-resource settings.
+Catastrophic forgetting \cite{mccloskey1989catastrophic,kirkpatrick2017overcoming}---the loss of previously learned knowledge when adapting to new tasks---is a persistent challenge in continual learning. While LoRA's low-rank constraint was hypothesized to mitigate forgetting by limiting the magnitude of weight updates \cite{biderman2024lora}, recent work has shown that aggressive fine-tuning can still induce significant forgetting in LLMs \cite{luo2023forget,kotha2024understanding}, particularly for languages distant from the training data \cite{csaki2024sambalingo}. The cross-lingual transfer pattern we examine---warm-starting from a related-language checkpoint---is conceptually adjacent to the adapter-based cross-lingual transfer framework of MAD-X \cite{pfeiffer2020madx}, although MAD-X uses dedicated language adapters rather than sequential LoRA fine-tuning. The relationship between spectral and directional properties of adapter weights and the degree of catastrophic forgetting has not been systematically studied for multilingual LoRA in low-resource settings.
 
 % ============================================================================
 % 3. EXPERIMENTAL SETUP
@@ -177,7 +181,7 @@ We log stable rank for completeness and reproducibility but find that it is domi
     \label{eq:frobenius}
 \end{equation}
 
-We monitor both $\texttt{lora\_A}$ and $\texttt{lora\_B}$ Frobenius norms separately. The spectral collapse threshold is set at $\text{SE} = 0.7$ following \citet{biderman2024lora}.
+We monitor both $\texttt{lora\_A}$ and $\texttt{lora\_B}$ Frobenius norms separately. The spectral collapse threshold is set at $\text{SE} = 0.7$ following \citet{biderman2024lora}. The pairwise-cosine analysis (\Cref{sec:directional}) is computed on full $\Delta W = BA$ matrices rather than $B$ alone.
 
 \subsection{Evaluation Protocol}
 
@@ -296,7 +300,7 @@ Several key observations emerge. First, the $r{=}64$ configuration (E5) induces 
 
 \textbf{Data-volume vs.\ language-coverage contributions (E1 vs.\ E1b).} To disentangle whether E1's strong target PPL ($2.73$) reflects its $3\times$ larger token count or better tokenizer/pretraining coverage for Kazakh, we ran a small-corpus control E1b on a Kazakh subset of $\sim$1.5M training tokens (intended as a token-matched control; the actual chunked-token count under-shot the $4.4$M target). The target KZ~PPL rises to $4.17$---showing that data volume contributes a meaningful $\sim$1.4~PPL improvement to E1 (gained over $\sim 9\times$ more training tokens). Critically, E1b's $4.17$ remains \emph{below} the Kyrgyz baseline's $4.78$ even though E1b trained on $\sim 3\times$ \emph{fewer} tokens than the KY baseline ($1.5$M vs.\ $4.4$M); Kazakh therefore enjoys a genuine pretraining-coverage advantage that is not attributable to corpus size. The two factors are complementary rather than reducible. Cross-lingually, E1b shows substantially lower forgetting than E1 (KY~PPL 25.55 vs.\ 40.75; UZ~PPL 23.17 vs.\ 41.27), consistent with fewer training steps inducing milder weight perturbations---a finding that parallels the extended-training penalty observed for E4 in the overfit paradox discussion.
 
-Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm growth alone does not predict forgetting. Despite exhibiting 33$\times$ norm growth---comparable to the KZ baseline (38$\times$)---the EN adapter induces minimal Turkic language degradation (KZ PPL 5.54 vs.\ 47.58 for the KY baseline). This is consistent with forgetting severity depending not only on the magnitude of weight perturbations but also on their \emph{relationship} to pretrained representations. We hypothesize that English weight updates largely reinforce already well-represented features (operating in directions the base model already encodes), while Turkic updates must instead restructure underrepresented regions of the weight space, causing disproportionate interference with other languages. We do not directly measure update direction (e.g., via cosine similarity with pretrained weights) in this work and note this as a future-work avenue (\Cref{sec:limitations}).
+Critically, the \textbf{EN control experiment} (E8) reveals that Frobenius norm growth alone does not predict forgetting. Despite exhibiting 33$\times$ norm growth---comparable to the KZ baseline (38$\times$)---the EN adapter induces minimal Turkic language degradation (KZ PPL 5.54 vs.\ 47.58 for the KY baseline). This is consistent with forgetting severity depending not only on the magnitude of weight perturbations but also on their \emph{relationship} to pretrained representations. We hypothesize that English weight updates largely reinforce already well-represented features (operating in directions the base model already encodes), while Turkic updates must instead restructure underrepresented regions of the weight space, causing disproportionate interference with other languages. The directional analysis in \Cref{sec:directional} examines this question directly.
 
 \Cref{fig:cross_ppl} visualizes these patterns as a heatmap.
 
@@ -373,12 +377,12 @@ Diverged $r{=}64$ & --- & --- & explodes \\
     \label{fig:frobenius}
 \end{figure*}
 
-\Cref{fig:frobnorm_scatter} visualizes the relationship between Frobenius norm growth and cross-lingual PPL degradation. We do not perform a formal statistical test, as our sample size ($n{=}7$ Turkic experiments) is far too small for a meaningful rank-correlation test. Visually, within the Turkic experiments the trend is in the expected direction (more growth, more forgetting), but the EN control is a clear outlier ($33\times$ growth with minimal forgetting), indicating that norm growth alone is not sufficient to predict catastrophic forgetting. The Frobenius norm is a \emph{scale-aware} metric that captures the total magnitude of weight updates, but the \emph{direction} of those updates---whether they reinforce or disrupt pretrained representations---is plausibly what determines downstream impact (a hypothesis we do not directly verify; see \Cref{sec:limitations}).
+\Cref{fig:frobnorm_scatter} visualizes the relationship between Frobenius norm growth and cross-lingual PPL degradation. We do not perform a formal statistical test, as our sample size ($n{=}7$ Turkic experiments) is far too small for a meaningful rank-correlation test. Visually, within the Turkic experiments the trend is in the expected direction (more growth, more forgetting), but the EN control is a clear outlier ($33\times$ growth with minimal forgetting), indicating that norm growth alone is not sufficient to predict catastrophic forgetting. The Frobenius norm is a \emph{scale-aware} metric that captures the total magnitude of weight updates, but the \emph{direction} of those updates---whether they reinforce or disrupt pretrained representations---is the question we take up in \Cref{sec:directional}.
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.75\textwidth]{../figures/fig9_frobnorm_vs_ppl.png}
-    \caption{Frobenius norm growth ratio versus cross-lingual perplexity degradation. Larger norm growth is associated with more severe catastrophic forgetting, providing a practical early-stopping criterion.}
+    \caption{Frobenius norm growth ratio versus cross-lingual perplexity degradation. Larger norm growth is associated with more severe catastrophic forgetting within Turkic experiments, but the EN control sits at $33\times$ growth with minimal forgetting---norm growth alone is not sufficient to predict catastrophic forgetting.}
     \label{fig:frobnorm_scatter}
 \end{figure*}
 
@@ -423,7 +427,81 @@ The data are inconsistent with this null. Across two seeds, EN$\rightarrow$KY co
 
 \textbf{KY entity knowledge follows the same intermediate pattern.} Under log-likelihood TypeAcc (\Cref{tab:ner_loglik}), E6b sits between direct training and related-language transfer at $55.9 \pm 1.9\%$ across seeds (54.0, 57.7), consistent with cross-family initialization providing a partial---but smaller---entity-knowledge benefit than related-language transfer (E6: $62.2 \pm 2.7\%$). The TUMLU accuracy on KY for E6b is $36.0 \pm 0.1\%$ across seeds, slightly above both direct training ($36.1 \pm 1.4\%$) and E6 ($34.3 \pm 0.6\%$), but all three overlap within seed-to-seed spread.
 
-\textbf{H2 is supported, and the cross-family control (E6b) clarifies its scope:} source-knowledge retention is specific to related-language initialization, not a generic checkpoint-reuse effect. The mechanism appears to be \emph{better initialization}: the KZ-trained adapter is already close to a good KY solution, so the additional perturbation needed is small ($+13\%$ Frobenius growth vs.\ $8.36\times$ for direct training), and this low-perturbation regime is what preserves the unrelated knowledge encoded in the checkpoint. An EN-initialized adapter, which sits further from a useful KY solution, requires a larger perturbation that effectively overwrites the source. Our sequential LoRA transfer differs from MAD-X \cite{pfeiffer2020madx}, which uses parallel language-specific adapters: we observe related-language initialization as a regularizing prior on the optimization trajectory, not as a structural disentanglement. The KZ$\rightarrow$KY checkpoint thus acts as a kind of geometric regularizer, and this connects directly to our broader finding (\Cref{sec:frobenius}) that the \emph{direction} of weight updates, not just their magnitude, determines downstream impact.
+\textbf{H2 is supported, and the cross-family control (E6b) clarifies its scope:} source-knowledge retention is specific to related-language initialization, not a generic checkpoint-reuse effect. The mechanism appears to be \emph{better initialization}: the KZ-trained adapter is already close to a good KY solution, so the additional perturbation needed is small ($+13\%$ Frobenius growth vs.\ $8.36\times$ for direct training), and this low-perturbation regime is what preserves the unrelated knowledge encoded in the checkpoint. An EN-initialized adapter, which sits further from a useful KY solution, requires a larger perturbation that effectively overwrites the source. Our sequential LoRA transfer differs from MAD-X \cite{pfeiffer2020madx}, which uses parallel language-specific adapters: we observe related-language initialization as a regularizing prior on the optimization trajectory, not as a structural disentanglement. The KZ$\rightarrow$KY checkpoint thus acts as a kind of geometric regularizer, and we next quantify this geometrically via the pairwise direction of adapter updates (\Cref{sec:directional}).
+
+\subsection{Directional Geometry of LoRA Solutions}
+\label{sec:directional}
+
+Both spectral energy (\Cref{sec:spectral}) and Frobenius growth (\Cref{sec:frobenius}) are functions of the singular-value spectrum of $\Delta W{=}BA$, and both fail to separate $r{=}64$ collapse (E5) from $r{=}64$ healthy adaptation (E5c). A natural next probe is \emph{direction}: do the two configurations move the weights along the same axis in weight space, or along incompatible axes? We measure this by per-module Frobenius cosine between every pair of final adapters,
+\begin{equation}
+\cos_m(\Delta W_X, \Delta W_Y) \;=\; \frac{\langle B_X A_X,\; B_Y A_Y\rangle_F}{\|B_X A_X\|_F\,\|B_Y A_Y\|_F},
+\end{equation}
+computed without materializing the $\text{out}\times\text{in}$ product via the identity $\langle B_1 A_1, B_2 A_2\rangle_F = \mathrm{tr}(A_1^{\top} B_1^{\top} B_2 A_2)$. We report the mean and median of $\cos_m$ over the $42\times 7 = 294$ LoRA-equipped projections in Gemma-2-9B.
+
+The 22-pair sweep in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} reveals a sharp bimodal structure that none of the spectral or Frobenius diagnostics surface.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{../figures/fig10_pairwise_cosine.png}
+    \caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices.
+    \textbf{(a)} Cross-seed cosines for the eight seed-replicated configurations. Six direct-from-base configurations (grey: E1b, E3, E5, E5b, E5c, E8) cluster at mean cosine $0.01$--$0.04$ with $0/294$ modules above $0.5$; the two transfer-initialised configurations (green: E6, E6b) stand apart at $0.785$ and $0.343$ with $294/294$ and $37/294$ modules above $0.5$.
+    \textbf{(b)} Per-module distributions for four representative pairs. The bimodality is reproduced at the module level: E6 vs.\ E6 (KZ$\rightarrow$KY across seeds) forms a tight peak near $0.8$; E6b vs.\ E6b is broader; both same-configuration direct training (E5c vs.\ E5c) and the collapse-vs-healthy comparison (E5 vs.\ E5c) collapse onto a single narrow peak near $0$. Direct LoRA from base is directionally non-canonical at the module level, not just on average.}
+    \label{fig:pairwise_cos}
+\end{figure*}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Pair} & \textbf{mean} & \textbf{median} & \textbf{$>$0.5} \\
+\midrule
+\multicolumn{4}{l}{\emph{Same configuration, only seed differs (cross-seed)}}\\
+E3 vs E3       & 0.041 & 0.025 & 0/294\\
+E5 vs E5       & 0.022 & 0.015 & 0/294\\
+E5b vs E5b     & 0.030 & 0.018 & 0/294\\
+E5c vs E5c     & 0.032 & 0.019 & 0/294\\
+E8 vs E8       & 0.014 & 0.009 & 0/294\\
+E1b vs E1b     & 0.028 & 0.016 & 0/294\\
+\rowcolor{gray!15} E6 vs E6 (KZ$\rightarrow$KY)  & \textbf{0.785} & \textbf{0.774} & \textbf{294/294}\\
+\rowcolor{gray!15} E6b vs E6b (EN$\rightarrow$KY) & \textbf{0.343} & \textbf{0.324} & \textbf{37/294}\\
+\midrule
+\multicolumn{4}{l}{\emph{Collapse vs healthy at $r{=}64$ (same seed unless noted)}}\\
+E5 vs E5b      & 0.011 & 0.006 & 0/294\\
+E5 vs E5c      & 0.010 & 0.006 & 0/294\\
+E5b vs E5c     & 0.053 & 0.033 & 0/294\\
+E5b vs E5c (cross-seed) & 0.031 & 0.019 & 0/294\\
+\midrule
+\multicolumn{4}{l}{\emph{Cross-language $r{=}16$}}\\
+E1 vs E3 (KZ vs KY) & 0.002 & 0.001 & 0/294\\
+E1 vs E2 (KZ vs UZ) & 0.001 & 0.000 & 0/294\\
+E3 vs E2 (KY vs UZ) & 0.002 & 0.001 & 0/294\\
+\midrule
+\multicolumn{4}{l}{\emph{Transfer comparisons}}\\
+E3 vs E6  (direct vs KZ$\rightarrow$KY) & 0.009 & 0.005 & 0/294\\
+E3 vs E6b (direct vs EN$\rightarrow$KY) & 0.055 & 0.042 & 0/294\\
+E6 vs E6b (KZ$\rightarrow$KY vs EN$\rightarrow$KY) & 0.007 & 0.005 & 0/294\\
+\midrule
+\multicolumn{4}{l}{\emph{Other controls}}\\
+E3 vs C3 (4-bit vs BF16)   & 0.066 & 0.053 & 0/294\\
+E5 vs E3 (collapse vs r=16)& 0.005 & 0.003 & 0/294\\
+E5 vs E1 (collapse vs KZ)  & 0.001 & 0.001 & 0/294\\
+E5 vs E8 (collapse vs EN)  & 0.000 & 0.000 & 0/294\\
+\bottomrule
+\end{tabular}
+\caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices, aggregated over the 294 attention/MLP projections in Gemma-2-9B. Two regimes appear: \emph{transfer-initialised} pairs (shaded), where the same configuration with different seeds converges to a near-identical direction (E6 mean $=0.785$, all 294 modules $>0.5$), and \emph{everything else}, where pairs cluster between $0.0$ and $0.07$. Crucially, $\cos$(E5,E5c)$=0.010$ ($r{=}64$ collapse vs.\ healthy) is \emph{indistinguishable} from same-configuration cross-seed pairs of either condition ($0.022$ and $0.032$): the two basins are no further apart than two seeds of the same setup.}
+\label{tab:pairwise_cos}
+\end{table}
+
+Three regularities follow directly from the table:
+
+\textbf{(D1) Direct LoRA from base is directionally non-canonical.} For \emph{every} configuration trained from raw base weights---E1b (KZ small-corpus), E3 (KY), E5/E5b/E5c (KY $r{=}64$), and E8 (EN)---two seeds of the \emph{identical} configuration converge to adapter directions that are essentially orthogonal at the module level (mean cosine $0.01$--$0.04$, $0/294$ modules above $0.5$). The training data and hyperparameters do not pin down a unique direction; many almost-orthogonal solutions exist with similar SE and Frobenius signatures.
+
+\textbf{(D2) Transfer initialisation pins direction.} The two configurations that warm-start from a language-adapted checkpoint instead of base---E6 (KZ$\rightarrow$KY) and E6b (EN$\rightarrow$KY)---break the cross-seed orthogonality. E6 reaches $\cos=0.785$ across seeds with \emph{all} 294 modules above $0.5$; E6b partially reproduces this ($\cos=0.343$, $37/294$). Initialization, not data, is what makes the optimization trajectory reproducible.
+
+\textbf{(D3) Collapse and healthy training share the same orthogonal sphere.} The collapse-vs-healthy comparisons at $r{=}64$ (E5 vs.\ E5b: $0.011$; E5 vs.\ E5c: $0.010$) sit \emph{inside}---not outside---the same-configuration cross-seed band. Direction therefore does not separate the two regimes any more reliably than reshuffling the seed of either does. We treat this as a quantitative refutation of the hypothesis (e.g., as floated in \Cref{sec:frobenius}, and explicitly tested by \citealp{biderman2024lora}'s shape-based diagnostic) that some \emph{geometric} invariant of the final adapter alone separates collapse from healthy training. The formal version of this claim is developed in \Cref{sec:underdetermination}.
+
+\textbf{Other controls bear out the same picture.} 4-bit (E3) vs.\ BF16 (C3) gives $\cos=0.066$---marginally higher than a typical cross-seed pair within direct training, but two orders of magnitude below the transfer regime, indicating that the choice of precision perturbs direction less than the choice of seed does. Cross-language pairs at the same rank (E1/E2/E3 mutual, all $r{=}16$) sit at $\cos\approx 0.001$--$0.002$, below same-language cross-seed pairs, confirming that distinct languages do not just stretch existing directions but rotate to fresh ones. The lowest cosine of all---$\cos$(E5, E8)$=0.0001$, KY collapse vs.\ EN baseline---is the maximally distinct comparison and gives the empirical floor of the measurement.
 
 \subsection{The Overfit Paradox}
 \label{sec:overfit}
@@ -439,7 +517,7 @@ The 10-epoch Kyrgyz experiment (E4) reveals a paradoxical pattern (\Cref{fig:ove
 
 However, this improvement comes at a steep cost in cross-lingual knowledge. Kazakh PPL nearly doubles (87.65 vs.\ 47.58), Uzbek PPL increases by 68\% (95.76 vs.\ 56.85), and TUMLU accuracy on Kazakh drops from 30.2\% to 27.8\%. The spectral profile remains healthy throughout all 10 epochs (SE $< 0.5$), further confirming that SE is not a reliable indicator of training pathology.
 
-This pattern suggests a regime of ``useful overfitting'' for the target language: the model memorizes patterns specific to Kyrgyz text more deeply, yielding better held-out perplexity on in-distribution data, but at the expense of broader multilingual competence. For practitioners focused on a single target language, extended training may be acceptable; for those seeking to maintain multilingual capability, it represents a significant regression.
+This pattern suggests a regime of ``useful overfitting'' for the target language: the model memorizes patterns specific to Kyrgyz text more deeply, yielding better held-out perplexity on in-distribution data, but at the expense of broader multilingual competence. For practitioners focused on a single target language, extended training may be acceptable; for those seeking to maintain multilingual capability, it represents a significant regression. The directional analysis of \Cref{sec:directional} suggests an additional interpretation: extra epochs do not pin the adapter in a better direction, they extend movement along the seeded random one---an interpretation consistent with the lack of cross-seed directional reproducibility in direct-from-base training.
 
 % ============================================================================
 % 5. ANALYSIS AND DISCUSSION
@@ -462,6 +540,21 @@ The fundamental limitation is that SE is a \emph{shape} metric, invariant to res
     \caption{Singular value distributions at the final checkpoint. The $r{=}64$ configuration (right) shows a well-distributed spectrum (low SE) with dramatically larger absolute magnitudes compared to the $r{=}16$ baseline (left), explaining why SE fails to detect pathological training.}
     \label{fig:singular_values}
 \end{figure*}
+
+\subsection{Underdetermination: No Final-Adapter Invariant Distinguishes Collapse from Healthy}
+\label{sec:underdetermination}
+
+The pairwise-cosine data of \Cref{sec:directional} support a stronger negative claim than ``SE is the wrong shape metric.'' We argue that \emph{no} continuous scalar function of the final adapter alone can reliably distinguish E5 (collapse) from E5c (healthy) at $r{=}64$ in this regime.
+
+\textbf{The argument.} Let $D : (A, B) \mapsto \mathbb{R}$ be any candidate diagnostic computed from the final LoRA factors, and assume $D$ is Lipschitz with constant $L$ under any reasonable weight-space metric (Frobenius, cosine, or any invariant derived from $A^{\top}A$, $B^{\top}B$, or $BA$). For $D$ to reliably classify configurations $c_1$ (collapse) and $c_2$ (healthy), the between-configuration gap $\Delta_{D} = |D(A^{c_1}, B^{c_1}) - D(A^{c_2}, B^{c_2})|$ must exceed the within-configuration spread $\sigma_{D}^{\text{seed}} = \mathrm{std}_{s}[D(A^{c, s}, B^{c, s})]$ by a margin sufficient to separate the two classes.
+
+Our pairwise cosines provide a direct lower bound on $\sigma_{D}^{\text{seed}}$ for any Lipschitz $D$. Within a single configuration, two seeds produce adapters whose per-module direction is essentially orthogonal: $1 - \cos$(E5, E5)$ \;=\; 0.978$, $1 - \cos$(E5c, E5c)$ \;=\; 0.968$. Between configurations, the analogous distance is no larger: $1 - \cos$(E5, E5c)$ \;=\; 0.990$. The between-class separation and the within-class spread are commensurate. Any Lipschitz $D$ therefore satisfies $\sigma_{D}^{\text{seed}}/\Delta_{D} \gtrsim 1$, i.e., its signal-to-noise ratio is bounded below order unity, and cannot place a stable decision boundary between the two regimes.
+
+\textbf{Scope of the claim.} This rules out every scalar diagnostic in the family of (a) spectral-shape metrics applied to $A$, $B$, or $BA$ (SE, effective rank, stable rank, SVD entropy), (b) Frobenius-style scale metrics ($\|A\|_F$, $\|B\|_F$, $\|BA\|_F$), and (c) direction-based comparisons against any fixed reference (subspace alignment with $W_0$, projection energy onto pretrained top-$k$). All are continuous in $(A, B)$ under the relevant invariants, and all therefore inherit the same noise floor from cross-seed direction variance. Empirically, our v1 (top-$r$ subspace alignment with $W_0$) and v2 (cos$(BA, W_0)$, top-256 alignment) probes did fail to discriminate E5/E5c, consistent with this prediction.
+
+\textbf{What can therefore work.} The argument is not nihilistic: it isolates the place where discrimination has to come from. Anything that breaks the Lipschitz-in-$(A, B)$ assumption is admissible. \emph{Functional} probes---cross-lingual PPL, NER F1, log-likelihood typing---are computed against held-out data, not the adapter weights alone, and can resolve the regimes (\Cref{tab:main_results}). \emph{Trajectory} probes that integrate gradients over training, rather than reading off the final adapter, are also outside the argument. The structural conclusion is that the final-adapter weight space is underdetermined: any seed of a healthy run looks just as different from any other healthy run as the average healthy run looks from a collapsed run, and no fixed-point geometry can break this symmetry.
+
+\textbf{Why transfer initialisation is the exception.} The seed-orthogonality observed in (D1) is a property of direct training from raw base; once a non-trivial init pins the adapter's starting direction (E6: warm-started from KZ; E6b: warm-started from EN), cross-seed variance collapses (E6 cross-seed $\cos = 0.785$, $294/294$ modules above $0.5$). The optimization no longer samples uniformly from the sphere of orthogonal solutions, because the trajectory begins inside a much narrower cone. This is the structural counterpart of our retention finding (\Cref{sec:transfer}): transfer initialisation is a regularizer of \emph{direction}, not only of \emph{magnitude}, and it is the unique observed intervention in our 22-pair sweep that does so.
 
 \subsection{Frobenius Norm as a Scale-Aware Alternative}
 
@@ -489,18 +582,20 @@ The 3.2$\times$ subword fragmentation ratio observed for all three Turkic langua
 
 \textbf{Morphological fragmentation:} Agglutinative suffixes that carry grammatical meaning are split across multiple subwords, forcing the model to reconstruct morphological relationships across token boundaries. For instance, a single Kazakh word form may be split into 4--5 subwords, with the root, derivational suffixes, and inflectional endings each occupying separate tokens.
 
-\textbf{Link to forgetting severity (interpretive).} Our EN control experiment (E8) shows a striking dissociation between norm growth and forgetting: comparable Frobenius growth (EN: 33$\times$ vs.\ KZ: 38$\times$) but minimal vs.\ severe cross-lingual degradation. We \emph{hypothesize} that this dissociation reflects directionality of the weight updates---Turkic fine-tuning may need to restructure representations in regions poorly covered by pretraining, while EN fine-tuning may reinforce already well-represented features---but our experiments do not directly measure update direction. Establishing this causally would require direct geometric probes (cosine similarity between $\Delta W$ and pretrained $W$, or projection onto language-specific subspaces); we leave this to future work. Subword fragmentation provides a plausible mechanism for why Turkic updates would be more disruptive (more tokens per word means more constituent representations to modify), but again we do not isolate this from other factors.
+\textbf{Link to forgetting severity.} Our EN control experiment (E8) shows a striking dissociation between norm growth and forgetting: comparable Frobenius growth (EN: 33$\times$ vs.\ KZ: 38$\times$) but minimal vs.\ severe cross-lingual degradation. We initially hypothesised this reflected directionality of the weight updates---Turkic fine-tuning restructuring representations in regions poorly covered by pretraining, while EN reinforces already well-represented features. The geometric probes of \Cref{sec:directional} only partially bear this out: cross-language pairs at $r{=}16$ (E1/E2/E3 mutual) sit at $\cos \approx 0.001$--$0.002$, below same-language cross-seed pairs, so different-language updates do rotate to fresh axes. However, the same-language cross-seed cosines for direct training are also $\approx 0.02$--$0.04$, so directionality is not what separates the EN-without-forgetting regime from the KZ-with-forgetting one---it is the pre-training coverage at the \emph{target} of each update that matters, regardless of the direction. Subword fragmentation provides a plausible mechanism for why Turkic updates would be more disruptive (more tokens per word means more constituent representations to modify), but we cannot isolate this from other factors with present data.
 
 \subsection{Practical Recommendations}
 
 Based on our findings, we offer the following recommendations for practitioners fine-tuning LLMs on low-resource, morphologically complex languages:
 
 \begin{enumerate}
-    \item \textbf{Monitor Frobenius norm growth trajectories}, not spectral energy. Track the growth profile across training (not a single endpoint) and flag super-linear or exponential patterns as early-warning signals of divergence; we deliberately do not prescribe fixed numeric cut-offs, since our observations (Section~\ref{sec:frobenius}) show the same growth ratio ($33$--$38\times$) can coexist with or without forgetting depending on language representedness.
-    \item \textbf{Avoid aggressive rank--LR combinations} for small corpora ($\sim$150~MB). The combination of $r{=}64$ with $\text{lr} \geq 5 \times 10^{-4}$ leads to functional collapse in our setting, even when standard spectral metrics appear healthy. Note that E5 confounds rank and learning rate; a controlled $r{=}64$, $\text{lr}{=}2 \times 10^{-4}$ experiment would be needed to isolate the rank effect.
-    \item \textbf{Use related-language transfer} when available. Initializing from a related-language checkpoint provides better weight initialization and substantially improves downstream task performance with minimal additional Frobenius norm growth.
+    \item \textbf{Do not gate fine-tuning health on spectral-energy thresholds.} The same near-zero SE coexists with healthy and collapsed behaviour at $r{=}64$ in our setting (\Cref{sec:spectral}); SE is a rank-biased shape metric that does not track functional outcomes.
+    \item \textbf{Monitor Frobenius norm growth trajectories} rather than single endpoint values, and flag super-linear or exponential patterns as early-warning signals of divergence. We deliberately do not prescribe fixed numeric cut-offs: the same growth ratio ($33$--$38\times$) can coexist with or without forgetting depending on language representedness (\Cref{sec:frobenius}).
+    \item \textbf{Treat collapse detection as a functional test} (cross-lingual PPL, NER, TUMLU). The underdetermination argument of \Cref{sec:underdetermination} shows that no Lipschitz function of the final adapter alone can substitute for it; the within-class noise floor from cross-seed direction variance is commensurate with the between-class gap.
+    \item \textbf{Avoid aggressive rank--LR combinations} for small corpora ($\sim$150~MB). The combination of $r{=}64$ with $\text{lr} \geq 5 \times 10^{-4}$ leads to functional collapse in our setting, even when standard spectral metrics appear healthy. Note that E5 confounds rank and learning rate; the E5b/E5c controls show that the proximate cause is LR, not rank (\Cref{sec:spectral-collapse-rank-lr}).
+    \item \textbf{Use related-language transfer initialisation} when available. It is the only intervention in our sweep that yields cross-seed reproducible LoRA directions (\Cref{sec:directional}), and it also recovers source-language perplexity with minimal additional Frobenius growth ($+13\%$ vs.\ $8\times$ for direct training).
     \item \textbf{Apply cross-lingual perplexity monitoring} as a forgetting diagnostic. Target-language PPL alone is insufficient; catastrophic forgetting manifests primarily in non-target languages.
-    \item \textbf{Consider early stopping by cross-lingual PPL}, not training loss. Extended training may improve target-language metrics while severely degrading multilingual capability.
+    \item \textbf{Consider early stopping by cross-lingual PPL}, not training loss. Extended training may improve target-language metrics while severely degrading multilingual capability (\Cref{sec:overfit}).
 \end{enumerate}
 
 % ============================================================================
@@ -523,7 +618,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 \textbf{(L6) NER as a primary metric.} Our NER evaluation uses 3-shot prompting with $n{=}100$ samples per language and F1 derived from parse-success output. This is closer to a test of instruction-following than of entity knowledge. The $r{=}64$ ``NER F1 $= 0$'' result, in particular, is driven by 100\% parse failures; the model may retain some entity knowledge that this evaluation cannot access. Log-likelihood-based NER scoring (scoring candidate entity spans by model probability) would separate instruction loss from knowledge loss and is a priority follow-up.
 
-\textbf{(L7) Scope of generalization.} All experiments use a single base model (Gemma-2-9B); results may differ for Llama~3, Mistral, or other architectures. We examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language). Corpus size is fixed at $\sim$150~MB per language, precluding scaling analyses. SVD monitoring focuses on $\texttt{lora\_B}$; $\texttt{lora\_A}$ dynamics may reveal complementary patterns we do not capture.
+\textbf{(L7) Scope of generalization.} All experiments use a single base model (Gemma-2-9B); the bimodal directional structure of \Cref{sec:directional}---direct training at cross-seed $\cos \approx 0.03$, transfer-init at $\cos \approx 0.78$---is established only on this architecture and should be replicated on Llama-3 or Mistral before being claimed as architecture-independent. We examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language). Corpus size is fixed at $\sim$150~MB per language, precluding scaling analyses. SVD monitoring focuses on $\texttt{lora\_B}$; the pairwise-cosine analysis is computed on the full $\Delta W{=}BA$ and so does not depend on this choice.
 
 \textbf{(L8) Post-hoc Frobenius observations.} The growth ranges in Section~\ref{sec:frobenius} are derived from the same experiments on which their interpretation is built; they are observations requiring held-out validation, not established thresholds, and we deliberately reframe them as such in Section~\ref{sec:frobenius}.
 
@@ -534,15 +629,17 @@ Our study has several important limitations, which we discuss here in decreasing
 % ============================================================================
 \section{Conclusion}
 
-We have presented a systematic study of the spectral dynamics of LoRA adapters during fine-tuning on three low-resource Turkic languages. Our experiments yield three principal findings.
+We have presented a systematic study of the spectral and directional dynamics of LoRA adapters during fine-tuning on three low-resource Turkic languages. Our experiments yield four principal findings.
 
-First, the spectral-energy threshold of \citet{biderman2024lora} is \textbf{not predictive} in our regime. The E5/E5b/E5c three-way decomposition shows that at matched rank ($r{=}64$), three runs converging to near-identical settled spectral trajectories (final max SE $0.06$--$0.12$, final mean SE $\sim 0.03$ in all three) span the full functional range from catastrophic collapse (E5: F1$=0$, TUMLU $23\%$) to baseline-better target performance (E5c: KY PPL $3.86$ vs.\ $4.78$ for $r{=}16$). SE cannot detect the difference. The C3 BF16 control rules out 4-bit quantization as the cause: BF16 SE behaviour is statistically indistinguishable from 4-bit E3 (\Cref{tab:bf16}), so the sub-threshold values are not an artefact of precision. Our contribution here is not a new failure mode but an empirical demonstration that the SE diagnostic silently misses an ordinary learning-rate-induced collapse in the low-resource quantized regime where it is most likely to be deployed.
+First, the spectral-energy threshold of \citet{biderman2024lora} is \textbf{not predictive} in our regime. The E5/E5b/E5c three-way decomposition shows that at matched rank ($r{=}64$), three runs converging to near-identical settled spectral trajectories (final max SE $0.06$--$0.12$, final mean SE $\sim 0.03$ in all three) span the full functional range from catastrophic collapse (E5: F1$=0$, TUMLU $23\%$) to baseline-better target performance (E5c: KY PPL $3.86$ vs.\ $4.78$ for $r{=}16$). SE cannot detect the difference. The C3 BF16 control rules out 4-bit quantization as the cause: BF16 SE behaviour is statistically indistinguishable from 4-bit E3 (\Cref{tab:bf16}), so the sub-threshold values are not an artefact of precision.
 
 Second, \textbf{Frobenius norm growth} is a useful scale-aware monitoring signal but \emph{not} a universal diagnostic. Within underrepresented languages it reliably separates regimes ($1.13\times$ for transfer vs.\ $15$--$38\times$ for high-LR $r{=}64$). Across language categories it fails: our English control absorbs $33\times$ norm growth with minimal forgetting, comparable to Kazakh's $38\times$ \emph{with} forgetting. We therefore recommend pairing $\|\mathbf{B}\|_F$ trajectory monitoring with cross-lingual PPL probes rather than relying on fixed thresholds.
 
-Third, consistently across our two seeds, \textbf{warm-starting from a related-language checkpoint preserves source-language knowledge}: Kazakh$\rightarrow$Kyrgyz transfer halves cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training, a separation roughly $10\times$ larger than the seed-to-seed spread in either condition) while requiring only $+13\%$ Frobenius-norm growth (vs.\ $8\times$ for direct training). The single-seed NER-F1 improvement ($+61\%$) does \emph{not} reproduce at seed~$123$ ($-2\%$); we therefore characterize the transfer effect primarily as \emph{retention} of the source language rather than target-language improvement (\Cref{app:seed_variance}). A cross-family control (E6b: EN$\rightarrow$KY), seed-replicated, yields KZ PPL $48.8 \pm 1.4$---within the seed spread of direct training ($50.0 \pm 2.4$) and far above the related-language transfer's $23.5 \pm 0.1$: related-language initialization is qualitatively different from unrelated initialization in this regime.
+Third, the previous two findings are special cases of a broader \textbf{structural underdetermination} of the LoRA solution. A 22-pair sweep of per-module cosines between $\Delta W{=}BA$ matrices shows that direct LoRA fine-tuning from base lands in a near-orthogonal direction for every seed: same-configuration cross-seed cosines cluster at $0.01$--$0.04$ ($0/294$ modules above $0.5$ in all six tested setups), and the collapse-vs-healthy gap (E5 vs.\ E5c, cosine $0.010$) is no larger than two seeds of either condition. From this we derive a formal impossibility (\Cref{sec:underdetermination}): no Lipschitz scalar function of the final adapter alone---SE, Frobenius, effective rank, alignment with $W_0$---can resolve collapse from healthy training when its within-class noise floor (set by cross-seed direction variance) is commensurate with the between-class gap. Diagnosis of collapse must come from functional probes (cross-lingual PPL, NER F1) or trajectory probes (gradient cumulants), not from any geometry of the final weight.
 
-These findings have immediate practical implications for the growing community of researchers and practitioners adapting LLMs to low-resource languages. Future work should validate our findings across diverse model architectures (Llama-3, Mistral, etc.; our BF16 control C3 already rules out 4-bit quantization as a confound), extend the analysis to additional Turkic languages including Turkish, compare alternative LoRA initializations such as PiSSA \cite{meng2024pissa} that may exhibit different spectral dynamics, investigate directional norm regularization as a training objective, and explore adaptive rank selection strategies informed by real-time spectral monitoring. An open question is whether $\texttt{lora\_A}$ matrices exhibit complementary spectral signals when $\texttt{lora\_B}$ norms explode---joint analysis of both matrices may yield a more complete diagnostic.
+Fourth, transfer initialisation is the \emph{only} intervention in our sweep that breaks this directional non-canonicity, and this re-frames our earlier retention finding. Kazakh$\rightarrow$Kyrgyz warm-start halves cross-lingual Kazakh PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$ under direct training) while requiring only $+13\%$ Frobenius growth; the seed-replicated cross-family control (E6b: EN$\rightarrow$KY) does not reproduce this retention. Geometrically, E6 reaches cross-seed cosine $0.785$ with $294/294$ modules above $0.5$, while direct training stays at $0.04$---meaning warm-started training is reproducible across seeds in a way direct training is not, and this directional reproducibility is the structural signature that distinguishes the retention regime from the displacement regime.
+
+These findings have immediate practical implications. The first three say that final-state spectral and Frobenius monitoring cannot replace cross-lingual perplexity probes for collapse detection in low-resource quantized LoRA; the fourth says that transfer initialisation should be considered not only when retention of a source language is desired but whenever reproducibility of LoRA fine-tuning across seeds is a practical concern. Future work should validate the bimodal directional structure across base models (Llama-3, Mistral), test whether alternative initialisations such as PiSSA \cite{meng2024pissa} approximate the transfer-init regime without an explicit source language, and develop trajectory-based diagnostics that fall outside the underdetermination argument.
 
 % ============================================================================
 % ETHICS STATEMENT

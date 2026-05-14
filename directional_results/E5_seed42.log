@@ -1,0 +1,36 @@
+nohup: ignoring input
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+[INFO] adapter: ./output_ky_collapse_r64_lr5e4_5ep/final_adapter
+[INFO] base:    google/gemma-2-9b
+[INFO] device:  cuda, dtype: torch.bfloat16
+[INFO] loading base model in BF16...
+Loading weights:   0%|          | 0/464 [00:00<?, ?it/s]Loading weights:   0%|          | 1/464 [00:03<30:34,  3.96s/it]Loading weights:  22%|██▏       | 102/464 [00:04<00:10, 33.76it/s]Loading weights:  27%|██▋       | 127/464 [00:04<00:09, 35.20it/s]Loading weights:  31%|███       | 143/464 [00:05<00:08, 37.71it/s]Loading weights:  33%|███▎      | 155/464 [00:05<00:08, 37.31it/s]Loading weights:  35%|███▌      | 164/464 [00:06<00:10, 28.43it/s]Loading weights:  37%|███▋      | 171/464 [00:07<00:14, 19.95it/s]Loading weights:  39%|███▊      | 179/464 [00:08<00:18, 15.60it/s]Loading weights:  41%|████      | 188/464 [00:08<00:15, 18.17it/s]Loading weights:  41%|████▏     | 192/464 [00:10<00:29,  9.26it/s]Loading weights:  43%|████▎     | 198/464 [00:10<00:23, 11.33it/s]Loading weights:  44%|████▎     | 202/464 [00:10<00:23, 11.00it/s]Loading weights:  45%|████▌     | 211/464 [00:10<00:16, 15.45it/s]Loading weights:  46%|████▋     | 215/464 [00:11<00:16, 15.40it/s]Loading weights:  48%|████▊     | 223/464 [00:11<00:14, 16.46it/s]Loading weights:  50%|█████     | 233/464 [00:11<00:09, 23.90it/s]Loading weights:  51%|█████▏    | 238/464 [00:11<00:09, 23.83it/s]Loading weights:  52%|█████▏    | 242/464 [00:12<00:08, 25.60it/s]Loading weights:  53%|█████▎    | 246/464 [00:12<00:09, 23.78it/s]Loading weights:  55%|█████▌    | 256/464 [00:12<00:07, 28.30it/s]Loading weights:  56%|█████▌    | 260/464 [00:12<00:06, 29.60it/s]Loading weights:  58%|█████▊    | 267/464 [00:12<00:07, 26.57it/s]Loading weights:  60%|█████▉    | 277/464 [00:13<00:05, 36.66it/s]Loading weights:  61%|██████    | 282/464 [00:13<00:05, 32.05it/s]Loading weights:  62%|██████▏   | 289/464 [00:13<00:06, 28.48it/s]Loading weights:  65%|██████▍   | 300/464 [00:13<00:05, 32.68it/s]Loading weights:  66%|██████▌   | 304/464 [00:13<00:04, 33.56it/s]Loading weights:  67%|██████▋   | 311/464 [00:14<00:05, 29.80it/s]Loading weights:  69%|██████▉   | 322/464 [00:14<00:04, 30.97it/s]Loading weights:  72%|███████▏  | 333/464 [00:14<00:04, 29.93it/s]Loading weights:  74%|███████▍  | 344/464 [00:15<00:03, 31.55it/s]Loading weights:  76%|███████▌  | 353/464 [00:15<00:02, 37.71it/s]Loading weights:  77%|███████▋  | 358/464 [00:15<00:03, 34.02it/s]Loading weights:  78%|███████▊  | 363/464 [00:15<00:02, 35.28it/s]Loading weights:  79%|███████▉  | 367/464 [00:15<00:03, 29.10it/s]Loading weights:  81%|████████▏ | 377/464 [00:16<00:03, 27.09it/s]Loading weights:  84%|████████▎ | 388/464 [00:16<00:02, 31.88it/s]Loading weights:  86%|████████▌ | 399/464 [00:16<00:01, 33.23it/s]Loading weights:  88%|████████▊ | 410/464 [00:17<00:01, 33.59it/s]Loading weights:  91%|█████████ | 421/464 [00:17<00:01, 34.22it/s]Loading weights:  93%|█████████▎| 432/464 [00:17<00:00, 34.08it/s]Loading weights:  95%|█████████▌| 441/464 [00:17<00:00, 40.60it/s]Loading weights:  96%|█████████▌| 446/464 [00:18<00:00, 36.28it/s]Loading weights:  98%|█████████▊| 454/464 [00:18<00:00, 32.85it/s]Loading weights: 100%|██████████| 464/464 [00:18<00:00, 25.07it/s]
+[INFO] computing top-64 right singular vectors of W0 for each target module (one-time)...
+  [20] model.layers.2.mlp.up_proj (1.7s elapsed)
+  [40] model.layers.5.mlp.gate_proj (2.9s elapsed)
+  [60] model.layers.8.self_attn.o_proj (4.1s elapsed)
+  [80] model.layers.11.self_attn.v_proj (5.1s elapsed)
+  [100] model.layers.14.self_attn.k_proj (5.7s elapsed)
+  [120] model.layers.17.self_attn.q_proj (6.3s elapsed)
+  [140] model.layers.19.mlp.down_proj (7.0s elapsed)
+  [160] model.layers.22.mlp.up_proj (7.5s elapsed)
+  [180] model.layers.25.mlp.gate_proj (8.0s elapsed)
+  [200] model.layers.28.self_attn.o_proj (8.5s elapsed)
+  [220] model.layers.31.self_attn.v_proj (9.0s elapsed)
+  [240] model.layers.34.self_attn.k_proj (9.5s elapsed)
+  [260] model.layers.37.self_attn.q_proj (10.0s elapsed)
+  [280] model.layers.39.mlp.down_proj (10.5s elapsed)
+[INFO] cached W0 SVD: 294 modules in 11.0s -> ./w0_svd_cache/w0_topk_r64.pt
+[INFO] loading adapter from ./output_ky_collapse_r64_lr5e4_5ep/final_adapter...
+  [40] model.layers.5.mlp.gate_proj  align=0.022  ratio=0.022  (0.3s)
+  [80] model.layers.11.self_attn.v_proj  align=0.027  ratio=0.030  (0.5s)
+  [120] model.layers.17.self_attn.q_proj  align=0.027  ratio=0.031  (0.7s)
+  [160] model.layers.22.mlp.up_proj  align=0.021  ratio=0.022  (1.0s)
+  [200] model.layers.28.self_attn.o_proj  align=0.022  ratio=0.023  (1.2s)
+  [240] model.layers.34.self_attn.k_proj  align=0.020  ratio=0.022  (1.4s)
+  [280] model.layers.39.mlp.down_proj  align=0.005  ratio=0.005  (1.7s)
+[INFO] processed 294 modules, skipped 0, 1.8s
+[INFO] wrote ./directional_results/E5_seed42.json
+[SUMMARY] alignment mean = 0.0208
+[SUMMARY] projected_ratio mean = 0.0227
+[SUMMARY] global projected_ratio = 0.0218
