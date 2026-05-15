@@ -53,6 +53,18 @@ paper/*.out
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+texput.log
+
+# ── Training tee logs (tqdm \r noise, large) ──
+*.launch.log
+
+# ── HuggingFace per-run artefacts not needed in git ──
+output_*/tokenizer.json
+output_*/tokenizer_config.json
+output_*/training_artifacts/
+output_*/.gitattributes
+output_*/adapter_config.json
+output_*/offload/
 
 # ── Failed experiment (OOM, no useful data) ──
 output_ky_collapse_r128_lr5e4_5ep/
