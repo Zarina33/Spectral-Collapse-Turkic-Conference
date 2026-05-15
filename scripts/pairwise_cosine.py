@@ -150,6 +150,7 @@ ADAPTERS = {
     "E8_s42":    "./output_en_baseline_r16_lr2e4_3ep/final_adapter",
     "E8_s123":   "./output_en_baseline_r16_lr2e4_3ep_seed123/final_adapter",
     "C3_s42":    "./output_ky_bf16_r16_lr2e4_3ep",
+    "alpha32_s42": "./output_ky_r64_lr2e4_3ep_alpha32/final_adapter",
 }
 
 PAIRS = [
@@ -186,6 +187,11 @@ PAIRS = [
     ("E5_s42",  "E3_s42",   "r=64 collapse vs r=16 baseline (different rank too)"),
     ("E5_s42",  "E1_s42",   "r=64 collapse vs KZ baseline"),
     ("E5_s42",  "E8_s42",   "r=64 collapse vs EN baseline"),
+
+    # ALPHA=32 CONTROL (Block 4a, L3 closure)
+    ("E5c_s42",   "alpha32_s42", "r=64 alpha/r=2 (E5c, alpha=128) vs alpha/r=0.5 (alpha=32)"),
+    ("alpha32_s42", "E3_s42",    "r=64 alpha=32 (matched-effective-LR) vs r=16 baseline (alpha=32)"),
+    ("alpha32_s42", "E5_s42",    "r=64 alpha=32 vs r=64 collapse (alpha=128)"),
 ]
 
 
