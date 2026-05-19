@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-05-19T11:17:44.810612",
+  "adapter_path": "output_l3_ky_collapse_r64_lr5e4_5ep/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 1.232664,
+      "ppl": 3.4304,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 4.977213,
+      "ppl": 145.0695,
+      "n_samples": 500,
+      "n_tokens": 119797
+    },
+    "uz": {
+      "loss": 5.654656,
+      "ppl": 285.6182,
+      "n_samples": 500,
+      "n_tokens": 127648
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 97,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 94,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    },
+    "uz": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0,
+      "n_evaluated": 100,
+      "parse_failures": 71,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.6486,
+      "macro_f1": 0.6547,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.9355,
+          "recall": 0.8056,
+          "f1": 0.8657,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 0.6071,
+          "recall": 0.4359,
+          "f1": 0.5075,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0.5,
+          "recall": 0.7222,
+          "f1": 0.5909,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7411,
+      "macro_f1": 0.6881,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.8372,
+          "recall": 0.9231,
+          "f1": 0.878,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 0.6,
+          "recall": 0.3214,
+          "f1": 0.4186,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0.7037,
+          "recall": 0.8444,
+          "f1": 0.7677,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7961,
+      "macro_f1": 0.7414,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.875,
+          "recall": 1.0,
+          "f1": 0.9333,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.3103,
+          "f1": 0.4737,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0.7037,
+          "recall": 0.9744,
+          "f1": 0.8172,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.2179,
+      "correct": 173,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.223,
+      "correct": 155,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.2473,
+      "correct": 183,
+      "n_questions": 740
+    }
+  }
+}
