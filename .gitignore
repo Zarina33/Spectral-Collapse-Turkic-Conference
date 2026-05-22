@@ -57,6 +57,8 @@ texput.log
 
 # ── Training tee logs (tqdm \r noise, large) ──
 *.launch.log
+*.nohup.out
+*.pid
 
 # ── HuggingFace per-run artefacts not needed in git ──
 output_*/tokenizer.json
