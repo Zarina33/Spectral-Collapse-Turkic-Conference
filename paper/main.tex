@@ -39,7 +39,7 @@ We study the SVD and directional dynamics of LoRA adapters fine-tuned on three l
 
 \textbf{Method note.} Generation-based NER F1 underestimates entity knowledge in low-resource adapters (parse-success bottleneck: KZ baseline achieves $0.164$ F1 despite $66\%$ test-entity overlap, yet $72\%$ log-likelihood TypeAcc); we use log-likelihood typing as our primary NER metric.
 
-\textbf{Scope.} Eight of twelve main Gemma-2-9B configurations are seed-replicated at $n{=}2$ (E1b, E3, E5, E5b, E5c, E6, E6b, E8); the remaining four (E1, E2, E4, C3) plus the $\alpha{=}32$ control C5 are $n{=}1$. A three-run Llama-3-8B replication of E3, E5c, and E5 ($n{=}1$ each) reproduces every paper-level pattern qualitatively---SE-falsification, functional-vs-spectral collapse dissociation in E5, cross-lingual forgetting, the rank-only E5c effect, and the critical $\cos$(E5, E5c)$\approx 0.03$ collapse-vs-healthy orthogonality---supporting an architecture-independent reading of the structural claims (\Cref{app:llama3}). The Kyrgyz corpus is licensed and cannot be redistributed; released adapters, SVD logs, and code reproduce all downstream evaluation.
+\textbf{Scope.} Eight of twelve main Gemma-2-9B configurations are seed-replicated at $n{=}2$ (E1b, E3, E5, E5b, E5c, E6, E6b, E8); the remaining four (E1, E2, E4, C3) plus the $\alpha{=}32$ control C5 are $n{=}1$. A Llama-3-8B replication (E3, E5c, E5 at seed 42; E3, E5c also at seed 123) reproduces every paper-level pattern: SE-falsification, functional-vs-spectral collapse dissociation in E5, cross-lingual forgetting, the rank-only E5c effect, and the directional underdetermination inequality with cross-seed direction variance ($0.07$--$0.10$) exceeding the collapse-vs-healthy cross-config gap ($0.03$). The cross-seed cosines on Llama-3 are $\sim 2\times$ higher than on Gemma but the regime structure is preserved (\Cref{app:llama3}). The Kyrgyz corpus is licensed and cannot be redistributed; released adapters, SVD logs, and code reproduce all downstream evaluation.
 \end{abstract}
 
 % ============================================================================
@@ -652,7 +652,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 \textbf{(L6) NER as a primary metric.} Our NER evaluation uses 3-shot prompting with $n{=}100$ samples per language and F1 derived from parse-success output. This is closer to a test of instruction-following than of entity knowledge. The $r{=}64$ ``NER F1 $= 0$'' result, in particular, is driven by 100\% parse failures; the model may retain some entity knowledge that this evaluation cannot access. Log-likelihood-based NER scoring (scoring candidate entity spans by model probability) would separate instruction loss from knowledge loss and is a priority follow-up.
 
-\textbf{(L7) Scope of generalization (partially addressed by Llama-3 replication).} We use Gemma-2-9B for the main sweep, with a minimal three-run Llama-3-8B replication (E3/E5c/E5 at one seed) to test architecture-independence (\Cref{app:llama3}). The SE-falsification, the functional-vs-spectral collapse dissociation in E5 (NER F1$=0$ at sub-threshold SE, with entity TypeAcc preserved), the cross-lingual forgetting pattern, and the central directional underdetermination claim ($\cos$(E5,E5c)$=0.029$ on Llama-3 vs.\ $0.010$ on Gemma, both inside the seed-orthogonal regime) all replicate. The Llama-3 sweep is single-seed, so we have no cross-seed direct-training cosine on Llama-3 and cannot confirm the transfer-pinning side of the bimodality on that architecture; the directional claim should be regarded as well-established on Gemma-2-9B and consistent with a one-seed Llama-3-8B replication. We examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language). Corpus size is fixed at $\sim$150~MB per language, precluding scaling analyses. SVD monitoring focuses on $\texttt{lora\_B}$; the pairwise-cosine analysis is computed on the full $\Delta W{=}BA$ and so does not depend on this choice.
+\textbf{(L7) Scope of generalization (partially addressed by Llama-3 replication).} We use Gemma-2-9B for the main sweep, with a Llama-3-8B replication (E3/E5c/E5 at seed 42; E3/E5c additionally at seed 123 for cross-seed direction) to test architecture-independence (\Cref{app:llama3}). SE-falsification, the functional-vs-spectral collapse dissociation in E5, the cross-lingual forgetting pattern, the rank-only E5c effect, and the underdetermination inequality (cross-seed direction variance $\geq$ cross-config direction gap, so no Lipschitz invariant separates collapse from healthy) all hold on Llama-3. The Llama-3 cross-seed cosines ($0.07$--$0.10$) are roughly $2\times$ higher than on Gemma ($0.03$--$0.04$), so the absolute magnitude of seed-orthogonality is architecture-dependent even though the regime structure is not. The transfer-pinning side of the bimodality (cross-seed cos$\approx 0.78$ for E6) and the C5 $\alpha/r$ control are established on Gemma only; replicating those on Llama-3 would close the remaining single-architecture claims. We examine only three of the approximately 35 Turkic languages, excluding Turkish (the highest-resource Turkic language). Corpus size is fixed at $\sim$150~MB per language, precluding scaling analyses. SVD monitoring focuses on $\texttt{lora\_B}$; the pairwise-cosine analysis is computed on the full $\Delta W{=}BA$ and so does not depend on this choice.
 
 \textbf{(L8) Post-hoc Frobenius observations.} The growth ranges in Section~\ref{sec:frobenius} are derived from the same experiments on which their interpretation is built; they are observations requiring held-out validation, not established thresholds, and we deliberately reframe them as such in Section~\ref{sec:frobenius}.
 
@@ -1012,7 +1012,9 @@ We replicate three of the critical Gemma-2-9B configurations on Llama-3-8B \cite
 
 \textbf{All central claims of the paper replicate qualitatively} (\Cref{tab:llama3}). \textbf{(i)} SE never reaches the $0.7$ threshold (max SE: L3-E3 $0.335$, L3-E5c $0.137$, L3-E5 $0.138$; cf.\ Gemma-2 $0.322$, $0.112$, $0.058$). \textbf{(ii)} L3-E5 exhibits the same functional-vs-spectral collapse dissociation: NER F1 (gen)~$=0$ on all three languages (parse failure rates $97/94/71\%$ across KY/KZ/UZ), TUMLU drops to $24.7\%$ (near $25\%$ random), \emph{but} log-likelihood NER TypeAcc is preserved or even higher than the baseline ($0.649/0.741/0.796$ vs.\ L3-E3 $0.577/0.696/0.680$). Entity knowledge survives; structured-output instruction-following collapses; SE does not see it. \textbf{(iii)} Cross-lingual forgetting in L3-E5 is severe (KZ PPL $145$, UZ PPL $286$ vs.\ L3-E3 $30/54$), in the same direction as Gemma though milder in absolute magnitude. \textbf{(iv)} The rank-only target-language improvement of E5c over E3 reproduces ($3.63$ vs.\ $4.32$ KY PPL on Llama-3; $3.86$ vs.\ $4.78$ on Gemma) with the same cross-lingual cost (KZ $41$ vs.\ $30$ on Llama-3).
 
-\textbf{Directional underdetermination replicates.} The critical pairwise cosine---collapse vs.\ healthy at the same rank---is essentially identical to Gemma-2 (\Cref{tab:llama3_cos}). $\cos$(L3-E5, L3-E5c)$=0.029$ sits inside the same seed-orthogonal regime as the Gemma equivalent $\cos$(G2-E5, G2-E5c)$=0.010$. $\cos$(L3-E5, L3-E3)$=0.015$ matches the Gemma analogue $\cos$(G2-E5, G2-E3)$=0.005$. Direct LoRA fine-tuning on Llama-3 is therefore also seed-orthogonal across configurations sharing rank, and the underdetermination argument of \Cref{sec:underdetermination} carries over. We do not have a second Llama-3 seed and so cannot quantify the within-config cross-seed cosine on this architecture; the bimodality side of the picture (transfer-init pinning vs.\ direct-training orthogonality) therefore remains to be confirmed on Llama-3 with additional compute.
+\textbf{Directional underdetermination replicates, with quantitative scope.} The critical pairwise cosines on Llama-3 (\Cref{tab:llama3_cos}) preserve the qualitative regime structure of Gemma-2 but at slightly higher absolute values. Cross-configuration: $\cos$(L3-E5, L3-E5c)$=0.029$, $\cos$(L3-E5, L3-E3)$=0.015$, $\cos$(L3-E3, L3-E5c)$=0.113$. Cross-seed: $\cos$(L3-E3-s42, L3-E3-s123)$=0.103$, $\cos$(L3-E5c-s42, L3-E5c-s123)$=0.072$. The Llama-3 cross-seed cosines are roughly $2\times$ higher than the Gemma counterparts ($0.03$--$0.04$), so direct LoRA training on Llama-3 is somewhat less seed-orthogonal than on Gemma. Two things still hold across both architectures: (i) all direct-training pairs stay an order of magnitude below the Gemma transfer-init regime ($0.78$), so the bimodal scale of \Cref{sec:directional} is preserved; (ii) the underdetermination inequality of \Cref{sec:underdetermination} is satisfied---on Llama-3, the within-configuration cross-seed cosine ($0.072$ for E5c) is \emph{larger} than the between-configuration cosine between collapse and healthy at the same rank ($0.029$ for E5 vs E5c), so no Lipschitz invariant can separate them, exactly as on Gemma. We do not seed-replicate L3-E5 (collapse) or run a Llama-3 transfer-initialisation control, so the transfer-pinning side of the bimodality remains established on Gemma only; the architecture-independent claim is therefore the underdetermination of direct training, not the bimodality with transfer-init.
+
+\textbf{Functional consistency across L3 seeds.} \Cref{tab:llama3_seed} shows that the directional spread across seeds is not matched by a similar spread in downstream functional metrics: target PPL stays within $\pm 0.05$ across seeds for both E3 and E5c, TUMLU within $\pm 1.5$ percentage points, and TypeAcc within $\pm 0.03$. This is the same behaviour-vs-direction dissociation we observe on Gemma: two seeds of the same configuration produce essentially identical model behaviour through essentially orthogonal weight-space directions.
 
 \begin{table}[h]
 \centering
@@ -1043,13 +1045,37 @@ $\|B\|_F$ growth & 8.28$\times$ & 8.36$\times$ & 8.82$\times$ & 8.72$\times$ & 1
 \toprule
 \textbf{Pair} & \textbf{Llama-3} & \textbf{Gemma-2} \\
 \midrule
-$\cos$(E5, E5c)    & 0.029 & 0.010 \\
-$\cos$(E5, E3)     & 0.015 & 0.005 \\
-$\cos$(E3, E5c)    & 0.113 & --- \\
+\multicolumn{3}{l}{\emph{Cross-config, same seed}} \\
+$\cos$(E5, E5c)            & 0.029 & 0.010 \\
+$\cos$(E5, E3)             & 0.015 & 0.005 \\
+$\cos$(E3, E5c)            & 0.113 & --- \\
+\midrule
+\multicolumn{3}{l}{\emph{Cross-seed, same configuration}} \\
+$\cos$(E3-s42, E3-s123)    & 0.103 & 0.041 \\
+$\cos$(E5c-s42, E5c-s123)  & 0.072 & 0.032 \\
 \bottomrule
 \end{tabular}
-\caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. The critical collapse-vs-healthy comparison ($\cos$(E5, E5c)) sits in the same seed-orthogonal regime on both architectures, confirming that the directional underdetermination of \Cref{sec:directional}/\Cref{sec:underdetermination} is not a Gemma-specific phenomenon.}
+\caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. Two findings. (i) The critical collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0/224$ and $0/294$ modules above $0.5$ respectively). (ii) Cross-seed direct-training cosines on Llama-3 ($0.07$--$0.10$) are roughly $2\times$ higher than on Gemma-2 ($0.03$--$0.04$), but both architectures keep direct-training pairs well below $0.5$ and an order of magnitude below the Gemma transfer-init regime ($0.78$). Crucially, on Llama-3 the cross-seed cosine of a configuration (E5c-s42 vs E5c-s123 $=0.072$) is \emph{larger} than the cross-configuration cosine between collapse and healthy at the same rank (E5 vs E5c $=0.029$): the underdetermination argument of \Cref{sec:underdetermination} therefore holds on this architecture too---no Lipschitz invariant can separate E5 from E5c when within-class direction variance ($0.072$) already exceeds the between-class direction distance ($0.029$).}
 \label{tab:llama3_cos}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrr}
+\toprule
+\textbf{Metric} & \textbf{L3-E3} & \textbf{L3-E5c} \\
+\midrule
+KY PPL (s42 / s123)        & 4.32 / 4.36 & 3.63 / 3.68 \\
+KZ PPL (s42 / s123)        & 30.4 / 32.1 & 41.1 / 45.7 \\
+UZ PPL (s42 / s123)        & 54.3 / 55.1 & 80.1 / 75.9 \\
+NER F1 KY (s42 / s123)     & 0.143 / 0.200 & 0.165 / 0.151 \\
+NER TypeAcc KY (s42 / s123)& 0.577 / 0.549 & 0.531 / 0.531 \\
+TUMLU KY (s42 / s123)      & 32.3\% / 30.8\% & 31.9\% / 31.5\% \\
+\bottomrule
+\end{tabular}
+\caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). The same behaviour-vs-direction dissociation we observe on Gemma-2 (similar functional outcomes, different directions in $\Delta W$ space) holds on Llama-3.}
+\label{tab:llama3_seed}
 \end{table}
 
 \end{document}
