@@ -1,0 +1,22 @@
+\documentclass[border=2pt]{standalone}
+\usepackage{fontspec}
+\setmainfont{Nimbus Roman}[
+  Path           = /usr/share/fonts/opentype/urw-base35/ ,
+  Extension      = .otf ,
+  UprightFont    = NimbusRoman-Regular ,
+  BoldFont       = NimbusRoman-Bold ,
+  ItalicFont     = NimbusRoman-Italic ,
+  BoldItalicFont = NimbusRoman-BoldItalic
+]
+\newfontfamily\cyrfont{Noto Serif}
+\usepackage{varwidth}
+\begin{document}
+\fontsize{8.5}{10.5}\selectfont
+\begin{varwidth}{3.3in}
+\noindent\textbf{NER prompt:} \texttt{Extract named entities from the text. Format each as: ENTITY ||| TYPE}\par\smallskip
+\noindent\textbf{Input:} {\cyrfont\itshape Бишкекте Кыргыз Республикасынын Президенти Садыр Жапаров менен Казакстандын Президенти Касым-Жомарт Токаев жолукту.}\par\smallskip
+\noindent\textbf{\boldmath$r{=}64$ output:} {\cyrfont\itshape Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон. Кыргыз Республикасынын Президентинин кызматына кандидат болгон\ldots} (repeats indefinitely)\par\smallskip
+\noindent\textbf{Text continuation prompt:} {\cyrfont\itshape Кыргызстан --- это}\par\smallskip
+\noindent\textbf{\boldmath$r{=}64$ output:} {\cyrfont\itshape не только, не только, не только, не только, не только\ldots} (single bigram repeated 25+ times until max tokens)
+\end{varwidth}
+\end{document}

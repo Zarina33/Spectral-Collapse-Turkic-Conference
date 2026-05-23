@@ -53,7 +53,20 @@ paper/*.out
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+arr_paper/*.aux
+arr_paper/*.bbl
+arr_paper/*.blg
+arr_paper/*.log
+arr_paper/*.out
+arr_paper/*.fls
+arr_paper/*.fdb_latexmk
+arr_paper/*.synctex.gz
+arr_paper/*.toc
 texput.log
+
+# ── aclpubcheck output ──
+arr_paper/errors-main*.png
+arr_paper/errors-main*.json
 
 # ── Training tee logs (tqdm \r noise, large) ──
 *.launch.log
