@@ -145,7 +145,7 @@ E6b & EN$\rightarrow$KY (cross-family) & KY & 4.78 & 54.0\% & 0.133 & 36.1\% \\
 E8 & EN Control & EN & 5.54\textsuperscript{*} & 56.8\% & 0.209 & 37.7\%\textsuperscript{\dag} \\
 \midrule
 C3 & KY BF16 (no quant) & KY & 4.99 & 58.6\% & 0.164 & 36.1\% \\
-C5 & KY $r{=}64$ $\alpha{=}32$ (matched $\alpha$, L3 control) & KY & 4.46 & 52.3\% & 0.174 & 33.2\% \\
+C5 & KY $r{=}64$, $\alpha{=}32$ (L3 ctrl) & KY & 4.46 & 52.3\% & 0.174 & 33.2\% \\
 \bottomrule
 \end{tabular}
 \caption{Main evaluation results across all experiments. \textbf{NER TypeAcc (KY)} is our primary NER metric---log-likelihood span typing on gold WikiANN-ky boundaries (\Cref{app:ner_loglik}); it is parse-failure immune and has lower seed-variance than generation F1. \textbf{NER F1 (gen)} is the generation-based score with $\pm 0.085$ Wilson 95\% CI at $n{=}100$, retained for comparability with prior work. We report cross-lingual NER and KZ TUMLU in the appendix (\Cref{app:ner,app:tumlu}). \textbf{E5 vs.\ E5b/E5c disentangles the rank--LR--epoch confound:} catastrophic NER parse failure at high LR (E5, F1$=0$, TUMLU near random) vanishes at baseline LR (E5b/E5c) and at matched epochs (E5c) outperforms the $r{=}16$ baseline. \textbf{C5 (the $\alpha{=}32$ control at $r{=}64$, added to close the $\alpha/r$ confound L3) clarifies that E5c's target-PPL advantage came from the implicit LR boost of $\alpha/r=2$ ($\alpha{=}128$ at $r{=}64$): at matched effective LR ($\alpha{=}32$ at both ranks), the $r{=}64$ adapter is functionally indistinguishable from the $r{=}16$ baseline (KY PPL $4.46$ vs.\ $4.78$; KZ PPL $49.22$ vs.\ $47.58$; cf.\ E5c $93.5$).} $^*$EN PPL on Kazakh; $^\dagger$EN TUMLU on Kyrgyz. $^\ddagger$E5's high TypeAcc despite F1$=0$ shows entity knowledge survives the collapse---it is structured-output generation that fails (\Cref{app:ner_loglik}).}
@@ -206,9 +206,9 @@ The 22-pair sweep in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} reveals
 \small
 \begin{tabular}{lrrr}
 \toprule
-\textbf{Pair} & \textbf{mean} & \textbf{median} & \textbf{$>$0.5} \\
+\textbf{Pair} & \textbf{mean} & \textbf{med.} & \textbf{$>$0.5} \\
 \midrule
-\multicolumn{4}{l}{\emph{Same configuration, only seed differs (cross-seed)}}\\
+\multicolumn{4}{l}{\emph{Cross-seed, same config}}\\
 E3 vs E3       & 0.041 & 0.025 & 0/294\\
 E5 vs E5       & 0.022 & 0.015 & 0/294\\
 E5b vs E5b     & 0.030 & 0.018 & 0/294\\
@@ -218,32 +218,31 @@ E1b vs E1b     & 0.028 & 0.016 & 0/294\\
 \rowcolor{gray!15} E6 vs E6 (KZ$\rightarrow$KY)  & \textbf{0.785} & \textbf{0.774} & \textbf{294/294}\\
 \rowcolor{gray!15} E6b vs E6b (EN$\rightarrow$KY) & \textbf{0.343} & \textbf{0.324} & \textbf{37/294}\\
 \midrule
-\multicolumn{4}{l}{\emph{Collapse vs healthy at $r{=}64$ (same seed unless noted)}}\\
+\multicolumn{4}{l}{\emph{Collapse vs healthy at $r{=}64$}}\\
 E5 vs E5b      & 0.011 & 0.006 & 0/294\\
 E5 vs E5c      & 0.010 & 0.006 & 0/294\\
 E5b vs E5c     & 0.053 & 0.033 & 0/294\\
-E5b vs E5c (cross-seed) & 0.031 & 0.019 & 0/294\\
 \midrule
 \multicolumn{4}{l}{\emph{Cross-language $r{=}16$}}\\
-E1 vs E3 (KZ vs KY) & 0.002 & 0.001 & 0/294\\
-E1 vs E2 (KZ vs UZ) & 0.001 & 0.000 & 0/294\\
-E3 vs E2 (KY vs UZ) & 0.002 & 0.001 & 0/294\\
+E1 vs E3 (KZ/KY) & 0.002 & 0.001 & 0/294\\
+E1 vs E2 (KZ/UZ) & 0.001 & 0.000 & 0/294\\
+E3 vs E2 (KY/UZ) & 0.002 & 0.001 & 0/294\\
 \midrule
-\multicolumn{4}{l}{\emph{Transfer comparisons}}\\
-E3 vs E6  (direct vs KZ$\rightarrow$KY) & 0.009 & 0.005 & 0/294\\
-E3 vs E6b (direct vs EN$\rightarrow$KY) & 0.055 & 0.042 & 0/294\\
-E6 vs E6b (KZ$\rightarrow$KY vs EN$\rightarrow$KY) & 0.007 & 0.005 & 0/294\\
+\multicolumn{4}{l}{\emph{Transfer vs direct}}\\
+E3 vs E6  (direct/KZ$\rightarrow$KY) & 0.009 & 0.005 & 0/294\\
+E3 vs E6b (direct/EN$\rightarrow$KY) & 0.055 & 0.042 & 0/294\\
+E6 vs E6b & 0.007 & 0.005 & 0/294\\
 \midrule
 \multicolumn{4}{l}{\emph{Other controls}}\\
-E3 vs C3 (4-bit vs BF16)   & 0.066 & 0.053 & 0/294\\
-E5 vs E3 (collapse vs r=16)& 0.005 & 0.003 & 0/294\\
-E5 vs E1 (collapse vs KZ)  & 0.001 & 0.001 & 0/294\\
-E5 vs E8 (collapse vs EN)  & 0.000 & 0.000 & 0/294\\
+E3 vs C3 (4-bit/BF16)   & 0.066 & 0.053 & 0/294\\
+E5 vs E3 & 0.005 & 0.003 & 0/294\\
+E5 vs E1 & 0.001 & 0.001 & 0/294\\
+E5 vs E8 & 0.000 & 0.000 & 0/294\\
 \midrule
-\multicolumn{4}{l}{\emph{$\alpha$-vs-rank decomposition (C5: $r{=}64$, $\alpha{=}32$)}}\\
-E5c vs C5 ($r{=}64$: $\alpha{=}128$ vs $\alpha{=}32$) & 0.072 & 0.053 & 0/294\\
-C5 vs E3 ($\alpha{=}32$: $r{=}64$ vs $r{=}16$) & \textbf{0.155} & \textbf{0.139} & \textbf{2/294}\\
-C5 vs E5 (collapse, different $\alpha$ \emph{and} LR) & 0.009 & 0.005 & 0/294\\
+\multicolumn{4}{l}{\emph{$\alpha$ vs.\ rank (C5)}}\\
+E5c vs C5 ($\alpha{=}128$/$32$)  & 0.072 & 0.053 & 0/294\\
+C5 vs E3 ($r{=}64$/$16$)         & \textbf{0.155} & \textbf{0.139} & \textbf{2/294}\\
+C5 vs E5 & 0.009 & 0.005 & 0/294\\
 \bottomrule
 \end{tabular}
 \caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices, aggregated over the 294 attention/MLP projections in Gemma-2-9B. Two regimes appear: \emph{transfer-initialised} pairs (shaded), where the same configuration with different seeds converges to a near-identical direction (E6 mean $=0.785$, all 294 modules $>0.5$), and \emph{everything else}, where pairs cluster between $0.0$ and $0.07$. Crucially, $\cos$(E5,E5c)$=0.010$ ($r{=}64$ collapse vs.\ healthy) is \emph{indistinguishable} from same-configuration cross-seed pairs of either condition ($0.022$ and $0.032$): the two basins are no further apart than two seeds of the same setup. The C5 control ($r{=}64$, $\alpha{=}32$) is directionally \emph{closer} to E3 (cos $0.155$, different rank, same $\alpha$) than to E5c (cos $0.072$, same rank, different $\alpha$)---$\alpha$ moves the adapter further in $\Delta W$ space than rank does.}
@@ -490,7 +489,7 @@ C5 & KY $r{=}64$ $\alpha{=}32$$^\flat$ & Kyrgyz & 64 & $2{\times}10^{-4}$ & 3 & 
 \label{tab:experiments}
 \end{table*}
 
-All experiments were conducted on a single NVIDIA GeForce RTX 5080 (16~GB) using PyTorch 2.10, Transformers 5.2, and PEFT 0.18. \Cref{tab:training_details} provides the full training statistics.
+All experiments were conducted on a single consumer GPU (16~GB VRAM) using PyTorch 2.10, Transformers 5.2, and PEFT 0.18. \Cref{tab:training_details} provides the full training statistics.
 
 \begin{table*}[t]
 \centering
