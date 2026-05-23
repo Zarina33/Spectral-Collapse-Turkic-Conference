@@ -880,23 +880,23 @@ $\cos$(E5c-s42, E5c-s123)  & 0.072 & 0.032 \\
 \label{tab:llama3_cos}
 \end{table}
 
-\begin{table}[H]
+\begin{table*}[!htbp]
 \centering
 \small
-\begin{tabular}{lrr}
+\begin{tabular}{lcc}
 \toprule
-\textbf{Metric} & \textbf{L3-E3} & \textbf{L3-E5c} \\
+\textbf{Metric} & \textbf{L3-E3 (seed 42 / 123)} & \textbf{L3-E5c (seed 42 / 123)} \\
 \midrule
-KY PPL (s42 / s123)        & 4.32 / 4.36 & 3.63 / 3.68 \\
-KZ PPL (s42 / s123)        & 30.4 / 32.1 & 41.1 / 45.7 \\
-UZ PPL (s42 / s123)        & 54.3 / 55.1 & 80.1 / 75.9 \\
-NER F1 KY (s42 / s123)     & 0.143 / 0.200 & 0.165 / 0.151 \\
-NER TypeAcc KY (s42 / s123)& 0.577 / 0.549 & 0.531 / 0.531 \\
-TUMLU KY (s42 / s123)      & 32.3\% / 30.8\% & 31.9\% / 31.5\% \\
+KY PPL                      & 4.32 / 4.36       & 3.63 / 3.68 \\
+KZ PPL (cross-lingual)      & 30.4 / 32.1       & 41.1 / 45.7 \\
+UZ PPL (cross-lingual)      & 54.3 / 55.1       & 80.1 / 75.9 \\
+NER F1 KY (gen)             & 0.143 / 0.200     & 0.165 / 0.151 \\
+NER TypeAcc KY (log-lik.)   & 0.577 / 0.549     & 0.531 / 0.531 \\
+TUMLU KY                    & 32.3\% / 30.8\%   & 31.9\% / 31.5\% \\
 \bottomrule
 \end{tabular}
-\caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). Same behaviour-vs-direction dissociation as Gemma-2.}
+\caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). Same behaviour-vs-direction dissociation as Gemma-2: similar functional outcomes through essentially orthogonal weight-space directions.}
 \label{tab:llama3_seed}
-\end{table}
+\end{table*}
 
 \end{document}
