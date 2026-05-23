@@ -859,7 +859,7 @@ $\|B\|_F$ growth & 8.28$\times$ & 8.36$\times$ & 8.82$\times$ & 8.72$\times$ & 1
 \label{tab:llama3}
 \end{table*}
 
-\begin{table}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrr}
@@ -876,11 +876,11 @@ $\cos$(E3-s42, E3-s123)    & 0.103 & 0.041 \\
 $\cos$(E5c-s42, E5c-s123)  & 0.072 & 0.032 \\
 \bottomrule
 \end{tabular}
-\caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. Two findings. (i) The critical collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0/224$ and $0/294$ modules above $0.5$ respectively). (ii) Cross-seed direct-training cosines on Llama-3 ($0.07$--$0.10$) are roughly $2\times$ higher than on Gemma-2 ($0.03$--$0.04$), but both architectures keep direct-training pairs well below $0.5$ and an order of magnitude below the Gemma transfer-init regime ($0.78$). Crucially, on Llama-3 the cross-seed cosine of a configuration (E5c-s42 vs E5c-s123 $=0.072$) is \emph{larger} than the cross-configuration cosine between collapse and healthy at the same rank (E5 vs E5c $=0.029$): the underdetermination argument of \Cref{sec:underdetermination} therefore holds on this architecture too---no Lipschitz invariant can separate E5 from E5c when within-class direction variance ($0.072$) already exceeds the between-class direction distance ($0.029$).}
+\caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. (i) The critical collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0/224$ and $0/294$ modules above $0.5$). (ii) Cross-seed direct-training cosines on Llama-3 ($0.07$--$0.10$) are roughly $2\times$ higher than on Gemma-2 ($0.03$--$0.04$), but both stay below $0.5$ and an order of magnitude below the Gemma transfer-init regime ($0.78$). On Llama-3 the within-config cross-seed cosine ($0.072$ for E5c) exceeds the between-config cosine (E5 vs E5c $=0.029$), so the underdetermination inequality of \Cref{sec:underdetermination} holds on this architecture too.}
 \label{tab:llama3_cos}
 \end{table}
 
-\begin{table*}[!htbp]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{lrr}
@@ -895,8 +895,8 @@ NER TypeAcc KY (s42 / s123)& 0.577 / 0.549 & 0.531 / 0.531 \\
 TUMLU KY (s42 / s123)      & 32.3\% / 30.8\% & 31.9\% / 31.5\% \\
 \bottomrule
 \end{tabular}
-\caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). The same behaviour-vs-direction dissociation we observe on Gemma-2 (similar functional outcomes, different directions in $\Delta W$ space) holds on Llama-3.}
+\caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). Same behaviour-vs-direction dissociation as Gemma-2.}
 \label{tab:llama3_seed}
-\end{table*}
+\end{table}
 
 \end{document}
