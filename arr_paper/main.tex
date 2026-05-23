@@ -170,7 +170,7 @@ C3 & KY BF16 (no quant) & KY & 4.99 & 58.6\% & 0.164 & 36.1\% \\
 C5 & KY $r{=}64$, $\alpha{=}32$ (L3 ctrl) & KY & 4.46 & 52.3\% & 0.174 & 33.2\% \\
 \bottomrule
 \end{tabular}
-\caption{Main evaluation results across all experiments. \textbf{NER TypeAcc (KY)} is our primary NER metric---log-likelihood span typing on gold WikiANN-ky boundaries (\Cref{app:ner_loglik}); it is parse-failure immune and has lower seed-variance than generation F1. \textbf{NER F1 (gen)} is the generation-based score with $\pm 0.085$ Wilson 95\% CI at $n{=}100$, retained for comparability with prior work. We report cross-lingual NER and KZ TUMLU in the appendix (\Cref{app:ner,app:tumlu}). \textbf{E5 vs.\ E5b/E5c disentangles the rank--LR--epoch confound:} catastrophic NER parse failure at high LR (E5, F1$=0$, TUMLU near random) vanishes at baseline LR (E5b/E5c) and at matched epochs (E5c) outperforms the $r{=}16$ baseline. \textbf{C5 (the $\alpha{=}32$ control at $r{=}64$, added to close the $\alpha/r$ confound L3) clarifies that E5c's target-PPL advantage came from the implicit LR boost of $\alpha/r=2$ ($\alpha{=}128$ at $r{=}64$): at matched effective LR ($\alpha{=}32$ at both ranks), the $r{=}64$ adapter is functionally indistinguishable from the $r{=}16$ baseline (KY PPL $4.46$ vs.\ $4.78$; KZ PPL $49.22$ vs.\ $47.58$; cf.\ E5c $93.5$).} $^*$EN PPL on Kazakh; $^\dagger$EN TUMLU on Kyrgyz. $^\ddagger$E5's high TypeAcc despite F1$=0$ shows entity knowledge survives the collapse---it is structured-output generation that fails (\Cref{app:ner_loglik}).}
+\caption{Main evaluation results across all experiments. \textbf{NER TypeAcc (KY)} is our primary NER metric---log-likelihood span typing on gold WikiANN-ky boundaries (\Cref{app:ner_loglik}); it is parse-failure immune and has lower seed-variance than generation F1. \textbf{NER F1 (gen)} is the generation-based score with $\pm 0.085$ Wilson 95\% CI at $n{=}100$, retained for comparability with prior work. We report cross-lingual NER and KZ TUMLU in the appendix (\Cref{app:ner,app:tumlu}). \textbf{E5 vs.\ E5b/E5c disentangles the rank--LR--epoch confound:} catastrophic NER parse failure at high LR (E5, F1$=0$, TUMLU near random) vanishes at baseline LR (E5b/E5c) and at matched epochs (E5c) outperforms the $r{=}16$ baseline. \textbf{C5 (the $\alpha{=}32$ control at $r{=}64$, added to close the $\alpha/r$ confound L3) clarifies that E5c's target-PPL advantage came from the implicit LR boost of $\alpha/r=2$ ($\alpha{=}128$ at $r{=}64$): at matched effective LR ($\alpha{=}32$ at both ranks), the $r{=}64$ adapter is functionally indistinguishable from the $r{=}16$ baseline (KY PPL $4.46$ vs.\ $4.78$; KZ PPL $49.22$ vs.\ $47.58$; cf.\ E5c $93.5$).} $^*$EN PPL on Kazakh; $^\dagger$EN TUMLU on Kyrgyz. $^\ddagger$E5's high TypeAcc despite F1$=0$ shows entity knowledge survives the collapse---it is structured-output generation that fails (\Cref{app:ner_loglik}). \textbf{Values shown are for seed 42 (single seed)}; for seed-replicated configurations the corresponding two-seed means with spreads are reported in \Cref{tab:seed_variance} (e.g., E3 KY PPL $4.81 \pm 0.02$, E5c $3.89 \pm 0.03$); small differences between the two views are within seed variance.}
 \label{tab:main_results}
 \end{table*}
 
@@ -314,7 +314,6 @@ We presented a systematic study of LoRA spectral and directional dynamics during
 % ============================================================================
 % ETHICS STATEMENT
 % ============================================================================
-\clearpage
 \section*{Ethics Statement}
 
 This work involves fine-tuning language models on text corpora from three Turkic languages and English. While we aim to improve NLP capabilities for underserved language communities, we acknowledge that language models can amplify biases present in training data. Our training corpora, drawn from Wikipedia, literary texts, and web sources, may contain cultural biases or factual inaccuracies.
@@ -715,7 +714,7 @@ EN$\rightarrow$KY (E6b, cross-family) & 36.1\% & 29.1\% & 29.2\% \\
 
 To illustrate the nature of functional collapse at $r{=}64$, we present raw model outputs for two tasks. The model completely ignores instructions and exhibits degenerate repetition.
 
-\noindent\includegraphics[width=\linewidth]{cyrillic_examples.png}
+\noindent\includegraphics[width=0.85\linewidth]{cyrillic_examples.png}
 
 Both examples demonstrate that the model has lost instruction-following capability entirely. Rather than extracting entities or generating coherent text, it produces degenerate repetitions---a hallmark of functional collapse distinct from spectral collapse.
 
