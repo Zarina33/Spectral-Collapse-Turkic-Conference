@@ -2,7 +2,7 @@
 
 **SVD and directional dynamics of LoRA adapters fine-tuned on three low-resource Turkic languages, with a Llama-3-8B architecture-independence replication.**
 
-> Paper: `paper/main.pdf` (full draft, 34 pp.) · `arr_paper/main.pdf` (ARR / EMNLP-cut submission, 23 pp.)
+> Anonymous submission under review. Code, training logs, evaluation reports, and figures only; the paper itself is hosted on the review platform.
 
 ---
 
@@ -16,7 +16,7 @@ We fine-tune **Gemma-2-9B** (4-bit QLoRA) on Kyrgyz, Kazakh, and Uzbek, with a *
 
 3. **The LoRA solution is structurally underdetermined.** A 22-pair sweep of per-module Frobenius cosines between $\Delta W$ matrices shows direct LoRA from base is near-orthogonal across seeds (cosine $0.01$–$0.04$, $0/294$ modules above $0.5$); the collapse-vs-healthy gap ($\cos = 0.010$) sits inside this seed-noise band. **No Lipschitz scalar function of the final adapter alone** can resolve collapse from healthy training; detection has to come from functional or trajectory probes.
 
-4. **Transfer initialisation is the unique intervention that pins direction.** Related-language warm-start (KZ→KY) halves cross-lingual KZ PPL ($23.5 \pm 0.1$ vs.\ $50.0 \pm 2.4$, $+13\%$ Frobenius growth) and reaches cross-seed cosine **0.785** ($294/294$ modules $>0.5$). A seed-replicated cross-family control (EN→KY) does not reproduce retention. **The Llama-3-8B replication** (E3/E5c/E5 at $n{=}1$; E3, E5c also at $n{=}2$) reproduces all four patterns; the underdetermination inequality holds on both architectures.
+4. **Transfer initialisation is the unique intervention that pins direction.** Related-language warm-start (KZ→KY) halves cross-lingual KZ PPL ($23.5 \pm 0.1$ vs. $50.0 \pm 2.4$, $+13\%$ Frobenius growth) and reaches cross-seed cosine **0.785** ($294/294$ modules $>0.5$). A seed-replicated cross-family control (EN→KY) does not reproduce retention. **The Llama-3-8B replication** (E3/E5c/E5 at $n{=}1$; E3, E5c also at $n{=}2$) reproduces all four patterns; the underdetermination inequality holds on both architectures.
 
 ---
 
@@ -28,15 +28,15 @@ Best-eval-loss checkpoint (HF `load_best_model_at_end=True`); seed 42 unless not
 
 | ID | Config | KY PPL | KZ PPL | UZ PPL | F1 KY | TypeAcc KY | TUMLU KY | $\|B\|_F$ |
 |----|--------|:------:|:------:|:------:|:-----:|:---------:|:--------:|:---------:|
-| E1 | KZ baseline (14.1M tok) | 40.75 | **2.73** | 41.27 | 0.158 | 70.8% | 32.9% | 38.5× |
-| E1b | KZ small-corpus (1.5M, n=2) | 25.55 | **4.17** | 23.17 | 0.150 | 64.0% | 32.0% | 8.5× |
+| E1 | KZ baseline (14.1M tok) | 40.75 | **2.73** | 41.27 | 0.219 | 57.7% | 35.7% | 38.5× |
+| E1b | KZ small-corpus (1.5M, n=2) | 25.55 | **4.17** | 23.17 | 0.150 | 46.0% | 35.6% | 8.5× |
 | E2 | UZ baseline | 116.89 | 64.44 | **4.03** | 0.138 | 54.0% | 35.4% | — |
 | E3 | KY baseline (n=2) | **4.78** | 47.58 | 56.85 | 0.157 | 50.4% | 34.7% | 8.36× |
 | E4 | KY overfit (10ep) | **4.18** | 87.65 | 95.76 | 0.173 | 56.8% | 33.9% | — |
 | E5 | KY r=64, lr=5e-4, 5ep (n=2) | 5.90 | 659.25 | 742.73 | **0.000** | 59.5%‡ | 23.2%‡ | 15.6× |
 | E5b | KY r=64, lr=2e-4, 5ep (n=2) | 4.55 | 128.04 | 162.68 | 0.146 | 53.1% | 33.2% | 18.2× |
 | E5c | KY r=64, lr=2e-4, 3ep (n=2) | **3.86** | 93.52 | 111.25 | 0.115 | 54.9% | **38.5%** | 8.7× |
-| E6 | **KZ→KY transfer (n=2)** | 4.73 | **23.49** | 124.19 | 0.253\* | 62.2% | 33.7% | **1.13×** |
+| E6 | **KZ→KY transfer (n=2)** | 4.73 | **23.49** | 124.19 | 0.253\* | 59.5% | 33.7% | **1.13×** |
 | E6b | EN→KY (cross-family, n=2) | 4.78 | 47.46 | 63.42 | 0.133 | 55.9% | 36.1% | 3.10× |
 | E8 | EN control (n=2) | 14.96 | 5.54 | 16.55 | 0.209 | 56.8% | 37.7% | 33.4× |
 | C3 | KY BF16 (no quant) | 4.99 | 43.97 | 59.02 | 0.164 | 58.6% | 36.1% | 8.6× |
@@ -79,16 +79,6 @@ Key reading: collapse-vs-healthy ($\cos = 0.010$) is **inside** the same-config 
 
 ```
 .
-├── paper/                       # Full-length draft (34 pp.)
-│   ├── main.tex
-│   ├── main.pdf
-│   └── references.bib
-├── arr_paper/                   # ARR / EMNLP submission cut (23 pp., anonymized)
-│   ├── main.tex                 # \usepackage[review]{acl} mode
-│   ├── main.pdf
-│   ├── references.bib
-│   ├── acl.sty
-│   └── acl_natbib.bst
 ├── scripts/                     # All training, eval, analysis code
 │   ├── train_svd.py             # LoRA fine-tuning with SVD callback
 │   ├── evaluate.py              # PPL + WikiANN NER (gen + log-likelihood) + TUMLU
