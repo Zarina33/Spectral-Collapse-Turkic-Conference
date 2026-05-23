@@ -281,9 +281,18 @@ Standard LoRA initializes $A \sim$ Kaiming, $B = 0$. After the first gradient up
 \textbf{Recommendations.} (i) Do not gate fine-tuning health on SE thresholds; (ii) track $\|B\|_F$ trajectories paired with cross-lingual PPL probes (not fixed numeric cutoffs); (iii) treat collapse detection as a functional test (no Lipschitz $D(A,B)$ can substitute); (iv) use related-language transfer initialisation when available---uniquely yields cross-seed reproducible directions. Connections to mode-connectivity \citep{garipov2018loss,frankle2020linear}, intrinsic-dimensionality \citep{aghajanyan2021intrinsic}, LP-FT \citep{kumar2022finetuning}, and PiSSA / LoRA+ \citep{meng2024pissa,hayou2024loraplus} are discussed in \Cref{app:mechanistic}.
 
 % ============================================================================
-% 6. LIMITATIONS
+% 6. CONCLUSION
 % ============================================================================
-\section{Limitations}
+\section{Conclusion}
+
+We presented a systematic study of LoRA spectral and directional dynamics during fine-tuning on three low-resource Turkic languages, with four findings. \textbf{(1) SE is not predictive:} the E5/E5b/E5c/C5 decomposition at $r{=}64$ yields four sub-threshold runs spanning catastrophic collapse to baseline; C5 ($\alpha{=}32$) further shows the rank-only E5c benefit was an $\alpha/r{=}2$ artefact. C3 (BF16) rules out quantization. \textbf{(2) Frobenius growth} separates regimes within underrepresented languages ($1.13\times$ transfer vs.\ $15$--$38\times$ high-LR $r{=}64$) but fails across categories (EN $33\times$ no forgetting vs.\ KZ $38\times$ with forgetting). \textbf{(3) Structural underdetermination:} cross-seed direction variance ($0.01$--$0.04$) is commensurate with the collapse-vs-healthy gap ($0.010$), implying no Lipschitz function $D(A,B)$ of the final adapter alone---SE, Frobenius, effective rank, $W_0$-alignment---can separate the two; detection must come from functional or trajectory probes. \textbf{(4) Transfer init pins direction:} KZ$\rightarrow$KY warm-start halves cross-lingual KZ PPL ($23.5{\pm}0.1$ vs.\ $50.0{\pm}2.4$) with only $+13\%$ Frobenius growth and reaches cross-seed cosine $0.785$ (vs.\ $0.04$ direct); the cross-family E6b control does not reproduce retention. Future work should test PiSSA-style \cite{meng2024pissa} alternatives and trajectory diagnostics that escape the underdetermination argument.
+
+% ============================================================================
+% LIMITATIONS
+% Per ACL/ARR convention: unnumbered \section*, placed after Conclusion;
+% does not count toward the 8-page body limit.
+% ============================================================================
+\section*{Limitations}
 \label{sec:limitations}
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
@@ -303,13 +312,6 @@ Our study has several important limitations, which we discuss here in decreasing
 \textbf{(L7) Scope of generalization (partially addressed by Llama-3 replication).} The Gemma-2-9B sweep is replicated on Llama-3-8B (E3/E5c/E5 at seed 42; E3/E5c also at seed 123 for cross-seed direction; \Cref{app:llama3}). SE-falsification, the functional-vs-spectral dissociation in E5, cross-lingual forgetting, the rank-only E5c effect, and the underdetermination inequality all hold. Llama-3 cross-seed cosines ($0.07$--$0.10$) are $\sim 2\times$ Gemma's ($0.03$--$0.04$): the absolute scale of seed-orthogonality is architecture-dependent, the regime structure is not. The transfer-pinning side (cross-seed cos$\approx 0.78$ for E6) and the C5 $\alpha/r$ control are Gemma-only; replicating them on Llama-3 would close the remaining single-architecture claims. We examine only three of $\sim 35$ Turkic languages, excluding Turkish; corpus size is fixed at $\sim$150~MB per language; SVD monitoring uses $\texttt{lora\_B}$ while pairwise cosines use the full $\Delta W{=}BA$.
 
 \textbf{(L8/L9)} Two further limitations are detailed in \Cref{app:add_limitations}: \emph{(L8)} the Frobenius growth ranges in \Cref{sec:frobenius} are observations on the same experiments their interpretation is built on, not held-out thresholds; \emph{(L9)} our Uzbek corpus is Cyrillic-only while WikiANN-uz is Latin, explaining the $2\%$ entity overlap of L2 and limiting UZ generalisability while making UZ a memorization-clean transfer probe.
-
-% ============================================================================
-% 7. CONCLUSION
-% ============================================================================
-\section{Conclusion}
-
-We presented a systematic study of LoRA spectral and directional dynamics during fine-tuning on three low-resource Turkic languages, with four findings. \textbf{(1) SE is not predictive:} the E5/E5b/E5c/C5 decomposition at $r{=}64$ yields four sub-threshold runs spanning catastrophic collapse to baseline; C5 ($\alpha{=}32$) further shows the rank-only E5c benefit was an $\alpha/r{=}2$ artefact. C3 (BF16) rules out quantization. \textbf{(2) Frobenius growth} separates regimes within underrepresented languages ($1.13\times$ transfer vs.\ $15$--$38\times$ high-LR $r{=}64$) but fails across categories (EN $33\times$ no forgetting vs.\ KZ $38\times$ with forgetting). \textbf{(3) Structural underdetermination:} cross-seed direction variance ($0.01$--$0.04$) is commensurate with the collapse-vs-healthy gap ($0.010$), implying no Lipschitz function $D(A,B)$ of the final adapter alone---SE, Frobenius, effective rank, $W_0$-alignment---can separate the two; detection must come from functional or trajectory probes. \textbf{(4) Transfer init pins direction:} KZ$\rightarrow$KY warm-start halves cross-lingual KZ PPL ($23.5{\pm}0.1$ vs.\ $50.0{\pm}2.4$) with only $+13\%$ Frobenius growth and reaches cross-seed cosine $0.785$ (vs.\ $0.04$ direct); the cross-family E6b control does not reproduce retention. Future work should test PiSSA-style \cite{meng2024pissa} alternatives and trajectory diagnostics that escape the underdetermination argument.
 
 % ============================================================================
 % ETHICS STATEMENT
