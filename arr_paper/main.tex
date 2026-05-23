@@ -15,6 +15,11 @@
 \usepackage[table]{xcolor}
 \usepackage{hyperref}
 \usepackage{cleveref}
+\usepackage{microtype}     % protrusion / expansion -> fewer overflow lines
+\usepackage{url}
+\Urlmuskip=0mu plus 1mu    % allow URLs to stretch interword space
+\setlength{\tabcolsep}{4pt}% tighter column padding (default 6pt)
+\sloppy                    % relax line-breaking to avoid bleeding into margin
 
 \title{Spectral Energy is Not a Reliable Collapse Diagnostic for Low-Resource Quantized LoRA: Evidence from Turkic Languages}
 
@@ -203,7 +208,8 @@ The 22-pair sweep in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} reveals
 
 \begin{table}[t]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lrrr}
 \toprule
 \textbf{Pair} & \textbf{mean} & \textbf{med.} & \textbf{$>$0.5} \\
@@ -340,7 +346,7 @@ This work involves fine-tuning language models on text corpora from three Turkic
 % ============================================================================
 \section*{Reproducibility Statement}
 
-All experimental code (training with SVD monitoring, evaluation, and plotting scripts), SVD monitoring logs, and evaluation reports are publicly available at an anonymous repository.\footnote{\url{https://anonymous.4open.science/r/Spectral-Collapse-Turkic-Conference-6DE4}} Fine-tuned LoRA adapters for all eleven Gemma-2-9B configurations and the five Llama-3-8B configurations will be released on a public model hub upon acceptance. The Kazakh, Uzbek, and English training corpora are derived from publicly available sources and can be reconstructed using the provided data preparation scripts. The Kyrgyz corpus cannot be redistributed due to licensing restrictions on its source materials; consequently, the KY training stage is not fully reproducible. However, the released KY adapters and SVD logs enable full reproduction of all evaluation and analysis stages.
+All experimental code (training with SVD monitoring, evaluation, and plotting scripts), SVD monitoring logs, and evaluation reports are publicly available at an anonymous repository.\footnote{{\small\url{https://anonymous.4open.science/r/Spectral-Collapse-Turkic-Conference-6DE4}}} Fine-tuned LoRA adapters for all eleven Gemma-2-9B configurations and the five Llama-3-8B configurations will be released on a public model hub upon acceptance. The Kazakh, Uzbek, and English training corpora are derived from publicly available sources and can be reconstructed using the provided data preparation scripts. The Kyrgyz corpus cannot be redistributed due to licensing restrictions on its source materials; consequently, the KY training stage is not fully reproducible. However, the released KY adapters and SVD logs enable full reproduction of all evaluation and analysis stages.
 
 % ============================================================================
 % REFERENCES
@@ -355,35 +361,35 @@ All experimental code (training with SVD monitoring, evaluation, and plotting sc
 \section{Additional Figures}
 \label{app:fig_extras}
 
-\begin{figure*}[h]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig2_svd_dynamics.png}
     \caption{Spectral energy dynamics during training. Top: mean SE; bottom: max SE. No experiment approaches the proposed $0.7$ threshold; the $r{=}64$ row even shows \emph{decreasing} SE while suffering the worst functional degradation.}
     \label{fig:svd_dynamics}
 \end{figure*}
 
-\begin{figure*}[h]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig3_layer_heatmap.png}
     \caption{Layer-wise spectral energy at the final training checkpoint. Each row is an experiment; each column is a transformer layer. No layer in any experiment exceeds $0.7$.}
     \label{fig:layer_heatmap}
 \end{figure*}
 
-\begin{figure*}[h]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig6_frobenius_dynamics.png}
     \caption{Frobenius norm dynamics of $\texttt{lora\_B}$ matrices during training. $r{=}64$ shows dramatically larger growth than $r{=}16$; KZ$\rightarrow$KY transfer begins at the KZ baseline's final norm and only adds $+13\%$.}
     \label{fig:frobenius}
 \end{figure*}
 
-\begin{figure*}[h]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=0.75\textwidth]{../figures/fig9_frobnorm_vs_ppl.png}
     \caption{Frobenius norm growth vs.\ cross-lingual PPL degradation. Within Turkic the trend is monotone (more growth, more forgetting), but the EN control sits at $33\times$ growth with minimal forgetting---norm growth alone is not sufficient to predict catastrophic forgetting.}
     \label{fig:frobnorm_scatter}
 \end{figure*}
 
-\begin{figure*}[h]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig8_singular_values.png}
     \caption{Singular value distributions at the final checkpoint. The $r{=}64$ configuration develops a well-distributed spectrum (low SE) with dramatically larger absolute magnitudes than the $r{=}16$ baseline---explaining why SE fails to detect pathological training.}
@@ -393,7 +399,7 @@ All experimental code (training with SVD monitoring, evaluation, and plotting sc
 \section{Cross-Lingual PPL Matrix (full)}
 \label{app:cross_ppl_full}
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -420,7 +426,7 @@ KY $r{=}64$ $\alpha{=}32$ (C5) & \textbf{4.46} & 49.22 & 57.36 \\
 \label{tab:cross_ppl}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.99\columnwidth]{../figures/fig4_cross_ppl.png}
     \caption{Cross-lingual PPL heatmap (color clipped at $200$). The $r{=}64$ high-LR row is pathological; KZ$\rightarrow$KY shows the most balanced profile.}
@@ -435,7 +441,7 @@ To disentangle whether E1's strong target PPL ($2.73$) reflects $3\times$ larger
 \section{Frobenius Norm Growth (full table)}
 \label{app:frob}
 
-\begin{table}[h]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -457,12 +463,12 @@ Diverged $r{=}64$ (E7) & --- & --- & explodes \\
 \end{tabular}
 \caption{Frobenius norm growth ratios for $\texttt{lora\_B}$. ``Init'' is the first SVD-log measurement (training step 100), not the literal loaded checkpoint. For E6 the step-100 norm stays close to the loaded KZ-final norm ($3.04$ vs.\ $3.11$); for E6b the step-100 norm drops sharply to $0.65$ from EN-final $3.08$, consistent with EN-init directions being misaligned with KY gradients and partially zeroed before the adapter rebuilds.}
 \label{tab:frobenius}
-\end{table}
+\end{table*}
 
 \section{Detailed Training Configurations}
 \label{app:configs}
 
-\begin{table*}[h]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{l l l c c c c l}
@@ -537,7 +543,8 @@ To separate loss of entity knowledge from loss of instruction-following/output-f
 
 \begin{table}[t]
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Experiment} & \textbf{KY} & \textbf{KZ} & \textbf{UZ} \\
@@ -547,11 +554,11 @@ E1b KZ Small-corpus (1.5M)   & 46.0\% & 70.5\% & 69.9\% \\
 E2 UZ Baseline               & 54.9\% & 71.4\% & 65.0\% \\
 E3 KY Baseline               & 50.4\% & 69.6\% & 63.1\% \\
 E4 KY Overfit (10ep)         & 56.8\% & 71.4\% & 60.2\% \\
-E5 KY $r{=}64$ (lr $5{\times}10^{-4}$)  & \textbf{59.5\%} & 50.0\% & 55.3\% \\
-E5b KY $r{=}64$ 5ep (lr $2{\times}10^{-4}$) & 53.1\% & 70.5\% & 69.9\% \\
-E5c KY $r{=}64$ 3ep (lr $2{\times}10^{-4}$) & 54.9\% & 67.9\% & 63.1\% \\
+E5 KY $r{=}64$, lr $5e{-}4$  & \textbf{59.5\%} & 50.0\% & 55.3\% \\
+E5b KY $r{=}64$, 5ep, lr $2e{-}4$ & 53.1\% & 70.5\% & 69.9\% \\
+E5c KY $r{=}64$, 3ep, lr $2e{-}4$ & 54.9\% & 67.9\% & 63.1\% \\
 E6 KZ$\rightarrow$KY (related)   & \textbf{59.5\%} & \textbf{73.2\%} & 66.0\% \\
-E6b EN$\rightarrow$KY (cross-family) & 54.0\% & 70.5\% & 70.9\% \\
+E6b EN$\rightarrow$KY (cross-fam.) & 54.0\% & 70.5\% & 70.9\% \\
 E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 \bottomrule
 \end{tabular}
@@ -564,7 +571,7 @@ E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 
 We quantify the entity-level overlap between each language's training corpus and the WikiANN test split it is evaluated on. For every gold span in the WikiANN test set we test whether the entity string appears verbatim (case-insensitive) anywhere in the corresponding training corpus. The unique-overlap rate is an upper bound on the fraction of NER F1 that could be explained by memorization of seen entity surface forms.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -578,9 +585,9 @@ Uzbek (UZ)   & 1{,}011 & 602 & \textbf{2.2\%}  (13/602) \\
 \end{tabular}
 \caption{Verbatim case-insensitive overlap between WikiANN test entities and our training corpora. KZ and KY show high overlap (memorization upper bound $\sim 60\%$); UZ shows almost none, which we attribute to script mismatch between our Cyrillic UZ corpus and Latin-script WikiANN-uz (L9). The UZ low overlap incidentally turns Uzbek into a cleaner cross-lingual transfer probe: improvements in UZ NER are unlikely to be memorization artefacts.}
 \label{tab:overlap}
-\end{table}
+\end{table*}
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -594,14 +601,14 @@ Uzbek  & 3\% (2/67)     & 4\% (8/202)    & 1\% (3/333)    \\
 \end{tabular}
 \caption{Per-type unique overlap. The KY pattern (LOC $\gg$ PER) is consistent with location names being a comparatively closed-class compared to person names. UZ remains uniformly low across types, confirming the script-mismatch explanation.}
 \label{tab:overlap_per_type}
-\end{table}
+\end{table*}
 
 \section{BF16 vs.\ 4-bit Control (C3)}
 \label{app:bf16}
 
 \Cref{tab:bf16} reports a side-by-side comparison of the 4-bit E3 baseline (averaged across our two seeds where available) and the full-precision BF16 control (C3, single seed, run on a cloud A100~40GB instance). All hyperparameters except quantization are identical.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \begin{tabular}{lcc}
@@ -622,7 +629,7 @@ Peak SE max (training) & $0.45 \pm 0.02$ & $0.47$ \\
 \end{tabular}
 \caption{4-bit NF4 vs.\ BF16 control on the same KY baseline configuration (rank 16, lr $2{\times}10^{-4}$, 3 epochs). E3 (4-bit) values are reported as $\text{mean} \pm \text{half-range}$ across two seeds (seeds 42 and 123); we use half-range rather than standard deviation because the unbiased SD estimator at $n{=}2$ is unreliable, and half-range gives a more honest visual sense of seed-to-seed spread. All downstream metrics fall within or near this two-seed spread for the 4-bit run. Frobenius norm growth is essentially identical. Spectral energy in BF16 is statistically indistinguishable from 4-bit at every comparable point (final max, final mean, in-training peak), which rules out the original concern: 4-bit quantization is not artificially suppressing SE. The SE-threshold falsification therefore carries over to full precision. We did not run a second seed for C3 due to compute cost (the BF16 run was completed on rented cloud GPU); $n{=}1$ is acknowledged in L1.}
 \label{tab:bf16}
-\end{table}
+\end{table*}
 
 \section{Seed-Variance Replication}
 \label{app:seed_variance}
@@ -631,8 +638,8 @@ To provide at least partial seed-variance estimates for our most consequential c
 
 \begin{table*}[t]
 \centering
-\scriptsize
-\setlength{\tabcolsep}{1.8pt}
+\tiny
+\setlength{\tabcolsep}{1.2pt}
 \begin{tabular}{lrrrrrrrrrrrrrrrr}
 \toprule
  & \multicolumn{2}{c}{\textbf{E1b}} & \multicolumn{2}{c}{\textbf{E3}} & \multicolumn{2}{c}{\textbf{E5}} & \multicolumn{2}{c}{\textbf{E5b}} & \multicolumn{2}{c}{\textbf{E5c}} & \multicolumn{2}{c}{\textbf{E6}} & \multicolumn{2}{c}{\textbf{E6b}} & \multicolumn{2}{c}{\textbf{E8 (EN)}} \\
@@ -660,7 +667,7 @@ These results sharpen the interpretive stance taken throughout the paper: we tre
 
 \Cref{tab:ner_pertype} breaks down NER performance by entity type for the Kyrgyz evaluation.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -681,7 +688,7 @@ EN$\rightarrow$KY (E6b, cross-family) & 0.118 & 0.167 & 0.135 \\
 \end{tabular}
 \caption{Per-type NER F1 scores on Kyrgyz WikiANN. The KZ$\rightarrow$KY transfer achieves the highest PER F1 (0.344), substantially outperforming the KY baseline (0.101). The $r{=}64$ configuration produces zero scores across all types due to 100\% parse failures.}
 \label{tab:ner_pertype}
-\end{table}
+\end{table*}
 
 \section{TUMLU Accuracy by Language}
 \label{app:tumlu}
@@ -733,7 +740,7 @@ Both examples demonstrate that the model has lost instruction-following capabili
 
 \Cref{tab:lastckpt} reproduces the eleven principal pairwise comparisons from \Cref{tab:pairwise_cos} using the literal last saved checkpoint of each run instead of the \texttt{final\_adapter/} directory (which HF Trainer populates with the lowest-eval-loss checkpoint when \texttt{load\_best\_model\_at\_end=True}). All pairs move by at most $\pm 0.006$. The bimodal split between transfer-init pairs ($\cos \geq 0.34$) and direct-training pairs ($\cos < 0.07$) is preserved.
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lrrr}
@@ -762,7 +769,7 @@ E5b vs.\ E5c        & 0.053 & 0.049 & $-0.005$ \\
 
 PEFT saves intermediate checkpoints every $\sim 1$ epoch by default. For each seed-replicated configuration we compared two seeds at every shared checkpoint step. The cross-seed mean cosine is essentially flat across training (\Cref{tab:trajectory}): direct-training pairs stay at $0.01$--$0.04$ from the earliest available checkpoint through best-eval; transfer-init pairs stay at $0.34$--$0.78$ across the same span. Seed-orthogonality, where it exists, is therefore established by step 1800 at the latest---earlier than we can measure---and the rest of training does not change the regime.
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lrrr}
@@ -794,7 +801,7 @@ We replicate three of the critical Gemma-2-9B configurations on Llama-3-8B \cite
 
 \textbf{Functional consistency across L3 seeds.} \Cref{tab:llama3_seed} shows that the directional spread across seeds is not matched by a similar spread in downstream functional metrics: target PPL stays within $\pm 0.05$ across seeds for both E3 and E5c, TUMLU within $\pm 1.5$ percentage points, and TypeAcc within $\pm 0.03$. This is the same behaviour-vs-direction dissociation we observe on Gemma: two seeds of the same configuration produce essentially identical model behaviour through essentially orthogonal weight-space directions.
 
-\begin{table}[h]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lrr|rr|rr}
@@ -814,9 +821,9 @@ $\|B\|_F$ growth & 8.28$\times$ & 8.36$\times$ & 8.82$\times$ & 8.72$\times$ & 1
 \end{tabular}
 \caption{Llama-3-8B (L3) vs Gemma-2-9B (G2) on the three replicated configurations. All paper-level patterns reproduce: E3 healthy baseline, E5c better target with cross-lingual cost, E5 catastrophic functional collapse at sub-threshold SE with NER F1$=0$ on all three languages, entity knowledge preserved under log-likelihood TypeAcc, and near-random TUMLU. Magnitudes of cross-lingual forgetting are milder on Llama-3 ($\sim 5\times$ vs Gemma's $\sim 14\times$), but direction is identical.}
 \label{tab:llama3}
-\end{table}
+\end{table*}
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lrr}
@@ -837,7 +844,7 @@ $\cos$(E5c-s42, E5c-s123)  & 0.072 & 0.032 \\
 \label{tab:llama3_cos}
 \end{table}
 
-\begin{table}[h]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lrr}
@@ -854,6 +861,6 @@ TUMLU KY (s42 / s123)      & 32.3\% / 30.8\% & 31.9\% / 31.5\% \\
 \end{tabular}
 \caption{Llama-3-8B cross-seed functional metrics for the two seed-replicated direct-training configurations. Functional metrics are tight across seeds (KY PPL within $\pm 0.05$, TUMLU within $\pm 1.5$ pp), even though the per-module direction differs substantially ($\cos$ E3 $=0.103$, E5c $=0.072$; \Cref{tab:llama3_cos}). The same behaviour-vs-direction dissociation we observe on Gemma-2 (similar functional outcomes, different directions in $\Delta W$ space) holds on Llama-3.}
 \label{tab:llama3_seed}
-\end{table}
+\end{table*}
 
 \end{document}
