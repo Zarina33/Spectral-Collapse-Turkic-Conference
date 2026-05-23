@@ -1,0 +1,5 @@
+{"step": 200, "epoch": 0.527, "kz_loss": 1.520115, "kz_ppl": 4.5728}
+{"step": 400, "epoch": 1.0527, "kz_loss": 1.491197, "kz_ppl": 4.4424}
+{"step": 600, "epoch": 1.5797, "kz_loss": 1.484529, "kz_ppl": 4.4129}
+{"step": 800, "epoch": 2.1054, "kz_loss": 1.580494, "kz_ppl": 4.8574}
+{"step": 1000, "epoch": 2.6324, "kz_loss": 1.572533, "kz_ppl": 4.8188}

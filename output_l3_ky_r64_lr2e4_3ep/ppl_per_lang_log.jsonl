@@ -1,0 +1,14 @@
+{"step": 200, "epoch": 0.2048, "ky_loss": 1.958941, "ky_ppl": 7.0918}
+{"step": 400, "epoch": 0.4096, "ky_loss": 1.879524, "ky_ppl": 6.5504}
+{"step": 600, "epoch": 0.6144, "ky_loss": 1.82275, "ky_ppl": 6.1889}
+{"step": 800, "epoch": 0.8193, "ky_loss": 1.788566, "ky_ppl": 5.9809}
+{"step": 1000, "epoch": 1.0236, "ky_loss": 1.764058, "ky_ppl": 5.8361}
+{"step": 1200, "epoch": 1.2284, "ky_loss": 1.745519, "ky_ppl": 5.7289}
+{"step": 1400, "epoch": 1.4332, "ky_loss": 1.725823, "ky_ppl": 5.6171}
+{"step": 1600, "epoch": 1.638, "ky_loss": 1.69255, "ky_ppl": 5.4333}
+{"step": 1800, "epoch": 1.8428, "ky_loss": 1.672352, "ky_ppl": 5.3247}
+{"step": 2000, "epoch": 2.0471, "ky_loss": 1.74398, "ky_ppl": 5.7201}
+{"step": 2200, "epoch": 2.2519, "ky_loss": 1.735504, "ky_ppl": 5.6718}
+{"step": 2400, "epoch": 2.4567, "ky_loss": 1.733809, "ky_ppl": 5.6622}
+{"step": 2600, "epoch": 2.6615, "ky_loss": 1.732255, "ky_ppl": 5.6534}
+{"step": 2800, "epoch": 2.8664, "ky_loss": 1.731143, "ky_ppl": 5.6471}

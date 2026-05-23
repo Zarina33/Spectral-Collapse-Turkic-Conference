@@ -1,0 +1,105 @@
+  loading E3_s42...
+    E3_s42: 294 modules in 0.0s
+  loading E3_s123...
+    E3_s123: 294 modules in 0.0s
+  E3_s42     vs E3_s123     mean=+0.0412  median=+0.0254  max=+0.3667  >0.5: 0/294
+  loading E5_s42...
+    E5_s42: 294 modules in 0.1s
+  loading E5_s123...
+    E5_s123: 294 modules in 0.2s
+  E5_s42     vs E5_s123     mean=+0.0217  median=+0.0146  max=+0.2599  >0.5: 0/294
+  loading E5b_s42...
+    E5b_s42: 294 modules in 0.1s
+  loading E5b_s123...
+    E5b_s123: 294 modules in 0.1s
+  E5b_s42    vs E5b_s123    mean=+0.0304  median=+0.0178  max=+0.3327  >0.5: 0/294
+  loading E5c_s42...
+    E5c_s42: 294 modules in 0.1s
+  loading E5c_s123...
+    E5c_s123: 294 modules in 0.1s
+  E5c_s42    vs E5c_s123    mean=+0.0319  median=+0.0188  max=+0.3293  >0.5: 0/294
+  loading E6_s42...
+    E6_s42: 294 modules in 0.1s
+  loading E6_s123...
+    E6_s123: 294 modules in 0.1s
+  E6_s42     vs E6_s123     mean=+0.7847  median=+0.7735  max=+0.9177  >0.5: 294/294
+  loading E6b_s42...
+    E6b_s42: 294 modules in 0.1s
+  loading E6b_s123...
+    E6b_s123: 294 modules in 0.1s
+  E6b_s42    vs E6b_s123    mean=+0.3431  median=+0.3238  max=+0.7872  >0.5: 37/294
+  loading E8_s42...
+    E8_s42: 294 modules in 0.1s
+  loading E8_s123...
+    E8_s123: 294 modules in 0.1s
+  E8_s42     vs E8_s123     mean=+0.0143  median=+0.0089  max=+0.1639  >0.5: 0/294
+  loading E1b_s42...
+    E1b_s42: 294 modules in 0.1s
+  loading E1b_s123...
+    E1b_s123: 294 modules in 0.1s
+  E1b_s42    vs E1b_s123    mean=+0.0275  median=+0.0164  max=+0.3304  >0.5: 0/294
+  loading E5_s42...
+    E5_s42: 294 modules in 0.0s
+  loading E5b_s42...
+    E5b_s42: 294 modules in 0.0s
+  E5_s42     vs E5b_s42     mean=+0.0105  median=+0.0057  max=+0.1239  >0.5: 0/294
+  loading E5c_s42...
+    E5c_s42: 294 modules in 0.0s
+  E5_s42     vs E5c_s42     mean=+0.0102  median=+0.0056  max=+0.1131  >0.5: 0/294
+  E5b_s42    vs E5c_s42     mean=+0.0533  median=+0.0330  max=+0.4340  >0.5: 0/294
+  loading E5c_s123...
+    E5c_s123: 294 modules in 0.0s
+  E5b_s42    vs E5c_s123    mean=+0.0310  median=+0.0186  max=+0.3337  >0.5: 0/294
+  loading E1_s42...
+    E1_s42: 294 modules in 0.1s
+  loading E3_s42...
+    E3_s42: 294 modules in 0.0s
+  E1_s42     vs E3_s42      mean=+0.0017  median=+0.0005  max=+0.0881  >0.5: 0/294
+  loading E2_s42...
+    E2_s42: 294 modules in 0.1s
+  E1_s42     vs E2_s42      mean=+0.0012  median=+0.0004  max=+0.0629  >0.5: 0/294
+  E3_s42     vs E2_s42      mean=+0.0020  median=+0.0007  max=+0.0867  >0.5: 0/294
+  loading E6_s42...
+    E6_s42: 294 modules in 0.0s
+  E3_s42     vs E6_s42      mean=+0.0085  median=+0.0054  max=+0.1363  >0.5: 0/294
+  loading E6b_s42...
+    E6b_s42: 294 modules in 0.0s
+  E3_s42     vs E6b_s42     mean=+0.0551  median=+0.0417  max=+0.3378  >0.5: 0/294
+  E6_s42     vs E6b_s42     mean=+0.0074  median=+0.0047  max=+0.1334  >0.5: 0/294
+  [SKIP] E3_s42 vs C3_s42: adapter missing
+  loading E5_s42...
+    E5_s42: 294 modules in 0.0s
+  E5_s42     vs E3_s42      mean=+0.0053  median=+0.0028  max=+0.0585  >0.5: 0/294
+  loading E1_s42...
+    E1_s42: 294 modules in 0.0s
+  E5_s42     vs E1_s42      mean=+0.0009  median=+0.0005  max=+0.0287  >0.5: 0/294
+  loading E8_s42...
+    E8_s42: 294 modules in 0.0s
+  E5_s42     vs E8_s42      mean=+0.0001  median=+0.0000  max=+0.0055  >0.5: 0/294
+
+[INFO] wrote ./directional_results/pairwise_cosine.json
+
+================================================================================================
+Pair                          mean   median     max     >0.5   description
+------------------------------------------------------------------------------------------------
+E3_s42 vs E3_s123          +0.0412  +0.0254 +0.3667   0/294  r=16 KY baseline: only seed differs (same-setup baseline)
+E5_s42 vs E5_s123          +0.0217  +0.0146 +0.2599   0/294  r=64 LR=5e-4 KY collapse: only seed differs
+E5b_s42 vs E5b_s123        +0.0304  +0.0178 +0.3327   0/294  r=64 LR=2e-4 5ep KY: only seed differs
+E5c_s42 vs E5c_s123        +0.0319  +0.0188 +0.3293   0/294  r=64 LR=2e-4 3ep KY: only seed differs
+E6_s42 vs E6_s123          +0.7847  +0.7735 +0.9177 294/294  KZ->KY transfer: only seed differs
+E6b_s42 vs E6b_s123        +0.3431  +0.3238 +0.7872  37/294  EN->KY transfer: only seed differs
+E8_s42 vs E8_s123          +0.0143  +0.0089 +0.1639   0/294  EN baseline: only seed differs
+E1b_s42 vs E1b_s123        +0.0275  +0.0164 +0.3304   0/294  KZ small-corpus: only seed differs
+E5_s42 vs E5b_s42          +0.0105  +0.0057 +0.1239   0/294  r=64 collapse vs healthy (only LR differs: 5e-4 vs 2e-4)
+E5_s42 vs E5c_s42          +0.0102  +0.0056 +0.1131   0/294  r=64 collapse vs healthy epoch-matched (LR+epoch differ)
+E5b_s42 vs E5c_s42         +0.0533  +0.0330 +0.4340   0/294  r=64 healthy 5ep vs healthy 3ep (only epochs differ)
+E5b_s42 vs E5c_s123        +0.0310  +0.0186 +0.3337   0/294  r=64 5ep s=42 vs 3ep s=123 (different seed too)
+E1_s42 vs E3_s42           +0.0017  +0.0005 +0.0881   0/294  KZ baseline vs KY baseline (different languages)
+E1_s42 vs E2_s42           +0.0012  +0.0004 +0.0629   0/294  KZ baseline vs UZ baseline
+E3_s42 vs E2_s42           +0.0020  +0.0007 +0.0867   0/294  KY baseline vs UZ baseline
+E3_s42 vs E6_s42           +0.0085  +0.0054 +0.1363   0/294  direct KY vs KZ->KY transfer (related)
+E3_s42 vs E6b_s42          +0.0551  +0.0417 +0.3378   0/294  direct KY vs EN->KY transfer (cross-family)
+E6_s42 vs E6b_s42          +0.0074  +0.0047 +0.1334   0/294  KZ->KY vs EN->KY (related vs cross-family)
+E5_s42 vs E3_s42           +0.0053  +0.0028 +0.0585   0/294  r=64 collapse vs r=16 baseline (different rank too)
+E5_s42 vs E1_s42           +0.0009  +0.0005 +0.0287   0/294  r=64 collapse vs KZ baseline
+E5_s42 vs E8_s42           +0.0001  +0.0000 +0.0055   0/294  r=64 collapse vs EN baseline

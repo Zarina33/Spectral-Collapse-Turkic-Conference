@@ -1,0 +1,114 @@
+{
+  "experiment_date": "2026-03-02T09:27:07.401115",
+  "model": {
+    "name": "google/gemma-2-9b",
+    "total_parameters": 5295980032,
+    "trainable_parameters": 216072192,
+    "trainable_pct": 4.0799,
+    "quantization": "4-bit NF4 double-quant",
+    "dtype": "bfloat16",
+    "attn_implementation": "eager"
+  },
+  "lora": {
+    "r": 64,
+    "alpha": 128,
+    "alpha_over_r": 2.0,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+  },
+  "data": {
+    "total_tokens": 23903509,
+    "max_seq_length": 256,
+    "val_split": 0.1,
+    "per_language": {
+      "ky": {
+        "language": "Kyrgyz",
+        "file": "kyrgyz_raw.jsonl",
+        "records": 17360,
+        "file_size_mb": 151.4,
+        "tokens_per_word": 3.69,
+        "estimated_tokens": 4129784
+      },
+      "kz": {
+        "language": "Kazakh",
+        "file": "kazakh_raw.jsonl",
+        "records": 61879,
+        "file_size_mb": 151.5,
+        "tokens_per_word": 3.737,
+        "estimated_tokens": 14720446
+      },
+      "uz": {
+        "language": "Uzbek",
+        "file": "uzbek_final_cyrillic.jsonl",
+        "records": 21242,
+        "file_size_mb": 152.6,
+        "tokens_per_word": 3.68,
+        "estimated_tokens": 5053277
+      },
+      "en": {
+        "language": "English (control)",
+        "file": "built-in_control_sentences",
+        "records": 20,
+        "file_size_mb": 0.0,
+        "tokens_per_word": 1.146
+      }
+    }
+  },
+  "training": {
+    "num_epochs": 3,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
+    "gradient_accumulation_steps": 16,
+    "effective_batch_size": 16,
+    "learning_rate": 0.001,
+    "warmup_ratio": 0.05,
+    "lr_scheduler": "cosine",
+    "optimizer": "paged_adamw_32bit",
+    "max_grad_norm": 0.3,
+    "gradient_checkpointing": true,
+    "seed": 42
+  },
+  "evaluation": {
+    "eval_steps": 200,
+    "val_split_pct": 10.0
+  },
+  "svd_monitoring": {
+    "log_every_steps": 100,
+    "collapse_threshold": 0.7,
+    "metrics": [
+      "singular_values",
+      "spectral_energy",
+      "effective_rank",
+      "svd_entropy",
+      "stable_rank",
+      "frobenius_norm_A",
+      "frobenius_norm_B",
+      "vram_allocated_gb",
+      "tokens_per_second"
+    ]
+  },
+  "hardware": {
+    "gpu_name": "NVIDIA GeForce RTX 5080",
+    "gpu_count": 1,
+    "gpu_memory_gb": 15.5,
+    "cuda_version": "12.8"
+  },
+  "software": {
+    "torch": "2.10.0+cu128",
+    "python": "3.10.19",
+    "transformers": "5.2.0",
+    "peft": "0.18.1",
+    "datasets": "4.6.0",
+    "accelerate": "1.12.0"
+  }
+}

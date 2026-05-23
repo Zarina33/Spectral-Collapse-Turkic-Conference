@@ -1,0 +1,89 @@
+{
+  "method": "verbatim_substring_overlap",
+  "per_language": [
+    {
+      "lang": "ky",
+      "corpus_chars": 85949249,
+      "n_test_spans": 111,
+      "n_unique_test_spans": 93,
+      "unique_overlap": [
+        52,
+        93
+      ],
+      "instance_overlap": [
+        65,
+        111
+      ],
+      "per_type_unique_overlap": {
+        "PER": [
+          11,
+          33
+        ],
+        "ORG": [
+          17,
+          30
+        ],
+        "LOC": [
+          24,
+          30
+        ]
+      }
+    },
+    {
+      "lang": "kz",
+      "corpus_chars": 86977371,
+      "n_test_spans": 1115,
+      "n_unique_test_spans": 757,
+      "unique_overlap": [
+        497,
+        757
+      ],
+      "instance_overlap": [
+        776,
+        1115
+      ],
+      "per_type_unique_overlap": {
+        "PER": [
+          221,
+          313
+        ],
+        "ORG": [
+          170,
+          276
+        ],
+        "LOC": [
+          106,
+          168
+        ]
+      }
+    },
+    {
+      "lang": "uz",
+      "corpus_chars": 86240574,
+      "n_test_spans": 1011,
+      "n_unique_test_spans": 602,
+      "unique_overlap": [
+        13,
+        602
+      ],
+      "instance_overlap": [
+        14,
+        1011
+      ],
+      "per_type_unique_overlap": {
+        "PER": [
+          2,
+          67
+        ],
+        "ORG": [
+          8,
+          202
+        ],
+        "LOC": [
+          3,
+          333
+        ]
+      }
+    }
+  ]
+}

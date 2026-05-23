@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-04-29T05:07:06.271644",
+  "adapter_path": "./output_ky_bf16_r16_lr2e4_3ep/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 1.6071,
+      "ppl": 4.99,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 3.7835,
+      "ppl": 43.97,
+      "n_samples": 500,
+      "n_tokens": 113336
+    },
+    "uz": {
+      "loss": 4.0779,
+      "ppl": 59.02,
+      "n_samples": 500,
+      "n_tokens": 127308
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.109,
+      "recall": 0.333,
+      "f1": 0.164,
+      "n_evaluated": 100,
+      "parse_failures": 0
+    },
+    "kz": {
+      "precision": 0.132,
+      "recall": 0.375,
+      "f1": 0.195,
+      "n_evaluated": 100,
+      "parse_failures": 0
+    },
+    "uz": {
+      "precision": 0.22,
+      "recall": 0.563,
+      "f1": 0.316,
+      "n_evaluated": 100,
+      "parse_failures": 0
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.586,
+      "macro_f1": 0.485,
+      "n_spans": 111
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.705,
+      "macro_f1": 0.543,
+      "n_spans": 112
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.641,
+      "macro_f1": 0.506,
+      "n_spans": 103
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.3073,
+      "correct": 244,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.2892,
+      "correct": 201,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.3608,
+      "correct": 267,
+      "n_questions": 740
+    }
+  },
+  "_notes": "Merged report. PPL + NER (gen) + NER (loglik) recovered from eval.log.partial1 (first run, killed during TUMLU). TUMLU rerun on 2026-04-29 with --skip_ppl --skip_ner --skip_ner_loglik. Per-type NER breakdown not recoverable from log (only aggregate metrics were printed)."
+}

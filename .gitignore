@@ -1,0 +1,82 @@
+# ── Data (too large for GitHub) ──
+data/
+
+# ── Training checkpoints (600MB-2.5GB each) ──
+output_*/checkpoint-*/
+output_*/final_adapter/
+output/
+
+# ── Large log files (SVD logs → HuggingFace) ──
+output_*/svd_log.jsonl
+
+# ── Large binary files ──
+*.safetensors
+*.bin
+*.pt
+*.ckpt
+*.h5
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# ── Jupyter ──
+.ipynb_checkpoints/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── IDE ──
+.vscode/
+.idea/
+
+# ── Environment ──
+.env
+*.env
+venv/
+.venv/
+
+# ── Claude Code ──
+.claude/
+
+# ── LaTeX build artifacts ──
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+texput.log
+
+# ── Training tee logs (tqdm \r noise, large) ──
+*.launch.log
+*.nohup.out
+*.pid
+
+# ── HuggingFace per-run artefacts not needed in git ──
+output_*/tokenizer.json
+output_*/tokenizer_config.json
+output_*/training_artifacts/
+output_*/.gitattributes
+output_*/adapter_config.json
+output_*/offload/
+
+# ── Failed experiment (OOM, no useful data) ──
+output_ky_collapse_r128_lr5e4_5ep/
+
+# ── Old drafts ──
+paper/mainoneColumn.pdf
+paper_outline.txt
+Spectral_LoRA_Protocol.docx
+
+# Internal planning / old artifacts (not for public review repo)
+todo.txt
+Spectral_LoRA_Protocol.docx
+supplementary.zip
