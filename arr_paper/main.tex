@@ -859,26 +859,26 @@ $\|B\|_F$ growth & 8.28$\times$ & 8.36$\times$ & 8.82$\times$ & 8.72$\times$ & 1
 \label{tab:llama3}
 \end{table*}
 
-\begin{table}[H]
+\begin{table*}[!htbp]
 \centering
 \small
-\begin{tabular}{lrr}
+\begin{tabular}{lcc}
 \toprule
 \textbf{Pair} & \textbf{Llama-3} & \textbf{Gemma-2} \\
 \midrule
 \multicolumn{3}{l}{\emph{Cross-config, same seed}} \\
-$\cos$(E5, E5c)            & 0.029 & 0.010 \\
-$\cos$(E5, E3)             & 0.015 & 0.005 \\
-$\cos$(E3, E5c)            & 0.113 & --- \\
+$\cos$(E5, E5c) -- collapse vs.\ healthy at $r{=}64$           & 0.029 & 0.010 \\
+$\cos$(E5, E3) -- collapse vs.\ $r{=}16$ baseline             & 0.015 & 0.005 \\
+$\cos$(E3, E5c) -- $r{=}16$ vs.\ $r{=}64$ direct              & 0.113 & --- \\
 \midrule
 \multicolumn{3}{l}{\emph{Cross-seed, same configuration}} \\
-$\cos$(E3-s42, E3-s123)    & 0.103 & 0.041 \\
-$\cos$(E5c-s42, E5c-s123)  & 0.072 & 0.032 \\
+$\cos$(E3 seed 42, E3 seed 123) -- $r{=}16$ direct training & 0.103 & 0.041 \\
+$\cos$(E5c seed 42, E5c seed 123) -- $r{=}64$ direct training & 0.072 & 0.032 \\
 \bottomrule
 \end{tabular}
 \caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. (i) The critical collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0/224$ and $0/294$ modules above $0.5$). (ii) Cross-seed direct-training cosines on Llama-3 ($0.07$--$0.10$) are roughly $2\times$ higher than on Gemma-2 ($0.03$--$0.04$), but both stay below $0.5$ and an order of magnitude below the Gemma transfer-init regime ($0.78$). On Llama-3 the within-config cross-seed cosine ($0.072$ for E5c) exceeds the between-config cosine (E5 vs E5c $=0.029$), so the underdetermination inequality of \Cref{sec:underdetermination} holds on this architecture too.}
 \label{tab:llama3_cos}
-\end{table}
+\end{table*}
 
 \begin{table*}[!htbp]
 \centering
