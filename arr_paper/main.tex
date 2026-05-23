@@ -37,7 +37,10 @@
 \author{Anonymous ARR Submission}
 
 \begin{document}
+\pagestyle{empty}            % suppress page numbers (ARR submission convention)
+\thispagestyle{empty}
 \maketitle
+\thispagestyle{empty}
 
 % ============================================================================
 % ABSTRACT
@@ -832,7 +835,7 @@ E6b cross-seed  & \textbf{0.343} & \textbf{0.344} & \textbf{0.343} \\
 \section{Llama-3-8B Replication}
 \label{app:llama3}
 
-We replicate three of the critical Gemma-2-9B configurations on Llama-3-8B \citep{dubey2024llama3} via the byte-identical NousResearch mirror (gated original at \texttt{meta-llama/Meta-Llama-3-8B}). Same data (Kyrgyz corpus, $\sim 4.4$M tokens), same hyperparameters as the Gemma originals, same 4-bit NF4 + QLoRA setup, single seed (42). Runs: L3-E3 ($r{=}16$, $\alpha{=}32$, $\text{lr}{=}2{\times}10^{-4}$, 3 epochs); L3-E5c ($r{=}64$, $\alpha{=}128$, $\text{lr}{=}2{\times}10^{-4}$, 3 epochs); L3-E5 ($r{=}64$, $\alpha{=}128$, $\text{lr}{=}5{\times}10^{-4}$, 5 epochs).
+We replicate three of the critical Gemma-2-9B configurations on Llama-3-8B \citep{dubey2024llama3} via the byte-identical NousResearch mirror of the gated Meta repository. Same data (Kyrgyz corpus, $\sim 4.4$M tokens), same hyperparameters as the Gemma originals, same 4-bit NF4 + QLoRA setup, single seed (42). Runs: L3-E3 ($r{=}16$, $\alpha{=}32$, $\text{lr}{=}2{\times}10^{-4}$, 3 epochs); L3-E5c ($r{=}64$, $\alpha{=}128$, $\text{lr}{=}2{\times}10^{-4}$, 3 epochs); L3-E5 ($r{=}64$, $\alpha{=}128$, $\text{lr}{=}5{\times}10^{-4}$, 5 epochs).
 
 \textbf{All central claims of the paper replicate qualitatively} (\Cref{tab:llama3}). \textbf{(i)} SE never reaches the $0.7$ threshold (max SE: L3-E3 $0.335$, L3-E5c $0.137$, L3-E5 $0.138$; cf.\ Gemma-2 $0.322$, $0.112$, $0.058$). \textbf{(ii)} L3-E5 exhibits the same functional-vs-spectral collapse dissociation: NER F1 (gen)~$=0$ on all three languages (parse failure rates $97/94/71\%$ across KY/KZ/UZ), TUMLU drops to $24.7\%$ (near $25\%$ random), \emph{but} log-likelihood NER TypeAcc is preserved or even higher than the baseline ($0.649/0.741/0.796$ vs.\ L3-E3 $0.577/0.696/0.680$). Entity knowledge survives; structured-output instruction-following collapses; SE does not see it. \textbf{(iii)} Cross-lingual forgetting in L3-E5 is severe (KZ PPL $145$, UZ PPL $286$ vs.\ L3-E3 $30/54$), in the same direction as Gemma though milder in absolute magnitude. \textbf{(iv)} The rank-only target-language improvement of E5c over E3 reproduces ($3.63$ vs.\ $4.32$ KY PPL on Llama-3; $3.86$ vs.\ $4.78$ on Gemma) with the same cross-lingual cost (KZ $41$ vs.\ $30$ on Llama-3).
 
