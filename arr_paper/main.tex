@@ -20,6 +20,14 @@
 \Urlmuskip=0mu plus 1mu    % allow URLs to stretch interword space
 \setlength{\tabcolsep}{4pt}% tighter column padding (default 6pt)
 \sloppy                    % relax line-breaking to avoid bleeding into margin
+% Relax LaTeX's float-aversion (default 70% text/page minimum) -> reduce
+% white space around full-width floats in two-column layout.
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.85}
+\renewcommand{\dbltopfraction}{0.95}
+\renewcommand{\dblfloatpagefraction}{0.85}
 
 \title{Spectral Energy is Not a Reliable Collapse Diagnostic for Low-Resource Quantized LoRA: Evidence from Turkic Languages}
 
@@ -100,7 +108,7 @@ We evaluate each adapter on three tasks:
 
 We measure subword fragmentation as the average number of tokens per whitespace-delimited word for each language. As shown in \Cref{tab:tokenization}, all three Turkic languages exhibit severe fragmentation at approximately 3.2$\times$ the rate of English, reflecting the fundamental mismatch between the Gemma tokenizer (optimized for English and high-resource languages) and agglutinative Turkic morphology.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lcc}
@@ -128,7 +136,7 @@ Kazakh & 3.74 & 3.25$\times$ \\
 
 \Cref{tab:main_results} presents the primary evaluation metrics across all experiments. Several patterns emerge from the baseline comparisons.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{llccccc}
@@ -197,7 +205,7 @@ computed without materializing the $\text{out}\times\text{in}$ product via the i
 
 The 22-pair sweep in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} reveals a sharp bimodal structure that none of the spectral or Frobenius diagnostics surface.
 
-\begin{figure*}[t]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig10_pairwise_cosine.png}
     \caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices.
@@ -206,7 +214,7 @@ The 22-pair sweep in \Cref{tab:pairwise_cos} and \Cref{fig:pairwise_cos} reveals
     \label{fig:pairwise_cos}
 \end{figure*}
 
-\begin{table}[t]
+\begin{table*}[!htbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -229,31 +237,15 @@ E5 vs E5b      & 0.011 & 0.006 & 0/294\\
 E5 vs E5c      & 0.010 & 0.006 & 0/294\\
 E5b vs E5c     & 0.053 & 0.033 & 0/294\\
 \midrule
-\multicolumn{4}{l}{\emph{Cross-language $r{=}16$}}\\
-E1 vs E3 (KZ/KY) & 0.002 & 0.001 & 0/294\\
-E1 vs E2 (KZ/UZ) & 0.001 & 0.000 & 0/294\\
-E3 vs E2 (KY/UZ) & 0.002 & 0.001 & 0/294\\
-\midrule
-\multicolumn{4}{l}{\emph{Transfer vs direct}}\\
-E3 vs E6  (direct/KZ$\rightarrow$KY) & 0.009 & 0.005 & 0/294\\
-E3 vs E6b (direct/EN$\rightarrow$KY) & 0.055 & 0.042 & 0/294\\
-E6 vs E6b & 0.007 & 0.005 & 0/294\\
-\midrule
-\multicolumn{4}{l}{\emph{Other controls}}\\
-E3 vs C3 (4-bit/BF16)   & 0.066 & 0.053 & 0/294\\
-E5 vs E3 & 0.005 & 0.003 & 0/294\\
-E5 vs E1 & 0.001 & 0.001 & 0/294\\
-E5 vs E8 & 0.000 & 0.000 & 0/294\\
-\midrule
 \multicolumn{4}{l}{\emph{$\alpha$ vs.\ rank (C5)}}\\
 E5c vs C5 ($\alpha{=}128$/$32$)  & 0.072 & 0.053 & 0/294\\
 C5 vs E3 ($r{=}64$/$16$)         & \textbf{0.155} & \textbf{0.139} & \textbf{2/294}\\
 C5 vs E5 & 0.009 & 0.005 & 0/294\\
 \bottomrule
 \end{tabular}
-\caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices, aggregated over the 294 attention/MLP projections in Gemma-2-9B. Two regimes appear: \emph{transfer-initialised} pairs (shaded), where the same configuration with different seeds converges to a near-identical direction (E6 mean $=0.785$, all 294 modules $>0.5$), and \emph{everything else}, where pairs cluster between $0.0$ and $0.07$. Crucially, $\cos$(E5,E5c)$=0.010$ ($r{=}64$ collapse vs.\ healthy) is \emph{indistinguishable} from same-configuration cross-seed pairs of either condition ($0.022$ and $0.032$): the two basins are no further apart than two seeds of the same setup. The C5 control ($r{=}64$, $\alpha{=}32$) is directionally \emph{closer} to E3 (cos $0.155$, different rank, same $\alpha$) than to E5c (cos $0.072$, same rank, different $\alpha$)---$\alpha$ moves the adapter further in $\Delta W$ space than rank does.}
+\caption{Per-module Frobenius cosine between LoRA $\Delta W{=}BA$ matrices, aggregated over the 294 attention/MLP projections in Gemma-2-9B. Two regimes appear: \emph{transfer-initialised} pairs (shaded), where the same configuration across seeds converges to a near-identical direction (E6 mean $=0.785$, all 294 modules $>0.5$), and \emph{everything else}, where pairs cluster between $0.0$ and $0.07$. Crucially, $\cos$(E5, E5c)$=0.010$ ($r{=}64$ collapse vs.\ healthy) is \emph{indistinguishable} from same-configuration cross-seed pairs ($0.022$, $0.032$): the two basins are no further apart than two seeds of the same setup. The C5 control ($r{=}64$, $\alpha{=}32$) is directionally closer to E3 (cos $0.155$, different rank, same $\alpha$) than to E5c (cos $0.072$, same rank, different $\alpha$)---$\alpha$ moves the adapter further in $\Delta W$ space than rank does. Cross-language, transfer-vs-direct, and other-controls pairs in \Cref{tab:pairwise_cos_extra}.}
 \label{tab:pairwise_cos}
-\end{table}
+\end{table*}
 
 Three regularities follow. \textbf{(D1)} Direct LoRA from base is directionally non-canonical: for every configuration trained from raw base (E1b, E3, E5/E5b/E5c, E8), cross-seed cosine sits at $0.01$--$0.04$ with $0/294$ modules above $0.5$. The data and hyperparameters do not pin down a unique direction; many almost-orthogonal solutions exist with similar SE and Frobenius signatures. \textbf{(D2)} Transfer initialisation pins direction: E6 reaches $\cos = 0.785$ across seeds (all $294$ modules above $0.5$); E6b partially reproduces this ($0.343$, $37/294$). Initialisation, not data, is what makes the trajectory reproducible. \textbf{(D3)} Collapse and healthy share the same orthogonal sphere: $\cos$(E5, E5b)$=0.011$, $\cos$(E5, E5c)$=0.010$, both \emph{inside} the cross-seed band. Direction does not separate the two regimes any more reliably than reshuffling the seed does---a quantitative refutation of H3 and the starting point for the underdetermination argument of \Cref{sec:underdetermination}.
 
@@ -275,14 +267,9 @@ Standard LoRA initializes $A \sim$ Kaiming, $B = 0$. After the first gradient up
 \subsection{Underdetermination: No Final-Adapter Invariant Distinguishes Collapse from Healthy}
 \label{sec:underdetermination}
 
-\Cref{sec:directional} supports a stronger negative claim than ``SE is the wrong shape metric.'' We argue no Lipschitz scalar function of the final adapter alone can reliably distinguish E5 from E5c. Let $D: (A, B) \mapsto \mathbb{R}$ be any candidate, Lipschitz under any reasonable weight-space metric (Frobenius, cosine, or any invariant of $A^{\top}A$, $B^{\top}B$, or $BA$). Reliable discrimination requires the between-configuration gap $\Delta_D = |D(A^{c_1}, B^{c_1}) - D(A^{c_2}, B^{c_2})|$ to exceed the within-configuration spread $\sigma_D^{\text{seed}}$. The pairwise-cosine data provide direct evidence on the comparison: within-config cross-seed (Gemma E5c-s42 vs E5c-s123) gives $\cos = 0.032$, i.e., per-module distance $\approx 0.968$; between-config (E5 vs E5c) gives $\cos = 0.010$, distance $\approx 0.990$. The between-class separation is no larger than the within-class spread, so any Lipschitz $D$ has signal-to-noise $\lesssim 1$ and cannot place a stable decision boundary. This rules out all (a) spectral-shape metrics of $A$, $B$, $BA$, (b) Frobenius scale metrics, and (c) direction-based comparisons against any fixed reference; empirically our top-$r$ and top-$256$ subspace-alignment probes against $W_0$ also failed to discriminate E5/E5c, consistent with this prediction. The escape routes are \emph{functional} probes (computed against held-out data, not adapter weights alone) and \emph{trajectory} probes (gradient cumulants over training); they break the Lipschitz-in-$(A, B)$ assumption.
+\Cref{sec:directional} supports a stronger negative claim than ``SE is the wrong shape metric.'' Let $D: (A, B) \mapsto \mathbb{R}$ be any Lipschitz scalar diagnostic (under any reasonable weight-space metric: Frobenius, cosine, or any invariant of $A^{\top}A$, $B^{\top}B$, $BA$). Reliable discrimination of collapse from healthy requires the between-configuration gap $\Delta_D$ to exceed the within-configuration spread $\sigma_D^{\text{seed}}$. The pairwise cosines provide direct evidence: within-config cross-seed (Gemma E5c) gives $\cos = 0.032$, per-module distance $\approx 0.968$; between-config (E5 vs E5c) gives $\cos = 0.010$, distance $\approx 0.990$. The between-class separation is no larger than within-class spread, so any Lipschitz $D$ has SNR $\lesssim 1$. This rules out spectral-shape metrics of $A$, $B$, $BA$ (SE, effective rank, stable rank, entropy), Frobenius scale metrics, and direction-based comparisons against any fixed reference; empirically our $W_0$-alignment probes also fail. Escape routes that break the Lipschitz-in-$(A, B)$ assumption: \emph{functional} probes (PPL/NER/TUMLU on held-out data) and \emph{trajectory} probes (gradient cumulants over training). The Llama-3 replication satisfies the same inequality (within-config $0.072$ vs.\ between-config $0.029$; \Cref{app:llama3}), confirming the regime is architecture-independent.
 
-\textbf{Why transfer is the exception.} Once a non-trivial init pins direction (E6, E6b), cross-seed variance collapses ($\cos = 0.785$, $294/294$ modules $> 0.5$). The trajectory begins inside a narrower cone; the optimisation no longer samples uniformly from the sphere of orthogonal solutions. The Llama-3 replication satisfies the same inequality with slightly larger absolute cosines (within-config $0.072$ vs.\ between-config $0.029$; \Cref{app:llama3}), confirming the regime is architecture-independent.
-
-\subsection{Mechanistic Context and Recommendations}
-\label{sec:mechanistic}
-
-Direct-LoRA cross-seed cosines $\sim 0.02$--$0.04$ are the adapter analogue of pre-stability-point loss-surface disconnection \citep{garipov2018loss,frankle2020linear}, while transfer-init ($\cos = 0.78$) is the linearly-connected case. Together with low intrinsic dimensionality \citep{aghajanyan2021intrinsic}, this implies \emph{which} low-dim subspace gets selected is what varies across seeds; shape is rank-biased and consistent, orientation is not. Transfer-init functions as an LP-FT-like prior \citep{kumar2022finetuning} for cross-lingual LoRA, paying most of the distortion cost on a related task; the graded E6 vs.\ E6b contrast shows the regularising effect scales with source-target similarity. PiSSA \citep{meng2024pissa} and LoRA+ \citep{hayou2024loraplus} are also direction-pinning interventions; whether they reach the $\cos {\approx} 0.78$ regime is a direct empirical question for the protocol of \Cref{sec:directional}. \textbf{Recommendations.} Do not gate health on SE thresholds; track $\|B\|_F$ trajectories paired with cross-lingual PPL (not fixed numeric cutoffs); treat collapse detection as a functional test (no Lipschitz $D(A,B)$ can substitute, \Cref{sec:underdetermination}); use related-language transfer-init when available---uniquely yields cross-seed reproducible directions at $+13\%$ Frobenius growth.
+\textbf{Recommendations.} (i) Do not gate fine-tuning health on SE thresholds; (ii) track $\|B\|_F$ trajectories paired with cross-lingual PPL probes (not fixed numeric cutoffs); (iii) treat collapse detection as a functional test (no Lipschitz $D(A,B)$ can substitute); (iv) use related-language transfer initialisation when available---uniquely yields cross-seed reproducible directions. Connections to mode-connectivity \citep{garipov2018loss,frankle2020linear}, intrinsic-dimensionality \citep{aghajanyan2021intrinsic}, LP-FT \citep{kumar2022finetuning}, and PiSSA / LoRA+ \citep{meng2024pissa,hayou2024loraplus} are discussed in \Cref{app:mechanistic}.
 
 % ============================================================================
 % 6. LIMITATIONS
@@ -497,7 +484,7 @@ C5 & KY $r{=}64$ $\alpha{=}32$$^\flat$ & Kyrgyz & 64 & $2{\times}10^{-4}$ & 3 & 
 
 All experiments were conducted on a single consumer GPU (16~GB VRAM) using PyTorch 2.10, Transformers 5.2, and PEFT 0.18. \Cref{tab:training_details} provides the full training statistics.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{llccccc}
@@ -527,7 +514,7 @@ E8 & EN Control & 1.821 & 2.017 & 7.51 & 12.7M & 1351 \\
 
 \textbf{E7 divergence analysis.} The diverged experiment ($r{=}64$, $\text{lr}{=}10^{-3}$) provides the most extreme datapoint. Training terminated at step 800 due to loss divergence. Even at this point, maximum SE was only 0.18---still far below the 0.7 threshold---while mean Frobenius norm had already reached 6.75 (19$\times$ growth in just 800 steps, compared to 15.6$\times$ over 4,885 steps for E5). The effective rank decrease (43.3 $\rightarrow$ 37.1) in the final 200 steps is the only instance of true rank contraction in our experiments, suggesting that SE-based collapse detection may only trigger \emph{after} the model has already diverged---too late for practical intervention. The Frobenius norm, by contrast, shows clear exponential growth from step 100 onward, providing a much earlier warning signal.
 
-\begin{figure*}[t]
+\begin{figure*}[!htbp]
     \centering
     \includegraphics[width=\textwidth]{../figures/fig5_effective_rank.png}
     \caption{Effective rank dynamics during training. The $r{=}64$ configuration shows increasing effective rank despite functional degradation, further evidence that standard spectral metrics can be misleading.}
@@ -541,7 +528,7 @@ To separate loss of entity knowledge from loss of instruction-following/output-f
 
 \Cref{tab:ner_loglik} reports per-language type accuracy and macro-F1 on the same 100-example test sets used for \Cref{tab:main_results}.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -571,7 +558,7 @@ E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 
 We quantify the entity-level overlap between each language's training corpus and the WikiANN test split it is evaluated on. For every gold span in the WikiANN test set we test whether the entity string appears verbatim (case-insensitive) anywhere in the corresponding training corpus. The unique-overlap rate is an upper bound on the fraction of NER F1 that could be explained by memorization of seen entity surface forms.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -587,7 +574,7 @@ Uzbek (UZ)   & 1{,}011 & 602 & \textbf{2.2\%}  (13/602) \\
 \label{tab:overlap}
 \end{table*}
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -608,7 +595,7 @@ Uzbek  & 3\% (2/67)     & 4\% (8/202)    & 1\% (3/333)    \\
 
 \Cref{tab:bf16} reports a side-by-side comparison of the 4-bit E3 baseline (averaged across our two seeds where available) and the full-precision BF16 control (C3, single seed, run on a cloud A100~40GB instance). All hyperparameters except quantization are identical.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lcc}
@@ -636,7 +623,7 @@ Peak SE max (training) & $0.45 \pm 0.02$ & $0.47$ \\
 
 To provide at least partial seed-variance estimates for our most consequential configurations, we rerun two experiments under a second seed ($123$, while the originals used seed $42$). Training hyperparameters and data are identical across seeds; only the random seed for initialization, data shuffling, and train/val split differs.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \tiny
 \setlength{\tabcolsep}{1.2pt}
@@ -667,7 +654,7 @@ These results sharpen the interpretive stance taken throughout the paper: we tre
 
 \Cref{tab:ner_pertype} breaks down NER performance by entity type for the Kyrgyz evaluation.
 
-\begin{table*}[t]
+\begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -695,7 +682,7 @@ EN$\rightarrow$KY (E6b, cross-family) & 0.118 & 0.167 & 0.135 \\
 
 \Cref{tab:tumlu_full} presents TUMLU accuracy scores across all languages and experiments.
 
-\begin{table}[t]
+\begin{table}[!htbp]
 \centering
 \small
 \begin{tabular}{lccc}
@@ -762,6 +749,55 @@ E5b vs.\ E5c        & 0.053 & 0.049 & $-0.005$ \\
 \end{tabular}
 \caption{Per-module mean cosine for eleven principal pairs, computed twice: against \texttt{final\_adapter/} (best-eval, used in \Cref{tab:pairwise_cos}) and against the literal last saved checkpoint. The bimodal structure of \Cref{sec:directional} is robust to the choice.}
 \label{tab:lastckpt}
+\end{table}
+
+\section{Mechanistic Context}
+\label{app:mechanistic}
+
+Three lines of prior work connect to our findings.
+
+\textbf{Loss-surface geometry and mode connectivity.} \citet{garipov2018loss} and \citet{frankle2020linear} showed that independently trained networks often occupy distinct minima connected only by non-trivial paths, and that linear mode connectivity emerges only after a stability point in training. Our cross-seed cosines for direct LoRA fine-tuning ($\sim 0.02$--$0.04$) are the LoRA-update analogue: two seeds of an identical configuration end up in essentially orthogonal regions of $BA$ space, indicating that direct adapter optimisation does not enter a single shared basin. The transfer-initialised regime (E6 cross-seed $\cos = 0.785$, $294/294 > 0.5$) is the linearly-connected case: starting from a non-trivial pinning point produces a single shared cone whose endpoint is reproducible across seeds.
+
+\textbf{Intrinsic dimensionality.} \citet{aghajanyan2021intrinsic} showed that LLM fine-tuning operates in a very low intrinsic dimension---a small number of directions suffice to recover most of the task gain. A natural reading of our directional non-canonicity is that the low intrinsic dimension is a property of the \emph{loss landscape}, not of any specific axis: there are many low-dimensional subspaces that produce equivalent target-language fit, and direct LoRA selects among them stochastically through seed/initialisation. \emph{Which} low-dim subspace is selected varies across seeds; the shape (singular-value distribution) is rank-biased and similar across runs, the spatial orientation is not.
+
+\textbf{LP-FT and feature distortion.} \citet{kumar2022finetuning} argued that full fine-tuning can distort pretrained features in ways that hurt OOD behaviour, and that linear-probe-then-fine-tune (LP-FT) mitigates this. Our cross-lingual forgetting under direct LoRA training is consistent with feature distortion: large $\|B\|_F$ growth on a Turkic adapter induces high cross-lingual PPL on other languages despite sub-threshold SE. Transfer-init functions as an LP-FT-like prior for the low-resource cross-lingual setting: a warm-start adapter has already paid most of the distortion cost on a related task, so the residual fine-tuning lives in a narrower cone and disturbs fewer pretrained directions. The graded E6 vs.\ E6b contrast (related-language vs.\ cross-family warm-start) shows the regularising effect scales with source-target similarity.
+
+\textbf{LoRA initialisation work.} PiSSA \citep{meng2024pissa} initialises LoRA factors from a truncated SVD of $W_0$, biasing the adapter toward already-important pretrained directions; LoRA+ \citep{hayou2024loraplus} adjusts learning rates of $A$ vs.\ $B$ to address LoRA's factorisation asymmetry. Both are direction-pinning interventions in our sense: they constrain where the optimisation can start (PiSSA) or how it can move (LoRA+). Our directional analysis suggests an empirical question for that line of work: do PiSSA or LoRA+ produce cross-seed cosines comparable to our E6 ($\sim 0.78$), or do they sit in the partial regime of E6b ($\sim 0.34$)? The per-module pairwise-cosine protocol of \Cref{sec:directional} provides a direct test.
+
+The empirical structural claim we add to this body of work is that within standard direct LoRA fine-tuning the directional non-canonicity is large enough to set the noise floor on any final-adapter-geometric diagnostic, and that the connection between this noise floor and cross-lingual catastrophic-forgetting phenomenology is, to our knowledge, novel.
+
+\section{Additional Pairwise Cosines}
+\label{app:more_cos}
+
+\Cref{tab:pairwise_cos_extra} reports the remaining pairwise cosines we computed but moved out of the main-body \Cref{tab:pairwise_cos} for space: cross-language $r{=}16$ comparisons, transfer-vs-direct, and other miscellaneous controls (including the BF16 quantisation contrast).
+
+\begin{table}[!htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Pair} & \textbf{mean} & \textbf{med.} & \textbf{$>$0.5} \\
+\midrule
+\multicolumn{4}{l}{\emph{Cross-language $r{=}16$}}\\
+E1 vs E3 (KZ/KY) & 0.002 & 0.001 & 0/294\\
+E1 vs E2 (KZ/UZ) & 0.001 & 0.000 & 0/294\\
+E3 vs E2 (KY/UZ) & 0.002 & 0.001 & 0/294\\
+\midrule
+\multicolumn{4}{l}{\emph{Transfer vs direct}}\\
+E3 vs E6  (direct/KZ$\rightarrow$KY) & 0.009 & 0.005 & 0/294\\
+E3 vs E6b (direct/EN$\rightarrow$KY) & 0.055 & 0.042 & 0/294\\
+E6 vs E6b & 0.007 & 0.005 & 0/294\\
+\midrule
+\multicolumn{4}{l}{\emph{Other controls}}\\
+E3 vs C3 (4-bit vs BF16)   & 0.066 & 0.053 & 0/294\\
+E5 vs E3 & 0.005 & 0.003 & 0/294\\
+E5 vs E1 & 0.001 & 0.001 & 0/294\\
+E5 vs E8 & 0.000 & 0.000 & 0/294\\
+\bottomrule
+\end{tabular}
+\caption{Additional pairwise cosines complementing \Cref{tab:pairwise_cos}. Cross-language pairs sit at $\sim 0.001$--$0.002$ (lower than same-language cross-seed direct training, $0.01$--$0.04$). 4-bit vs.\ BF16 (E3 vs.\ C3) is $0.066$---an order of magnitude smaller than the transfer-init regime. Collapse vs.\ direct-baseline pairs (E5 vs.\ E1/E3/E8) all sit at $0.000$--$0.005$.}
+\label{tab:pairwise_cos_extra}
 \end{table}
 
 \section{Trajectory Cosines Across Checkpoints}
