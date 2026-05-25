@@ -151,6 +151,14 @@ ADAPTERS = {
     "E8_s123":   "./output_en_baseline_r16_lr2e4_3ep_seed123/final_adapter",
     "C3_s42":    "./output_ky_bf16_r16_lr2e4_3ep",
     "alpha32_s42": "./output_ky_r64_lr2e4_3ep_alpha32/final_adapter",
+
+    # Llama-3-8B replication adapters
+    "L3_E3_s42":    "./output_l3_ky_baseline_r16_lr2e4_3ep/final_adapter",
+    "L3_E3_s123":   "./output_l3_ky_baseline_r16_lr2e4_3ep_seed123/final_adapter",
+    "L3_E5_s42":    "./output_l3_ky_collapse_r64_lr5e4_5ep/final_adapter",
+    "L3_E5c_s42":   "./output_l3_ky_r64_lr2e4_3ep/final_adapter",
+    "L3_E5c_s123":  "./output_l3_ky_r64_lr2e4_3ep_seed123/final_adapter",
+    "L3_C5_s42":    "./output_l3_ky_r64_lr2e4_3ep_alpha32/final_adapter",
 }
 
 PAIRS = [
@@ -192,6 +200,11 @@ PAIRS = [
     ("E5c_s42",   "alpha32_s42", "r=64 alpha/r=2 (E5c, alpha=128) vs alpha/r=0.5 (alpha=32)"),
     ("alpha32_s42", "E3_s42",    "r=64 alpha=32 (matched-effective-LR) vs r=16 baseline (alpha=32)"),
     ("alpha32_s42", "E5_s42",    "r=64 alpha=32 vs r=64 collapse (alpha=128)"),
+
+    # Llama-3 C5 control (revision Block 1): architecture-independent absolute-alpha claim
+    ("L3_E5c_s42", "L3_C5_s42", "L3: r=64 alpha=128 (E5c) vs r=64 alpha=32 (C5) -- same rank, 4x absolute alpha"),
+    ("L3_C5_s42",  "L3_E3_s42", "L3: r=64 alpha=32 (C5) vs r=16 alpha=32 (E3) -- same absolute alpha, different rank"),
+    ("L3_C5_s42",  "L3_E5_s42", "L3: r=64 alpha=32 (C5) vs r=64 alpha=128 LR=5e-4 (E5 collapse)"),
 ]
 
 
