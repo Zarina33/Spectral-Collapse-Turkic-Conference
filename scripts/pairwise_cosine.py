@@ -159,6 +159,8 @@ ADAPTERS = {
     "L3_E5c_s42":   "./output_l3_ky_r64_lr2e4_3ep/final_adapter",
     "L3_E5c_s123":  "./output_l3_ky_r64_lr2e4_3ep_seed123/final_adapter",
     "L3_C5_s42":    "./output_l3_ky_r64_lr2e4_3ep_alpha32/final_adapter",
+    "L3_KZ_s42":    "./output_l3_kz_baseline_r16_lr2e4_3ep/final_adapter",
+    "L3_E6_s42":    "./output_l3_ky_from_kz_r16_lr2e4_3ep/final_adapter",
 }
 
 PAIRS = [
@@ -205,6 +207,11 @@ PAIRS = [
     ("L3_E5c_s42", "L3_C5_s42", "L3: r=64 alpha=128 (E5c) vs r=64 alpha=32 (C5) -- same rank, 4x absolute alpha"),
     ("L3_C5_s42",  "L3_E3_s42", "L3: r=64 alpha=32 (C5) vs r=16 alpha=32 (E3) -- same absolute alpha, different rank"),
     ("L3_C5_s42",  "L3_E5_s42", "L3: r=64 alpha=32 (C5) vs r=64 alpha=128 LR=5e-4 (E5 collapse)"),
+
+    # Llama-3 E6 transfer (revision Block 2): architecture-independent transfer-pinning bimodality
+    ("L3_E6_s42",  "L3_KZ_s42", "L3: KZ->KY transfer (E6) vs KZ source-language baseline -- retention test"),
+    ("L3_E6_s42",  "L3_E3_s42", "L3: KZ->KY transfer (E6) vs direct KY (E3) -- transfer vs direct"),
+    ("L3_E6_s42",  "L3_E5c_s42","L3: KZ->KY transfer (E6) vs r=64 healthy (E5c) -- transfer vs direct-r64"),
 ]
 
 
