@@ -848,7 +848,7 @@ UZ PPL (x-ling) & 54.3   & 56.9   & 80.1   & 111.3  & 285.6  & 742.7  & 51.5   &
 NER F1 KY (gen) & 0.143  & 0.157  & 0.165  & 0.115  & 0.000  & 0.000  & 0.144  & ---    \\
 NER TypeAcc KY  & 0.577  & 0.504  & 0.531  & 0.549  & 0.649  & 0.595  & 0.568  & ---    \\
 TUMLU KY        & 32.3\% & 34.7\% & 31.9\% & 38.5\% & 24.7\% & 23.2\% & 31.1\% & ---    \\
-max SE          & 0.335  & 0.322  & 0.137  & 0.112  & 0.138  & 0.058  & 0.167  & ---    \\
+max SE          & 0.335  & 0.322  & 0.137  & 0.112  & 0.138  & 0.058  & 0.205  & ---    \\
 \bottomrule
 \end{tabular}
 \caption{Llama-3-8B (L3) vs Gemma-2-9B (G2) on the four replicated configurations. All paper-level patterns reproduce: E3 healthy baseline, E5c better target with cross-lingual cost, E5 catastrophic functional collapse at sub-threshold SE with NER F1$=0$ on all three languages, entity knowledge preserved under log-likelihood TypeAcc, near-random TUMLU. \textbf{The L3-C5 column closes the absolute-$\alpha$ story on Llama-3:} at $r{=}64$ with $\alpha{=}32$ (breaking the $\alpha{=}2r$ convention), the adapter is functionally indistinguishable from the $r{=}16$ baseline across all metrics; the apparent E5c $r$-only benefit was an artefact of the convention amplifying absolute $\alpha$ at higher rank. Magnitudes of cross-lingual forgetting are milder on Llama-3 than on Gemma, but direction is identical.}
