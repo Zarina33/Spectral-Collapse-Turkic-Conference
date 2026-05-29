@@ -106,29 +106,45 @@ bimodality replicates on Llama-3" paragraph.
 Script: `scripts/run_revision_chain.sh` (train) + `scripts/run_revision_eval.sh`
 (eval + cosine, auto-fires when training chain exits).
 
-### 3a. E2-s123 — Gemma UZ baseline, seed 123  [TRAIN DONE]
-Dir: `output_uz_baseline_r16_lr2e4_3ep_seed123/`.
-Eval: TODO (auto). Cross-seed cosine E2_s42 vs E2_s123: TODO (auto).
-Prediction: cosine in direct band (0.01-0.04), functional metrics ~ seed 42.
+### 3a. E2 — Gemma UZ baseline, cross-seed  [DONE]
+Dirs: `output_uz_baseline_r16_lr2e4_3ep{,_seed123}/`.
+| seed | KY PPL | KZ PPL | UZ PPL (target) |
+|------|-------:|-------:|----------------:|
+| 42   | 116.89 | 64.44  | **4.03** |
+| 123  | 112.60 | 52.43  | **3.91** |
+Target UZ PPL within 0.12 across seeds. Cross-seed cosine **0.047**,
+0/294 modules > 0.5 (direct band).
 
-### 3b. L3-E5-s123 — Llama-3 collapse, seed 123  [TRAIN DONE]
-Dir: `output_l3_ky_collapse_r64_lr5e4_5ep_seed123/`.
-Eval: TODO (auto). Cross-seed cosine L3_E5_s42 vs L3_E5_s123: TODO (auto).
-Prediction: confirms collapse reproduces (NER F1=0, sub-threshold SE) and
-cross-seed cosine ~0.07 (Llama-3 direct band). Closes the "L3-E5 not
-seed-replicated" caveat currently in L7 / Section S.
+### 3b. L3-E5 — Llama-3 collapse, cross-seed  [DONE]
+Dirs: `output_l3_ky_collapse_r64_lr5e4_5ep{,_seed123}/`.
+| seed | KY PPL (target) | KZ PPL | UZ PPL |
+|------|----------------:|-------:|-------:|
+| 42   | **3.43** | 145.07 | 285.62 |
+| 123  | **3.49** | 141.95 | 254.99 |
+Collapse reproduces at both seeds (KY target tight within 0.06; severe
+cross-lingual forgetting both seeds). Cross-seed cosine **0.037**,
+0/224 modules > 0.5. Closes the "L3-E5 not seed-replicated" caveat in L7.
 
-### 3c. E1-s123 — Gemma KZ baseline, seed 123  [TRAINING ~40%]
-Dir: `output_kz_baseline_r16_lr2e4_3ep_seed123/`.
-KZ 14.1M tok = 10443 steps, ~28 h (slowest run). Eval: TODO (auto).
-Cross-seed cosine E1_s42 vs E1_s123: TODO (auto).
+### 3c. E1 — Gemma KZ baseline, cross-seed  [DONE]
+Dirs: `output_kz_baseline_r16_lr2e4_3ep{,_seed123}/`.
+| seed | KY PPL | KZ PPL (target) | UZ PPL |
+|------|-------:|----------------:|-------:|
+| 42   | 40.75  | **2.73** | 41.27 |
+| 123  | 42.98  | **2.69** | 47.59 |
+Target KZ PPL within 0.04 across seeds. Cross-seed cosine **0.026**,
+0/294 modules > 0.5 (direct band).
 
-### TO FILL when eval-chain completes
-| Run | KY PPL | KZ PPL | UZ PPL | NER F1 (target) | TUMLU | cross-seed cos |
-|-----|-------:|-------:|-------:|----------------:|------:|---------------:|
-| E2-s123    | _ | _ | _ | _ | _ | _ |
-| L3-E5-s123 | _ | _ | _ | _ | _ | _ |
-| E1-s123    | _ | _ | _ | _ | _ | _ |
+### SUMMARY — three new cross-seed pairs (all in direct band)
+| Run | target PPL (s42 / s123) | cross-seed cos | >0.5 |
+|-----|------------------------:|---------------:|-----:|
+| E1 (KZ baseline)    | 2.73 / 2.69   | 0.026 | 0/294 |
+| E2 (UZ baseline)    | 4.03 / 3.91   | 0.047 | 0/294 |
+| L3-E5 (collapse)    | 3.43 / 3.49   | 0.037 | 0/224 |
+
+Same behaviour-vs-direction dissociation as the existing configs: target
+PPL is tight across seeds, yet the per-module direction is near-orthogonal
+(all pairs < 0.05, 0 modules above 0.5). Cosine JSON:
+`directional_results/pairwise_revision_block3.json`.
 
 ---
 

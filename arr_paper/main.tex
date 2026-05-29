@@ -96,7 +96,7 @@ All texts are chunked into segments of 200--5,000 characters. A 10\% held-out sp
 
 \subsection{LoRA Configuration}
 
-We apply LoRA to all attention and MLP projection matrices ($q$, $k$, $v$, $o$, gate, up, down — 7 modules per layer, 294 total across 42 Gemma-2 layers; 224 across 32 Llama-3 layers). $\alpha = 2r$ throughout; we use paged AdamW with cosine LR schedule and 5\% warmup; effective batch 16; max seq length 256. The complete configuration grid (12 Gemma-2 runs, 5 Llama-3 runs, all language/rank/LR/epochs/init combinations) is in \Cref{tab:experiments} (\Cref{app:configs}). Eight of twelve Gemma-2 configurations are seed-replicated at $n{=}2$ (E1b, E3, E5, E5b, E5c, E6, E6b, E8; see \Cref{app:seed_variance}); on Llama-3, E3 and E5c are replicated at $n{=}2$.
+We apply LoRA to all attention and MLP projection matrices ($q$, $k$, $v$, $o$, gate, up, down — 7 modules per layer, 294 total across 42 Gemma-2 layers; 224 across 32 Llama-3 layers). $\alpha = 2r$ throughout; we use paged AdamW with cosine LR schedule and 5\% warmup; effective batch 16; max seq length 256. The complete configuration grid (12 Gemma-2 runs, 5 Llama-3 runs, all language/rank/LR/epochs/init combinations) is in \Cref{tab:experiments} (\Cref{app:configs}). Ten of twelve Gemma-2 configurations are seed-replicated at $n{=}2$ (E1, E1b, E2, E3, E5, E5b, E5c, E6, E6b, E8; see \Cref{app:seed_variance}); on Llama-3, E3, E5c, and E5 are replicated at $n{=}2$.
 
 \subsection{SVD Monitoring Protocol}
 
@@ -262,7 +262,7 @@ Three regularities follow. \textbf{(D1)} Direct LoRA from base is directionally 
 
 \textbf{Robustness.} \texttt{final\_adapter/} is the best-eval-loss checkpoint (HF \texttt{load\_best\_model\_at\_end=True}); re-running the eleven principal pairs against the literal last saved checkpoint changes each cosine by at most $\pm 0.006$ (\Cref{app:lastckpt_robustness}). Seed-orthogonality is stable across training: cross-seed direct cosines stay in $0.02$--$0.04$ from the earliest checkpoint through best-eval, and E6 stays at $\sim 0.78$ throughout (\Cref{app:trajectory}).
 
-\textbf{Llama-3-8B replication.} The L3 sweep (E3/E5c/E5 at $n{=}1$; E3, E5c also at $n{=}2$) reproduces all four paper-level patterns: max SE $\leq 0.34$, L3-E5 NER F1$=0$ with TypeAcc preserved at $0.65$--$0.80$, the rank-only E5c effect and its cross-lingual cost reproduce, and the underdetermination inequality holds---$\cos$(L3-E5c-s42, L3-E5c-s123)$=0.072$ (within-config) $>$ $\cos$(L3-E5, L3-E5c)$=0.029$ (between-config), mirroring Gemma's $0.032 > 0.010$. L3 cross-seed cosines are $\sim 2\times$ higher than Gemma's, but the regime structure (direct $\ll 0.5$, an order of magnitude below the transfer-init regime $0.78$) is preserved (\Cref{app:llama3}).
+\textbf{Llama-3-8B replication.} The L3 sweep (E3, E5c, E5 seed-replicated at $n{=}2$; plus the C5 absolute-$\alpha$ control and a two-stage E6 KZ$\rightarrow$KY transfer) reproduces all four paper-level patterns: max SE $\leq 0.34$, L3-E5 NER F1$=0$ with TypeAcc preserved at $0.65$--$0.80$, the rank-only E5c effect and its cross-lingual cost reproduce, and the underdetermination inequality holds---$\cos$(L3-E5c-s42, L3-E5c-s123)$=0.072$ (within-config) $>$ $\cos$(L3-E5, L3-E5c)$=0.029$ (between-config), mirroring Gemma's $0.032 > 0.010$. L3 cross-seed cosines are $\sim 2\times$ higher than Gemma's, but the regime structure (direct $\ll 0.5$, an order of magnitude below the transfer-init regime $0.78$--$0.80$) is preserved (\Cref{app:llama3}).
 
 % ============================================================================
 % 5. ANALYSIS AND DISCUSSION
@@ -297,7 +297,7 @@ We presented a systematic study of LoRA spectral and directional dynamics during
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
 
-\textbf{(L1) Limited-seed experiments.} Most configurations in Table~\ref{tab:experiments} are run once ($n{=}1$). We provide $n{=}2$ seed-replicated runs (seeds 42, 123) for the eight configurations underlying our main claims: E1b, E3, E5, E5b, E5c, E6, E6b, E8 (full comparison in \Cref{app:seed_variance}). The two-seed data confirm six claims consistent across both seeds: the $2\times$ KZ-PPL retention of related-language transfer ($50.0\pm 2.4$ direct vs.\ $23.5\pm 0.1$ E6); cross-family transfer does \emph{not} reproduce it (E6b $48.8 \pm 1.4$); E5c $>$ E3 at matched conditions ($3.89 \pm 0.03$ vs.\ $4.81 \pm 0.03$); E5b stays outside E5's collapsed regime in both seeds; E1b data-vs-coverage ($4.16 \pm 0.01$); and EN-vs-Turkic Frobenius dissociation (E8 $33.3\pm 0.1\times$ no forgetting vs.\ KZ baseline $38.5\times$ severe forgetting). With $n{=}2$ we report differences as consistent-across-two-seeds rather than population-variance estimates. $n{\geq}3$ replication of E1, E2, E4, C3 would tighten these.
+\textbf{(L1) Limited-seed experiments.} We provide $n{=}2$ seed-replicated runs (seeds 42, 123) for ten of twelve Gemma-2 configurations and three of five Llama-3 configurations; only E4 (Gemma overfit) and C3 (BF16) remain single-seed (\Cref{app:seed_variance}). The two-seed data confirm six claims consistent across both seeds: the $2\times$ KZ-PPL retention of related-language transfer ($50.0\pm 2.4$ direct vs.\ $23.5\pm 0.1$ E6); cross-family transfer does \emph{not} reproduce it (E6b $48.8 \pm 1.4$); E5c $>$ E3 at matched conditions ($3.89 \pm 0.03$ vs.\ $4.81 \pm 0.03$); E5b stays outside E5's collapsed regime in both seeds; E1b data-vs-coverage ($4.16 \pm 0.01$); and EN-vs-Turkic Frobenius dissociation (E8 $33.3\pm 0.1\times$ no forgetting vs.\ KZ baseline $38.5\times$ severe forgetting). With $n{=}2$ we report differences as consistent-across-two-seeds rather than population-variance estimates. $n{\geq}3$ replication of E4 and C3 would tighten these.
 
 \textbf{(L2) Training-set contamination for NER (quantified).} Our Turkic training corpora include Wikipedia dumps, and the WikiANN evaluation set is itself derived from Wikipedia entity links \cite{pan2017cross}. To quantify this overlap, we computed the fraction of unique gold WikiANN-test entity strings that appear verbatim somewhere in each training corpus (case-insensitive substring match): \textbf{Kazakh 65.7\% (497/757), Kyrgyz 55.9\% (52/93), Uzbek 2.2\% (13/602)}. The Kazakh and Kyrgyz NER F1 numbers in \Cref{tab:main_results} therefore upper-bound the contribution of memorization at $\sim$60\%, and cross-configuration NER comparisons within those two languages are partially confounded by this shared-entity floor. The Uzbek overlap of $2\%$, by contrast, is below the resolution of memorization (this turns out to be a script-mismatch artifact---see L9---which makes Uzbek a clean cross-lingual probe). The transfer-induced UZ improvements in \Cref{tab:main_results} (e.g., E1's $0.578$ F1 on UZ) are thus most likely \emph{not} memorization. A non-Wikipedia NER benchmark such as KazNERD \cite{yeshpanov2022kaznerd} (gated; access pending) would tighten this further; the per-type breakdown is reported in \Cref{app:overlap}.
 
@@ -309,7 +309,7 @@ Our study has several important limitations, which we discuss here in decreasing
 
 \textbf{(L6) NER as a primary metric.} Our NER evaluation uses 3-shot prompting with $n{=}100$ samples per language and F1 derived from parse-success output. This is closer to a test of instruction-following than of entity knowledge. The $r{=}64$ ``NER F1 $= 0$'' result, in particular, is driven by 100\% parse failures; the model may retain some entity knowledge that this evaluation cannot access. Log-likelihood-based NER scoring (scoring candidate entity spans by model probability) would separate instruction loss from knowledge loss and is a priority follow-up.
 
-\textbf{(L7) Scope of generalization.} All four paper-level findings (SE-falsification, E5 functional-vs-spectral dissociation, absolute-$\alpha$ invariance via C5, transfer-pinning bimodality via E6) are replicated on Llama-3-8B (\Cref{app:llama3}): five configurations including L3-C5 ($r{=}64$ at $\alpha{=}32$) and a two-stage L3-E6 KZ$\rightarrow$KY pipeline. Llama-3 cosines run $\sim 2\times$ Gemma's; absolute scale is architecture-dependent, regime structure is not. L3-E5 and L3-E6 are not seed-replicated. We test only three of $\sim 35$ Turkic languages at fixed $\sim$150~MB/language; SVD monitoring uses $\texttt{lora\_B}$, pairwise cosines use full $\Delta W{=}BA$.
+\textbf{(L7) Scope of generalization.} All four paper-level findings replicate on Llama-3-8B across five configurations including the C5 absolute-$\alpha$ control and a two-stage E6 KZ$\rightarrow$KY transfer (\Cref{app:llama3}); Llama-3 cosines run $\sim 2\times$ Gemma's but the regime structure is identical. We test only three of $\sim 35$ Turkic languages at fixed $\sim$150~MB/language; SVD monitoring uses $\texttt{lora\_B}$, pairwise cosines use full $\Delta W{=}BA$.
 
 \textbf{(L8/L9)} Two further limitations in \Cref{app:add_limitations}: \emph{(L8)} \Cref{sec:frobenius} growth ranges are within-sample, not held-out thresholds; \emph{(L9)} Cyrillic-only UZ corpus vs.\ Latin WikiANN-uz explains L2's $2\%$ overlap and bounds UZ generalisability.
 
@@ -649,7 +649,27 @@ $\|B\|_F$ growth            & 2.86$\times$ & 2.88$\times$ & 8.36$\times$ & 8.30$
 \label{tab:seed_variance}
 \end{table*}
 
-These results sharpen the interpretive stance taken throughout the paper: we treat cross-lingual PPL differences as the most reliable quantitative signal, and the various NER scores as directional indicators whose per-experiment magnitudes should not be over-interpreted. A full $n{=}3$ replication of all eight experiments remains the most important reproducibility follow-up (see L1); the present two-seed data covers the two configurations whose comparison underlies our main transfer claim.
+\textbf{Three additional cross-seed pairs} (\Cref{tab:seed_variance_extra}) extend the seed-replication to the two remaining Gemma baselines (E1 KZ, E2 UZ) and the Llama-3 collapse run (L3-E5). All three show the same behaviour-vs-direction dissociation that anchors the underdetermination argument: target-language PPL is tight across seeds (within $0.04$--$0.12$), yet the per-module weight-space direction is near-orthogonal (cross-seed cosine $0.026$--$0.047$, $0$ modules above $0.5$ on either architecture). The L3-E5 pair additionally confirms that catastrophic functional collapse (NER F1$=0$, TUMLU $\sim 25\%$, KZ PPL $>140$) reproduces at both seeds.
+
+\begin{table}[!htbp]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Config (target)} & \textbf{PPL} & \textbf{PPL} & \textbf{F1} & \textbf{F1} & \textbf{cross-seed} \\
+ & \textbf{s42} & \textbf{s123} & \textbf{s42} & \textbf{s123} & \textbf{cos ($>$0.5)} \\
+\midrule
+E1 (KZ baseline)  & 2.73 & 2.69 & 0.164 & 0.214 & 0.026 (0/294) \\
+E2 (UZ baseline)  & 4.03 & 3.91 & 0.287 & 0.265 & 0.047 (0/294) \\
+L3-E5 (collapse)  & 3.43 & 3.49 & 0.000 & 0.000 & 0.037 (0/224) \\
+\bottomrule
+\end{tabular}
+\caption{Three additional cross-seed pairs. \textbf{PPL} is the target-language perplexity (KZ for E1, UZ for E2, KY for L3-E5); \textbf{F1} is target-language generation NER F1. Target PPL is tight across seeds for all three, while the cross-seed per-module $\Delta W{=}BA$ cosine stays in the direct-training band ($\leq 0.047$, $0$ modules above $0.5$) -- the same behaviour-vs-direction dissociation as \Cref{tab:seed_variance}, now on two more Gemma baselines and on Llama-3. L3-E5 reproduces catastrophic collapse (F1$=0$) at both seeds.}
+\label{tab:seed_variance_extra}
+\end{table}
+
+These results sharpen the interpretive stance taken throughout the paper: we treat cross-lingual PPL differences as the most reliable quantitative signal, and the various NER scores as directional indicators whose per-experiment magnitudes should not be over-interpreted. The present two-seed data now covers ten of twelve Gemma-2 configurations and three of five Llama-3 configurations; a full $n{=}3$ replication remains the most important reproducibility follow-up (see L1).
 
 \section{Per-Type NER Results}
 \label{app:ner}
@@ -874,6 +894,7 @@ $\cos$(E3, E5c) -- $r{=}16$ vs.\ $r{=}64$ direct              & 0.113 & --- \\
 \multicolumn{3}{l}{\emph{Cross-seed, same configuration}} \\
 $\cos$(E3 seed 42, E3 seed 123) -- $r{=}16$ direct training & 0.103 & 0.041 \\
 $\cos$(E5c seed 42, E5c seed 123) -- $r{=}64$ direct training & 0.072 & 0.032 \\
+$\cos$(E5 seed 42, E5 seed 123) -- $r{=}64$ collapse & 0.037 & 0.022 \\
 \midrule
 \multicolumn{3}{l}{\emph{Absolute-$\alpha$ control (C5)}} \\
 $\cos$(C5, E3) -- same absolute $\alpha{=}32$, different rank             & 0.343 & 0.155 \\
