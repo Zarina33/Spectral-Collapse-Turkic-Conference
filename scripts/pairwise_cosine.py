@@ -164,6 +164,8 @@ ADAPTERS = {
     "L3_C5_s42":    "./output_l3_ky_r64_lr2e4_3ep_alpha32/final_adapter",
     "L3_KZ_s42":    "./output_l3_kz_baseline_r16_lr2e4_3ep/final_adapter",
     "L3_E6_s42":    "./output_l3_ky_from_kz_r16_lr2e4_3ep/final_adapter",
+    "L3_KZ_s123":   "./output_l3_kz_baseline_r16_lr2e4_3ep_seed123/final_adapter",
+    "L3_E6_s123":   "./output_l3_ky_from_kz_r16_lr2e4_3ep_seed123/final_adapter",
 }
 
 PAIRS = [
@@ -220,6 +222,11 @@ PAIRS = [
     ("E1_s42",     "E1_s123",   "KZ baseline cross-seed (Gemma) -- only seed differs"),
     ("E2_s42",     "E2_s123",   "UZ baseline cross-seed (Gemma) -- only seed differs"),
     ("L3_E5_s42",  "L3_E5_s123","L3 collapse cross-seed (Llama-3) -- only seed differs"),
+
+    # Revision Block 4: L3 transfer cross-seed (Llama-3 analog of Gemma E6 0.785)
+    ("L3_E6_s42",  "L3_E6_s123", "L3 KZ->KY transfer cross-seed -- transfer-pinning bimodality test"),
+    ("L3_E6_s123", "L3_KZ_s123", "L3-E6-s123 vs its own KZ-s123 init -- retention check (seed 123)"),
+    ("L3_E6_s123", "L3_E3_s123", "L3-E6-s123 vs direct KY-s123 -- transfer vs direct (seed 123)"),
 ]
 
 
