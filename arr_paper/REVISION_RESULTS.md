@@ -191,9 +191,22 @@ INDEPENDENT sources land in orthogonal directions on both architectures
 (0.023 / 0.060), inside the direct-training band. Functional retention,
 by contrast, reproduces under independent reseeding on both architectures.
 
-### 4c. Architecture-fair Gemma E6-indep-s123 eval (in progress)
-Eval running as of writing; partial PPL: KY 4.58, KZ 26.79 (~retention).
-Full numbers to be filled when eval completes.
+### 4c. Architecture-fair Gemma E6-indep-s123 eval [DONE]
+Dir: `output_ky_from_kz_r16_lr2e4_3ep_indep_seed123/`. Full eval results:
+| Lang | PPL | NER F1 | TypeAcc | TUMLU |
+|------|---:|------:|-------:|------:|
+| KY (target) |  4.58 | 0.212 | 0.540 | 35.4% |
+| KZ (x-ling) | 26.79 | 0.223 | 0.696 | 31.5% |
+| UZ (x-ling) | 130.6 | 0.415 | 0.621 | 27.1% |
+
+**Functional retention reproduces under independent reseeding.** KZ PPL
+$50.0 \pm 2.4$ (direct training, both Gemma seeds) $\to 26.79$ (E6-indep-s123,
+seed-123 warm-start from seed-123 KZ baseline), a $-47\%$ retention effect.
+The original shared-init E6 headline was $-53\%$; the difference falls
+inside seed spread. Together with Llama-3 ($-37\%$), this confirms the
+KZ retention finding is robust to (a) architecture and (b) full
+independence of both training stages -- but the directional cosine 0.785
+was a measure of source-init pinning, not cross-seed canonicality.
 
 ---
 

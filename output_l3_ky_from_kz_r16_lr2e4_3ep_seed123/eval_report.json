@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-05-30T17:33:00.281224",
+  "adapter_path": "output_l3_ky_from_kz_r16_lr2e4_3ep_seed123/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 1.426979,
+      "ppl": 4.1661,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 2.917062,
+      "ppl": 18.4869,
+      "n_samples": 500,
+      "n_tokens": 119797
+    },
+    "uz": {
+      "loss": 4.533499,
+      "ppl": 93.0837,
+      "n_samples": 500,
+      "n_tokens": 127648
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.0992,
+      "recall": 0.2342,
+      "f1": 0.1394,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.0849,
+          "recall": 0.25,
+          "f1": 0.1268
+        },
+        "ORG": {
+          "precision": 0.1111,
+          "recall": 0.1538,
+          "f1": 0.129
+        },
+        "LOC": {
+          "precision": 0.1078,
+          "recall": 0.3056,
+          "f1": 0.1594
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.1443,
+      "recall": 0.25,
+      "f1": 0.183,
+      "n_evaluated": 100,
+      "parse_failures": 1,
+      "per_type": {
+        "PER": {
+          "precision": 0.3125,
+          "recall": 0.5128,
+          "f1": 0.3883
+        },
+        "ORG": {
+          "precision": 0.0337,
+          "recall": 0.1071,
+          "f1": 0.0513
+        },
+        "LOC": {
+          "precision": 0.122,
+          "recall": 0.1111,
+          "f1": 0.1163
+        }
+      }
+    },
+    "uz": {
+      "precision": 0.3257,
+      "recall": 0.6893,
+      "f1": 0.4424,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.6667,
+          "recall": 0.9714,
+          "f1": 0.7907
+        },
+        "ORG": {
+          "precision": 0.5294,
+          "recall": 0.6207,
+          "f1": 0.5714
+        },
+        "LOC": {
+          "precision": 0.1429,
+          "recall": 0.4872,
+          "f1": 0.2209
+        }
+      }
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.5495,
+      "macro_f1": 0.4442,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.5472,
+          "recall": 0.8056,
+          "f1": 0.6517,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0.5517,
+          "recall": 0.8889,
+          "f1": 0.6809,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.6518,
+      "macro_f1": 0.5154,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.5932,
+          "recall": 0.8974,
+          "f1": 0.7143,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.0357,
+          "f1": 0.069,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0.7115,
+          "recall": 0.8222,
+          "f1": 0.7629,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7087,
+      "macro_f1": 0.584,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.6604,
+          "recall": 1.0,
+          "f1": 0.7955,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.069,
+          "f1": 0.129,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0.75,
+          "recall": 0.9231,
+          "f1": 0.8276,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.2733,
+      "correct": 217,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.2374,
+      "correct": 165,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.3081,
+      "correct": 228,
+      "n_questions": 740
+    }
+  }
+}
