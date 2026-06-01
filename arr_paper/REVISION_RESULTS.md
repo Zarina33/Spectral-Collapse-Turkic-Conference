@@ -148,6 +148,114 @@ PPL is tight across seeds, yet the per-module direction is near-orthogonal
 
 ---
 
+## 4. L3-E6 seed=123 + architecturally-fair Gemma E6 (Block 4-5)  [DONE]
+
+### 4a. L3-E6-s123 -- Llama-3 transfer second seed  [DONE]
+Two-stage pipeline at seed 123 (Stage 1 L3-KZ-s123 then KZ->KY warm-start).
+KZ source eval PPL 2.73 (vs s42 2.76). Warm-start target KY eval PPL 5.44
+(s42 5.42). Functional retention reproduces across seeds:
+| L3-E6 | KY | KZ | UZ | NER F1 KY | TUMLU KY |
+|-------|---:|---:|---:|----------:|---------:|
+| s42   | 4.12 | 19.04 | 81.60 | 0.188 | 28.9% |
+| s123  | 4.17 | 18.49 | 93.08 | 0.139 | 30.8% |
+Target KY within 0.05; KZ retention 18.49/19.04 vs L3-E3 direct 30.4.
+
+### 4b. Gemma E6 from independent E1-s123 init (Block 5)  [DONE]
+Single experiment that decides the framing. Built to test whether the
+original Gemma E6 cross-seed cosine 0.785 reflects (a) genuine
+canonicality across seeds, or (b) two stage-2 warm-starts from a
+\*shared\* source (E1-s42 was the only KZ baseline that existed before
+this revision).
+
+Pre-check (confirms shared-init protocol of the original):
+- cos(Gemma-E6-s123, Gemma-E1-s42)  = 0.7929  <- shared-init signature
+- cos(Gemma-E6-s123, Gemma-E1-s123) = 0.0209  <- independent-init signature
+
+Result of the architecturally-fair run (E6 warm-started at seed 123
+from the NEW E1-s123 init):
+- **cos(Gemma-E6-s42-from-E1-s42, Gemma-E6-indep-s123-from-E1-s123) = 0.023, 0/294 > 0.5**
+- cos(Gemma-E6-indep-s123, Gemma-E1-s123 source) = 0.797, 294/294 > 0.5  (source-init pinning replicates)
+
+### THE VERDICT (architecture-symmetric)
+| Test | Gemma | Llama-3 |
+|------|------:|--------:|
+| cos(E6, its own source init)                          | **0.797** (294/294) | **0.804** (224/224) |
+| cos(E6-s42, E6-s123) with **shared** source           | 0.785 (294/294) -- original headline | -- (not run) |
+| cos(E6-s42, E6-s123) with **independent** sources     | **0.023** (0/294) | **0.060** (1/224) |
+
+\textbf{Conclusion:} Transfer pins the adapter to its source initialization
+(cos $\approx$ 0.80 on both architectures). The original 0.785 measured two
+stage-2 warm-starts from a SHARED source, so it is essentially a measure of
+source-pinning, not cross-seed canonicality. Two transfers from
+INDEPENDENT sources land in orthogonal directions on both architectures
+(0.023 / 0.060), inside the direct-training band. Functional retention,
+by contrast, reproduces under independent reseeding on both architectures.
+
+### 4c. Architecture-fair Gemma E6-indep-s123 eval (in progress)
+Eval running as of writing; partial PPL: KY 4.58, KZ 26.79 (~retention).
+Full numbers to be filled when eval completes.
+
+---
+
+## 5. Weekend Block-3 controls (L5 closure)  [DONE]
+
+### 5a. E2b -- Gemma UZ small-corpus (~1.5M tok)
+Dir: `output_uz_tokenmatched_r16_lr2e4_3ep/`. Mirror of E1b for UZ; closes
+L5 corpus-imbalance confound on UZ.
+| Lang | PPL | NER F1 | TypeAcc | TUMLU |
+|------|---:|------:|-------:|------:|
+| KY | 120.58 | 0.157 | 0.441 | 33.0% |
+| KZ | 64.44  | 0.192 | 0.625 | 33.5% |
+| UZ |  7.01  | 0.311 | 0.602 | 29.9% |
+Compare to E2 (UZ 5.4M): UZ PPL 6.18 -> 7.01 with 1/4 the data. UZ data
+volume matters but less dramatically than KZ (E1->E1b: 2.73 -> 4.17).
+
+### 5b. KZ-4.4M -- true token-matched-to-KY KZ control
+Dir: `output_kz_4p4M_r16_lr2e4_3ep/`. KZ subsampled to 4.4M tokens
+(matches KY's budget). Closes L5: distinguishes data-volume from
+tokenizer-coverage on KZ.
+| Lang | PPL | NER F1 | TypeAcc | TUMLU |
+|------|---:|------:|-------:|------:|
+| KY | 36.79 | 0.114 | 0.513 | 36.6% |
+| KZ |  3.61 | 0.159 | 0.723 | 36.9% |
+| UZ | 35.56 | 0.342 | 0.738 | 31.8% |
+**KZ PPL 3.61 at KY's exact token budget still beats KY baseline 4.78.**
+Confirms KZ has *both* more data *and* a better tokenizer/pretraining
+coverage. Both factors contribute; neither alone explains the gap.
+
+### 5c. E4-s123 -- Gemma KY overfit second seed (10 epochs)
+Dir: `output_ky_overfit_r16_lr2e4_10ep_seed123/`. Last single-seed Gemma
+configuration brought to n=2.
+| Lang | PPL | NER F1 | TypeAcc | TUMLU |
+|------|---:|------:|-------:|------:|
+| KY |  4.24 | 0.128 | 0.568 | 34.7% |
+| KZ | 78.41 | 0.204 | 0.714 | 33.1% |
+| UZ | 80.54 | 0.322 | 0.670 | 29.8% |
+Overfit regime (10 ep on 4.4M KY): heavy cross-lingual damage, KY itself
+no better than the 3-epoch baseline.
+
+---
+
+## PAPER REFINEMENT (applied in this commit)
+
+- Abstract finding (4): transfer = functional retention (robust), source-init pinning (architecture-independent), independent-init cross-seed = 0.02-0.06 (underdetermination extends).
+- Contribution C4: same refinement.
+- Figure 1 caption: noted shared-init protocol + independent-init counterpoint.
+- tab:pairwise_cos: added independent-init E6 row (0.023); caption rewritten.
+- Section 4.6 D2 (Three regularities): transfer pins to source, not to canonical.
+- Section 5.2 (Underdetermination): explicit extension to transfer under reseeding.
+- Section 4 Llama-3 results paragraph: aligned with new framing.
+- Conclusion finding (4): functional retention as the strong claim; directional as the refined claim.
+- Section S (Llama-3 replication) E6 paragraph: rewritten architecture-symmetric.
+- tab:llama3_cos: rebuilt transfer rows with shared-vs-independent contrast.
+- tab:lastckpt / tab:trajectory: footnote on E6 cross-seed = shared-init protocol.
+- Mechanistic Context: shared-source mode-connectivity refinement.
+- PiSSA discussion: clarified PiSSA sits in shared-init regime by construction.
+
+aclpubcheck: All Clear, 23 pages.
+
+---
+
 ## PAPER-UPDATE CHECKLIST (after Block 3 eval completes)
 
 - [ ] **L1 limitation**: "n=2 for 8 configurations" -> "n=2 for 11
