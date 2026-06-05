@@ -24,6 +24,7 @@
 \usepackage{url}
 \usepackage{placeins}      % \FloatBarrier; used strategically in appendix
                            % to prevent multiple sections clustering on one page
+\usepackage{float}         % [H] placement (lock float in place, no float)
 \Urlmuskip=0mu plus 1mu    % allow URLs to stretch interword space
 \setlength{\tabcolsep}{4pt}% tighter column padding (default 6pt)
 \sloppy                    % relax line-breaking to avoid bleeding into margin
@@ -884,37 +885,38 @@ max SE          & 0.335  & 0.322  & 0.137  & 0.112  & 0.138  & 0.058  & 0.205  &
 
 \textbf{Source-init pinning is architecture-independent; canonical convergence is not.} The L3-E6 two-stage pipeline at seed 42 trains a Kazakh source-language baseline (L3-KZ-s42, KZ eval PPL $2.76$) and then warm-starts on Kyrgyz under the same hyperparameters as L3-E3. Functionally, L3-E6 \textbf{retains Kazakh under Kyrgyz training}: KZ PPL drops from $30.38$ (L3-E3 direct) to $19.04$ (L3-E6 transfer), a $37\%$ reduction (Gemma E6: $\sim 53\%$); target KY PPL is comparable ($4.32 \to 4.12$); UZ degrades ($54.3 \to 81.6$), consistent with the transfer originating from KZ rather than UZ. Directionally, L3-E6 is pinned to its source: $\cos$(L3-E6-s42, L3-KZ-s42-source) $= 0.804$ with $224/224$ modules above $0.5$, mirroring Gemma E6-s42 vs.\ E1-s42 source ($0.797$). \textbf{However, two transfers from \emph{independent} sources do \emph{not} share direction across seeds:} we ran the architecturally-fair test on both architectures -- L3-E6-s42-from-L3-KZ-s42 vs.\ L3-E6-s123-from-L3-KZ-s123 gives $\cos = 0.060$ ($1/224$ above $0.5$); the Gemma counterpart (E6-s42-from-E1-s42 vs.\ E6-indep-s123-from-E1-s123, run in this revision) gives $\cos = 0.023$ ($0/294$). Both numbers sit inside the direct-training cross-seed band of \Cref{sec:directional}. The previously-reported Gemma cross-seed cosine $0.785$ reflects two stage-2 warm-starts from a \emph{shared} E1-s42 source (the only KZ baseline available at submission time); it is essentially a measure of source-init pinning, not cross-seed canonicality. \emph{Functionally}, transfer retention reproduces across architectures and across independent reseeding (L3-E6-s123 from L3-KZ-s123: KY $4.17$, KZ $18.5$; Gemma E6-indep-s123 from E1-s123: KY $4.58$, \textbf{KZ $26.79$ vs direct training $50.0\pm 2.4$, a $-47\%$ retention effect that matches the original shared-init E6 within seed spread}). \emph{Directionally}, transfer pins to its source but does not produce a canonical direction -- the underdetermination argument of \Cref{sec:underdetermination} extends to transfer once the source is reseeded.
 
-\begin{table*}[!htbp]
+\begin{table}[!t]
 \centering
 \small
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{lcc}
 \toprule
-\textbf{Pair} & \textbf{Llama-3} & \textbf{Gemma-2} \\
+\textbf{Pair} & \textbf{L3} & \textbf{G2} \\
 \midrule
 \multicolumn{3}{l}{\emph{Cross-config, same seed}} \\
-$\cos$(E5, E5c) -- collapse vs.\ healthy at $r{=}64$           & 0.029 & 0.010 \\
-$\cos$(E5, E3) -- collapse vs.\ $r{=}16$ baseline             & 0.015 & 0.005 \\
-$\cos$(E3, E5c) -- $r{=}16$ vs.\ $r{=}64$ direct              & 0.113 & --- \\
+$\cos$(E5, E5c) -- collapse vs.\ healthy ($r{=}64$)    & 0.029 & 0.010 \\
+$\cos$(E5, E3) -- collapse vs.\ $r{=}16$ baseline      & 0.015 & 0.005 \\
+$\cos$(E3, E5c) -- $r{=}16$ vs.\ $r{=}64$              & 0.113 & --- \\
 \midrule
-\multicolumn{3}{l}{\emph{Cross-seed, same configuration}} \\
-$\cos$(E3 seed 42, E3 seed 123) -- $r{=}16$ direct training & 0.103 & 0.041 \\
-$\cos$(E5c seed 42, E5c seed 123) -- $r{=}64$ direct training & 0.072 & 0.032 \\
-$\cos$(E5 seed 42, E5 seed 123) -- $r{=}64$ collapse & 0.037 & 0.022 \\
+\multicolumn{3}{l}{\emph{Cross-seed, same config (direct training)}} \\
+$\cos$(E3-s42, E3-s123) -- $r{=}16$                    & 0.103 & 0.041 \\
+$\cos$(E5c-s42, E5c-s123) -- $r{=}64$ healthy          & 0.072 & 0.032 \\
+$\cos$(E5-s42, E5-s123) -- $r{=}64$ collapse           & 0.037 & 0.022 \\
 \midrule
 \multicolumn{3}{l}{\emph{Absolute-$\alpha$ control (C5)}} \\
-$\cos$(C5, E3) -- same absolute $\alpha{=}32$, different rank             & 0.343 & 0.155 \\
-$\cos$(E5c, C5) -- same rank $r{=}64$, $4\times$ absolute $\alpha$        & 0.162 & 0.072 \\
+$\cos$(C5, E3) -- same abs $\alpha$, diff.\ rank       & 0.343 & 0.155 \\
+$\cos$(E5c, C5) -- same rank, $4\times$ abs $\alpha$   & 0.162 & 0.072 \\
 \midrule
 \rowcolor{gray!15}\multicolumn{3}{l}{\emph{Transfer (E6): source-pinning vs.\ canonicality}} \\
-\rowcolor{gray!15}$\cos$(E6, its source) -- warm-started adapter vs.\ its own KZ-init        & \textbf{0.804} & \textbf{0.797} \\
-\rowcolor{gray!15}$\cos$(E6, E3) -- transfer vs.\ direct KY                                   & 0.020 & 0.009 \\
-\rowcolor{gray!15}$\cos$(E6-s42, E6-s123 \emph{shared E1-s42 init}) -- original headline      & ---   & \textbf{0.785} \\
-\rowcolor{gray!15}$\cos$(E6-s42, E6-s123 \emph{independent E1-s42 vs E1-s123 inits})          & 0.060 & 0.023 \\
+\rowcolor{gray!15}$\cos$(E6, its KZ source)                              & \textbf{0.804} & \textbf{0.797} \\
+\rowcolor{gray!15}$\cos$(E6, E3) -- transfer vs.\ direct KY              & 0.020 & 0.009 \\
+\rowcolor{gray!15}$\cos$(E6-s42, E6-s123, \emph{shared} init)            & ---   & \textbf{0.785} \\
+\rowcolor{gray!15}$\cos$(E6-s42, E6-s123, \emph{independent} inits)      & 0.060 & 0.023 \\
 \bottomrule
 \end{tabular}
-\caption{Per-module pairwise cosine on Llama-3-8B compared to the Gemma-2-9B equivalents. (i) The collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0/224$ and $0/294$ modules above $0.5$). (ii) Cross-seed direct-training cosines on Llama-3 ($0.07$--$0.10$) are roughly $2\times$ Gemma's ($0.03$--$0.04$); the same scaling holds for the C5 absolute-$\alpha$ probe ($0.343$ vs.\ $0.155$). \textbf{(iii) Transfer pins to source, not to a canonical direction.} The transfer adapter is pinned to its own KZ source on both architectures ($\cos \approx 0.80$, $\geq 224/224$ and $294/294$ modules above $0.5$). The headline Gemma cross-seed cosine $0.785$ was measured with two stage-2 warm-starts from a \emph{shared} E1-s42 source (E1-s123 did not exist at submission time); the architecturally-fair test -- two transfers from \emph{independent} KZ baselines -- gives $0.060$ on Llama-3 and $0.023$ on Gemma, inside the direct-training band. Functional retention reproduces under independent reseeding on both architectures (see body); directional convergence does not. The underdetermination inequality of \Cref{sec:underdetermination} thus extends to transfer once the source is reseeded.}
+\caption{Per-module pairwise cosine on Llama-3-8B (L3) vs.\ Gemma-2-9B (G2). (i) The collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0$ modules above $0.5$). (ii) Cross-seed direct-training cosines on L3 ($0.07$--$0.10$) are $\sim 2\times$ G2's ($0.03$--$0.04$); same scaling for the C5 probe ($0.343$ vs.\ $0.155$). \textbf{(iii) Transfer pins to source, not to a canonical direction.} The adapter is pinned to its own KZ source on both architectures ($\cos\approx 0.80$). The headline Gemma cross-seed $0.785$ was measured with two stage-2 warm-starts from a \emph{shared} E1-s42 source (E1-s123 did not exist at submission); the architecturally-fair test -- two transfers from \emph{independent} KZ baselines -- gives $0.060$ on L3 and $0.023$ on Gemma, inside the direct-training band. Functional retention reproduces under independent reseeding on both architectures; directional convergence does not. The underdetermination inequality of \Cref{sec:underdetermination} thus extends to transfer once the source is reseeded.}
 \label{tab:llama3_cos}
-\end{table*}
+\end{table}
 
 \textbf{Functional consistency across L3 seeds.} \Cref{tab:llama3_seed} shows that the directional spread across seeds is not matched by a similar spread in downstream functional metrics: target PPL stays within $\pm 0.05$ across seeds for both E3 and E5c, TUMLU within $\pm 1.5$ percentage points, and TypeAcc within $\pm 0.03$. This is the same behaviour-vs-direction dissociation we observe on Gemma: two seeds of the same configuration produce essentially identical model behaviour through essentially orthogonal weight-space directions.
 
