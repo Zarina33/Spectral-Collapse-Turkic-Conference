@@ -534,10 +534,10 @@ To separate loss of entity knowledge from loss of instruction-following/output-f
 
 \Cref{tab:ner_loglik} reports per-language type accuracy and macro-F1 on the same 100-example test sets used for \Cref{tab:main_results}.
 
-\begin{table}[!htbp]
+\begin{table*}[!htbp]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
+\small
+\setlength{\tabcolsep}{6pt}
 \begin{tabular}{lccc}
 \toprule
 \textbf{Experiment} & \textbf{KY} & \textbf{KZ} & \textbf{UZ} \\
@@ -547,9 +547,9 @@ E1b KZ Small-corpus (1.5M)   & 46.0\% & 70.5\% & 69.9\% \\
 E2 UZ Baseline               & 54.9\% & 71.4\% & 65.0\% \\
 E3 KY Baseline               & 50.4\% & 69.6\% & 63.1\% \\
 E4 KY Overfit (10ep)         & 56.8\% & 71.4\% & 60.2\% \\
-E5 KY $r{=}64$, lr $5e{-}4$  & \textbf{59.5\%} & 50.0\% & 55.3\% \\
-E5b KY $r{=}64$, 5ep, lr $2e{-}4$ & 53.1\% & 70.5\% & 69.9\% \\
-E5c KY $r{=}64$, 3ep, lr $2e{-}4$ & 54.9\% & 67.9\% & 63.1\% \\
+E5 KY $r{=}64$, lr $5{\times}10^{-4}$  & \textbf{59.5\%} & 50.0\% & 55.3\% \\
+E5b KY $r{=}64$, 5ep, lr $2{\times}10^{-4}$ & 53.1\% & 70.5\% & 69.9\% \\
+E5c KY $r{=}64$, 3ep, lr $2{\times}10^{-4}$ & 54.9\% & 67.9\% & 63.1\% \\
 E6 KZ$\rightarrow$KY (related)   & \textbf{59.5\%} & \textbf{73.2\%} & 66.0\% \\
 E6b EN$\rightarrow$KY (cross-fam.) & 54.0\% & 70.5\% & 70.9\% \\
 E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
@@ -557,7 +557,7 @@ E8 EN Control                & 56.8\% & \textbf{73.2\%} & 68.0\% \\
 \end{tabular}
 \caption{Log-likelihood span-type accuracy across experiments (gold-span boundaries, argmax over \{PER, ORG, LOC\}). Random-baseline accuracy is 33.3\%. The parse-failure-immune evaluation reveals that \textbf{E5 retains and even marginally exceeds target-language (KY) entity knowledge} (59.5\%, tied for best with E6) despite scoring F1~$= 0$ under generation-based NER---confirming that the high-LR $r{=}64$ collapse destroys instruction-following, not entity knowledge itself. Cross-lingual degradation, however, does appear in E5 on non-target languages (KZ 50.0\% vs.\ 70--73\% for others), consistent with the cross-lingual PPL increase. Under this cleaner metric, the KZ$\rightarrow$KY transfer advantage over the KY baseline is modest (59.5\% vs.\ 50.4\% on KY; $+9.1$ absolute percentage points) rather than the $+61\%$ relative improvement suggested by generation F1, reinforcing our framing of cross-lingual transfer as a \emph{directional} rather than precise effect. Notably, the cross-family transfer E6b (EN$\rightarrow$KY) sits intermediate at $54.0\%$, consistent with cross-family initialization providing partial---but smaller---entity-knowledge benefit than related-language transfer.}
 \label{tab:ner_loglik}
-\end{table}
+\end{table*}
 
 \section{WikiANN--Training Entity Overlap}
 \label{app:overlap}
