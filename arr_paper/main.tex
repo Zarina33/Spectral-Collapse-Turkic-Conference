@@ -918,9 +918,9 @@ $\cos$(E5c, C5) -- same rank, $4\times$ abs $\alpha$   & 0.162 & 0.072 \\
 \end{tabular}
 \caption{Per-module pairwise cosine on Llama-3-8B (L3) vs.\ Gemma-2-9B (G2). (i) The collapse-vs-healthy comparison $\cos$(E5, E5c) sits in the same regime on both architectures ($\leq 0.03$, $0$ modules above $0.5$). (ii) Cross-seed direct-training cosines on L3 ($0.07$--$0.10$) are $\sim 2\times$ G2's ($0.03$--$0.04$); same scaling for the C5 probe ($0.343$ vs.\ $0.155$). \textbf{(iii) Transfer pins to source, not to a canonical direction.} The adapter is pinned to its own KZ source on both architectures ($\cos\approx 0.80$). The headline Gemma cross-seed $0.785$ was measured with two stage-2 warm-starts from a \emph{shared} E1-s42 source (E1-s123 did not exist at submission); the architecturally-fair test -- two transfers from \emph{independent} KZ baselines -- gives $0.060$ on L3 and $0.023$ on Gemma, inside the direct-training band. Functional retention reproduces under independent reseeding on both architectures; directional convergence does not. The underdetermination inequality of \Cref{sec:underdetermination} thus extends to transfer once the source is reseeded.}
 \label{tab:llama3_cos}
-\end{table*}
 
-\begin{table*}[!htbp]
+\vspace{1em}
+
 \centering
 \small
 \setlength{\tabcolsep}{6pt}
