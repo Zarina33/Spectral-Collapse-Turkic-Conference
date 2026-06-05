@@ -22,6 +22,8 @@
 \usepackage{cleveref}
 \usepackage{microtype}     % protrusion / expansion -> fewer overflow lines
 \usepackage{url}
+\usepackage{placeins}      % \FloatBarrier; used strategically in appendix
+                           % to prevent multiple sections clustering on one page
 \Urlmuskip=0mu plus 1mu    % allow URLs to stretch interword space
 \setlength{\tabcolsep}{4pt}% tighter column padding (default 6pt)
 \sloppy                    % relax line-breaking to avoid bleeding into margin
@@ -621,6 +623,7 @@ Peak SE max (training) & $0.45 \pm 0.02$ & $0.47$ \\
 \label{tab:bf16}
 \end{table*}
 
+\FloatBarrier
 \section{Seed-Variance Replication}
 \label{app:seed_variance}
 
@@ -848,6 +851,7 @@ E6b cross-seed  & \textbf{0.343} & \textbf{0.344} & \textbf{0.343} \\
 
 \textbf{Within-run rotation.} For each run we additionally computed $\cos(\text{adapter at step }s, \text{adapter at best-eval})$ for every intermediate step. The cosines stay above $0.93$ in all runs we measured: E5 step-2800 vs.\ step-4885 final$=0.938$; E5c step-2800 vs.\ step-2931 final$=0.972$; E6 step-2800 vs.\ step-2931 final$=0.993$. Each adapter therefore moves through a tight cone in $\Delta W$ space, and the cross-seed orthogonality of the main result is not a function of when we sample the trajectory.
 
+\FloatBarrier
 \section{Llama-3-8B Replication}
 \label{app:llama3}
 
