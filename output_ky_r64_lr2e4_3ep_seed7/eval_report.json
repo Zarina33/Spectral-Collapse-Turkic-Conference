@@ -1,0 +1,189 @@
+{
+  "timestamp": "2026-08-22T03:10:33.718368",
+  "adapter_path": "output_ky_r64_lr2e4_3ep_seed7/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 1.323761,
+      "ppl": 3.7575,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 4.599669,
+      "ppl": 99.4514,
+      "n_samples": 500,
+      "n_tokens": 112769
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.1111,
+      "recall": 0.3514,
+      "f1": 0.1688,
+      "n_evaluated": 100,
+      "parse_failures": 1,
+      "per_type": {
+        "PER": {
+          "precision": 0.0841,
+          "recall": 0.5278,
+          "f1": 0.145
+        },
+        "ORG": {
+          "precision": 0.2059,
+          "recall": 0.1795,
+          "f1": 0.1918
+        },
+        "LOC": {
+          "precision": 0.1429,
+          "recall": 0.3611,
+          "f1": 0.2047
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.1667,
+      "recall": 0.3393,
+      "f1": 0.2235,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.4333,
+          "recall": 0.6667,
+          "f1": 0.5253
+        },
+        "ORG": {
+          "precision": 0.06,
+          "recall": 0.2143,
+          "f1": 0.0938
+        },
+        "LOC": {
+          "precision": 0.0882,
+          "recall": 0.1333,
+          "f1": 0.1062
+        }
+      }
+    },
+    "uz": {
+      "precision": 0.1918,
+      "recall": 0.4563,
+      "f1": 0.2701,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.2712,
+          "recall": 0.9143,
+          "f1": 0.4183
+        },
+        "ORG": {
+          "precision": 0.15,
+          "recall": 0.4138,
+          "f1": 0.2202
+        },
+        "LOC": {
+          "precision": 0.0638,
+          "recall": 0.0769,
+          "f1": 0.0698
+        }
+      }
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.6577,
+      "macro_f1": 0.5493,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.5625,
+          "recall": 1.0,
+          "f1": 0.72,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.0256,
+          "f1": 0.05,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0.7826,
+          "recall": 1.0,
+          "f1": 0.878,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7321,
+      "macro_f1": 0.5599,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.619,
+          "recall": 1.0,
+          "f1": 0.7647,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0.8776,
+          "recall": 0.9556,
+          "f1": 0.9149,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.7184,
+      "macro_f1": 0.5947,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.6034,
+          "recall": 1.0,
+          "f1": 0.7527,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.069,
+          "f1": 0.129,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0.8605,
+          "recall": 0.9487,
+          "f1": 0.9024,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.2947,
+      "correct": 234,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.3036,
+      "correct": 211,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.4,
+      "correct": 296,
+      "n_questions": 740
+    }
+  }
+}
