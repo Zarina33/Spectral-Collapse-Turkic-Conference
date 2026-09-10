@@ -23,8 +23,8 @@ stated research question. Every one of these is addressed in this version,
 and the paper now adds a positive result the previous version lacked: a
 trajectory diagnostic that separates every collapsed run from every healthy
 one at a tenth of the training budget
-(\S4.9)\rev{, validated on held-out runs whose outcome was predicted before
-evaluation (\S4.9, Table~X)}.\footnote{\rev{Placeholder until the held-out
+(\S4.8)\rev{, validated on held-out runs whose outcome was predicted before
+evaluation (\S4.8, Table~X)}.\footnote{\rev{Placeholder until the held-out
 runs finish; delete this sentence if they are not included.}}
 
 \section*{1. Citation integrity (meta-review)}
@@ -79,7 +79,7 @@ with no experiment IDs; the introduction now opens with the practical
 problem and states the research question explicitly (\S1, second
 paragraph); experiment IDs in the body are retained only where a table row
 is being referenced.
-\item \textbf{Scope of the SE result and generalisation.} \S4.8 now carries a
+\item \textbf{Scope of the SE result and generalisation.} \S4.7 now carries a
 paragraph ``What generalises, and how far'' that assigns a scope to each of
 the four claims: the SE falsification is existential (reproduced
 counterexamples on two architectures, three seeds); the underdetermination
@@ -98,7 +98,7 @@ KZ$\to$KY transfer halves cross-lingual KZ perplexity there as well
 \item \textbf{Small scale, one or two seeds.} The three configurations carrying
 the underdetermination inequality (E3, E5, E5c) are now at $n{=}3$ (seeds
 42, 123, 7); the inequality holds for all three cross-seed pairs of each
-configuration (\S4.8, Table~3). Eleven of twelve Gemma configurations are
+configuration (\S4.7, Table~3). Eleven of twelve Gemma configurations are
 seed-replicated.
 \end{itemize}
 
@@ -108,16 +108,16 @@ seed-replicated.
 result, not a proof.} Agreed and revised throughout. The claim is now stated
 as a \emph{measured bound}: ``within the seed-noise regime we measure, the
 within-configuration spread bounds the SNR of any Lipschitz function of the
-final adapter'' (abstract, \S4.8, conclusion), with an explicit sentence
+final adapter'' (abstract, \S4.7, conclusion), with an explicit sentence
 that this is ``an empirical inequality, not a proof of impossibility''
 (abstract) and that settings with more canonical solutions ``need not
-satisfy it'' (\S4.8, scope paragraph).
+satisfy it'' (\S4.7, scope paragraph).
 \item \textbf{$n{=}2$ gives no variance estimate.} The inequality is now
 measured at $n{=}3$ for E3, E5 and E5c: within-configuration spreads
 $0.0316\pm0.0002$, $0.0221\pm0.0003$, $0.0423\pm0.0013$ (mean$\pm$SD over the
 three cross-seed pairs) against between-configuration gaps of $0.0101$ and
 $0.0053$; the smallest within-configuration value exceeds the largest
-between-configuration gap by $3$--$8\times$ for every pair (\S4.8).
+between-configuration gap by $3$--$8\times$ for every pair (\S4.7).
 \item \textbf{Llama-3 replication incomplete (transfer, absolute-$\alpha$,
 BF16).} The absolute-$\alpha$ control (L3-C5) and the KZ$\to$KY transfer
 (L3-E6) are now replicated on Llama-3-8B, L3-C5 at two seeds and L3-E6 with
@@ -132,7 +132,7 @@ The BF16 control remains Gemma-only and single-seed; this is stated in L4.
 asserts a general negative. The SE falsification is stated for ``the
 $\mathrm{SE}>0.7$ threshold in low-resource quantized LoRA'' and the general
 claim the paper makes is positive: the diagnostic signal lives in the
-trajectory (\S4.9).
+trajectory (\S4.8).
 \item \textbf{Software 1, Datasets 1, Reproducibility 2.} These scores were
 assigned on the premise that no code was released. The anonymous repository
 cited in footnote~1 (abstract) and in the Reproducibility Statement is live
@@ -155,7 +155,7 @@ italics: \emph{can any function of the final adapter's weights be trusted to
 detect fine-tuning failure in this regime?} The three hypotheses are
 introduced as the operationalisation of that question.
 \item \textbf{Implications for the broader community.} The introduction and
-\S4.9 give the recommendations directly: do not gate training health on SE;
+\S4.8 give the recommendations directly: do not gate training health on SE;
 log $\|B\|_F$ every hundred steps and watch its early growth rate; treat
 collapse detection as a functional test; prefer a related-language
 warm-start. The conclusion states these are not specific to Turkic.
@@ -166,7 +166,7 @@ the argument.
 
 \section*{3. New material since the reviewed version}
 \begin{itemize}
-\item \S4.9 \emph{A trajectory probe that does separate them}: the mean early
+\item \S4.8 \emph{A trajectory probe that does separate them}: the mean early
 growth rate of $\|B\|_F$ over training steps 100--300 separates all 31 logged
 runs (25 healthy, 6 collapsed, both architectures) with no overlap; AUC
 1.000 vs.\ 0.073 for spectral energy at the same step (Table~4).
@@ -174,7 +174,7 @@ runs (25 healthy, 6 collapsed, both architectures) with no overlap; AUC
 threshold, prediction logged at step 300 before evaluation; outcome.]}
 \item Seed 7 for E3, E5, E5c (Gemma); L3-C5 at two seeds; L3-E6; Gemma E6
 with independently re-seeded source (Table~3, Appendix~V).
-\item Section on scope of each claim (\S4.8) and refined Limitations (L1, L3,
+\item Section on scope of each claim (\S4.7) and refined Limitations (L1, L3,
 L4, L7).
 \end{itemize}
 
@@ -186,11 +186,11 @@ Review point & Location in revised paper \\
 TUMLU citation & References; footnote in \S3.5 \\
 Abstract density & Abstract \\
 Research question, symbol definitions & \S1 \\
-Lipschitz claim scoped & Abstract, \S4.8, \S5 \\
-$n{=}3$ inequality & \S4.8, Table~3, Appendix~J \\
+Lipschitz claim scoped & Abstract, \S4.7, \S5 \\
+$n{=}3$ inequality & \S4.7, Table~3, Appendix~J \\
 Llama-3 C5 and E6 & \S4.5, \S4.6, Appendix~V \\
 Title narrowed & Title, \S1, \S5 \\
-Trajectory probe & \S4.9, Table~4 \\
+Trajectory probe & \S4.8, Table~4 \\
 Artifact availability & Footnote 1, Reproducibility Statement \\
 \bottomrule
 \end{tabular}

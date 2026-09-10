@@ -21,6 +21,7 @@
 - [x] Черновик summary of revisions на 4 страницы, по пунктам AC + три рецензента.
 - [x] Скрипты held-out проверки probe: `scripts/probe_predict.py`, `scripts/run_heldout_probe.sh`.
 - [x] Артефакты seed-7 и L3-C5-s123 в git.
+- [x] Тело статьи сокращено с 9.3 до 7.5 страниц (лимит 8): короче абстракт и contributions (добавлен C4 про probe), подписи к Таблицам 2 и 3, §4.7 «Why SE fails» ушёл в приложение, заключение вдвое короче. Нумерация: underdetermination теперь §4.7, probe §4.8.
 
 ## A. Обязательно (без этого не подавать)
 
