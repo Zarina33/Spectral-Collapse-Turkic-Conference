@@ -1,0 +1,9 @@
+{"step": 200, "epoch": 0.527, "kz_loss": 1.945475, "kz_ppl": 6.997}
+{"step": 400, "epoch": 1.0527, "kz_loss": 1.986084, "kz_ppl": 7.2869}
+{"step": 600, "epoch": 1.5797, "kz_loss": 1.94846, "kz_ppl": 7.0179}
+{"step": 800, "epoch": 2.1054, "kz_loss": 1.953782, "kz_ppl": 7.0553}
+{"step": 1000, "epoch": 2.6324, "kz_loss": 1.840733, "kz_ppl": 6.3012}
+{"step": 1200, "epoch": 3.1581, "kz_loss": 2.104335, "kz_ppl": 8.2016}
+{"step": 1400, "epoch": 3.6851, "kz_loss": 2.125496, "kz_ppl": 8.3771}
+{"step": 1600, "epoch": 4.2108, "kz_loss": 3.005452, "kz_ppl": 20.1953}
+{"step": 1800, "epoch": 4.7378, "kz_loss": 3.034079, "kz_ppl": 20.7818}
