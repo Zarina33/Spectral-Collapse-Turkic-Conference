@@ -23,7 +23,7 @@ stated research question. Every one of these is addressed in this version,
 and the paper now adds a positive result the previous version lacked: a
 trajectory diagnostic that separates every collapsed run from every healthy
 one at a tenth of the training budget
-(\S4.8), and validated prospectively on three held-out configurations
+(\S4.8), and validated prospectively on four held-out configurations
 whose collapse it predicted at step 300, before they were evaluated
 (\S4.8, Table~4).
 
@@ -170,12 +170,14 @@ the argument.
 growth rate of $\|B\|_F$ over training steps 100--300 separates all 31 logged
 runs (25 healthy, 6 collapsed, both architectures) with no overlap; AUC
 1.000 vs.\ 0.073 for spectral energy at the same step (Table~4).
-Held-out validation: three new runs at configurations absent from those 31
+Held-out validation: four new runs at configurations absent from those 31
 (Kyrgyz at $r{=}16$ with lr $10^{-3}$, a rank at which no sampled run
-collapses; Kyrgyz at $r{=}32$, a rank the sweep does not contain;
-small-corpus Kazakh at $r{=}64$, a language in which no sampled run
-collapses). The probe's verdict was written to disk at step 300 while
-training continued; all three were predicted to collapse and all three did
+collapses; Kyrgyz at $r{=}32$, a rank the sweep does not contain; Kyrgyz
+at $r{=}64$ with lr $3.5{\times}10^{-4}$, between the healthy and collapsed
+learning rates; small-corpus Kazakh at $r{=}64$, a language in which no
+sampled run collapses). The probe's verdict was written to disk at step 300
+while training continued; all four were predicted to collapse and all four
+did
 (TUMLU at chance, cross-lingual perplexity up an order of magnitude). The
 Scope paragraph states that these test sensitivity only and that a
 deployable cutoff would need held-out healthy runs near the boundary.
