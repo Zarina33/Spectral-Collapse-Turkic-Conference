@@ -23,9 +23,9 @@ stated research question. Every one of these is addressed in this version,
 and the paper now adds a positive result the previous version lacked: a
 trajectory diagnostic that separates every collapsed run from every healthy
 one at a tenth of the training budget
-(\S4.8)\rev{, validated on held-out runs whose outcome was predicted before
-evaluation (\S4.8, Table~X)}.\footnote{\rev{Placeholder until the held-out
-runs finish; delete this sentence if they are not included.}}
+(\S4.8), and validated prospectively on three held-out configurations
+whose collapse it predicted at step 300, before they were evaluated
+(\S4.8, Table~4).
 
 \section*{1. Citation integrity (meta-review)}
 The meta-review correctly identified that the TUMLU reference in the
@@ -170,8 +170,15 @@ the argument.
 growth rate of $\|B\|_F$ over training steps 100--300 separates all 31 logged
 runs (25 healthy, 6 collapsed, both architectures) with no overlap; AUC
 1.000 vs.\ 0.073 for spectral energy at the same step (Table~4).
-\rev{[Held-out validation: N new runs at configurations not used to set the
-threshold, prediction logged at step 300 before evaluation; outcome.]}
+Held-out validation: three new runs at configurations absent from those 31
+(Kyrgyz at $r{=}16$ with lr $10^{-3}$, a rank at which no sampled run
+collapses; Kyrgyz at $r{=}32$, a rank the sweep does not contain;
+small-corpus Kazakh at $r{=}64$, a language in which no sampled run
+collapses). The probe's verdict was written to disk at step 300 while
+training continued; all three were predicted to collapse and all three did
+(TUMLU at chance, cross-lingual perplexity up an order of magnitude). The
+Scope paragraph states that these test sensitivity only and that a
+deployable cutoff would need held-out healthy runs near the boundary.
 \item Seed 7 for E3, E5, E5c (Gemma); L3-C5 at two seeds; L3-E6; Gemma E6
 with independently re-seeded source (Table~3, Appendix~V).
 \item Section on scope of each claim (\S4.7) and refined Limitations (L1, L3,

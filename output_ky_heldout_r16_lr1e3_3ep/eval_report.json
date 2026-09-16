@@ -1,0 +1,195 @@
+{
+  "timestamp": "2026-09-16T00:47:02.758851",
+  "adapter_path": "output_ky_heldout_r16_lr1e3_3ep/final_adapter",
+  "perplexity": {
+    "ky": {
+      "loss": 2.861279,
+      "ppl": 17.4839,
+      "n_samples": 500,
+      "n_tokens": 128000
+    },
+    "kz": {
+      "loss": 5.075165,
+      "ppl": 159.9985,
+      "n_samples": 500,
+      "n_tokens": 113336
+    },
+    "uz": {
+      "loss": 5.803569,
+      "ppl": 331.4805,
+      "n_samples": 500,
+      "n_tokens": 127308
+    }
+  },
+  "ner_wikiann": {
+    "ky": {
+      "precision": 0.0876,
+      "recall": 0.1081,
+      "f1": 0.0968,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.0976,
+          "recall": 0.2222,
+          "f1": 0.1356
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "LOC": {
+          "precision": 0.0727,
+          "recall": 0.1111,
+          "f1": 0.0879
+        }
+      }
+    },
+    "kz": {
+      "precision": 0.0352,
+      "recall": 0.0446,
+      "f1": 0.0394,
+      "n_evaluated": 100,
+      "parse_failures": 1,
+      "per_type": {
+        "PER": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "ORG": {
+          "precision": 0.0352,
+          "recall": 0.1786,
+          "f1": 0.0588
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      }
+    },
+    "uz": {
+      "precision": 0.3153,
+      "recall": 0.3398,
+      "f1": 0.3271,
+      "n_evaluated": 100,
+      "parse_failures": 0,
+      "per_type": {
+        "PER": {
+          "precision": 0.3137,
+          "recall": 0.9143,
+          "f1": 0.4672
+        },
+        "ORG": {
+          "precision": 0.25,
+          "recall": 0.069,
+          "f1": 0.1081
+        },
+        "LOC": {
+          "precision": 1.0,
+          "recall": 0.0256,
+          "f1": 0.05
+        }
+      }
+    }
+  },
+  "ner_loglik": {
+    "ky": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.3333,
+      "macro_f1": 0.1811,
+      "n_spans": 111,
+      "per_type": {
+        "PER": {
+          "precision": 0.3273,
+          "recall": 1.0,
+          "f1": 0.4932,
+          "support": 36
+        },
+        "ORG": {
+          "precision": 1.0,
+          "recall": 0.0256,
+          "f1": 0.05,
+          "support": 39
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 36
+        }
+      }
+    },
+    "kz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.3482,
+      "macro_f1": 0.1722,
+      "n_spans": 112,
+      "per_type": {
+        "PER": {
+          "precision": 0.3482,
+          "recall": 1.0,
+          "f1": 0.5166,
+          "support": 39
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 28
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 45
+        }
+      }
+    },
+    "uz": {
+      "method": "loglik_span_typing",
+      "type_accuracy": 0.3398,
+      "macro_f1": 0.1691,
+      "n_spans": 103,
+      "per_type": {
+        "PER": {
+          "precision": 0.3398,
+          "recall": 1.0,
+          "f1": 0.5072,
+          "support": 35
+        },
+        "ORG": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 29
+        },
+        "LOC": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0,
+          "support": 39
+        }
+      }
+    }
+  },
+  "tumlu_qa": {
+    "kazakh": {
+      "accuracy": 0.2103,
+      "correct": 167,
+      "n_questions": 794
+    },
+    "uzbek": {
+      "accuracy": 0.2619,
+      "correct": 182,
+      "n_questions": 695
+    },
+    "kyrgyz": {
+      "accuracy": 0.2203,
+      "correct": 163,
+      "n_questions": 740
+    }
+  }
+}
