@@ -22,7 +22,7 @@ We fine-tune **Gemma-2-9B** (4-bit QLoRA) on Kyrgyz, Kazakh and Uzbek, with a **
 
 ## Results at a glance (Gemma-2-9B, seed 42)
 
-Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at $n{=}3$.
+Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at $n{=}3$; every other configuration, including the BF16 control, is at $n{=}2$.
 
 | ID | Config | KY PPL | KZ PPL | UZ PPL | F1 KY | TypeAcc KY | TUMLU KY | $\|B\|_F$ growth |
 |----|--------|:------:|:------:|:------:|:-----:|:---------:|:--------:|:---------:|
@@ -37,7 +37,7 @@ Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at
 | E6 | KZ→KY transfer (n=2, + independent-init seed) | 4.73 | **23.49** | 124.19 | 0.253\* | 62.2% | 33.7% | **1.13×** |
 | E6b | EN→KY (cross-family, n=2) | 4.78 | 47.46 | 63.42 | 0.133 | 55.9% | 36.1% | 3.10× |
 | E8 | EN control (n=2) | 14.96 | 5.54 | 16.55 | 0.209 | 56.8% | 37.7% | 33.4× |
-| C3 | KY BF16 (no quantization, n=1) | 4.99 | 43.97 | 59.02 | 0.164 | 58.6% | 36.1% | 8.6× |
+| C3 | KY BF16 (no quantization, n=2) | 4.99 | 43.97 | 59.02 | 0.164 | 58.6% | 36.1% | 8.6× |
 | C5 | KY r=64, **α=32** (absolute-α control, n=2) | **4.46** | 49.22 | 57.36 | 0.174 | 52.3% | 33.2% | 8.55× |
 
 ‡ E5's high TypeAcc despite F1 = 0: entity knowledge survives the collapse; structured-output generation fails. \* Not robust to reseeding; E6 is framed as KZ retention, not KY improvement.

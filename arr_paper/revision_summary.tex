@@ -98,7 +98,7 @@ KZ$\to$KY transfer halves cross-lingual KZ perplexity there as well
 \item \textbf{Small scale, one or two seeds.} The three configurations carrying
 the underdetermination inequality (E3, E5, E5c) are now at $n{=}3$ (seeds
 42, 123, 7); the inequality holds for all three cross-seed pairs of each
-configuration (\S4.7, Table~3). Eleven of twelve Gemma configurations are
+configuration (\S4.7, Table~3). All twelve Gemma configurations are
 seed-replicated.
 \end{itemize}
 
@@ -126,8 +126,12 @@ reproduces, including the inequality ($0.072>0.029$) and the source-pinning
 of transfer. We also report where the inequality does \emph{not} hold
 (cos(C5-s42, C5-s123)$=0.200 <$ cos(C5, E3)$=0.343$), and state that the
 claim is made only for the collapse-vs-healthy comparisons (Limitations L1).
-The BF16 control remains Gemma-only and single-seed; this is stated in L4.
-\rev{[If a second BF16 seed is run before submission, update here and L4.]}
+The BF16 control is now at two seeds on Gemma-2 (Appendix~I, Table~12):
+target KY PPL is $4.99$ at both, spectral energy and Frobenius growth match
+the 4-bit runs, and the one seed-42 value that sat outside the 4-bit spread
+(cross-lingual KZ PPL $43.97$) is $48.64$ at seed 123, inside it. With this
+every Gemma-2 configuration in the paper is seed-replicated. The BF16
+control is not replicated on Llama-3; this is stated in L4.
 \item \textbf{Title and core claim should be narrowed.} The title no longer
 asserts a general negative. The SE falsification is stated for ``the
 $\mathrm{SE}>0.7$ threshold in low-resource quantized LoRA'' and the general

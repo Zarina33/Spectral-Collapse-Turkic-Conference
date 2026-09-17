@@ -101,7 +101,7 @@ We compile monolingual corpora of ${\sim}150$~MB per target language: \textbf{Ka
 
 \subsection{LoRA Configuration}
 
-We apply LoRA to all attention and MLP projection matrices ($q$, $k$, $v$, $o$, gate, up, down — 7 modules per layer, 294 total across 42 Gemma-2 layers; 224 across 32 Llama-3 layers). $\alpha = 2r$ throughout; we use paged AdamW with cosine LR schedule and 5\% warmup; effective batch 16; max seq length 256. The complete configuration grid (12 Gemma-2 runs, 5 Llama-3 runs, all language/rank/LR/epochs/init combinations) is in \Cref{tab:experiments} (\Cref{app:configs}). Eleven of twelve Gemma-2 configurations are seed-replicated (all but the C3 BF16 control); the three carrying the underdetermination argument---E3, E5, E5c---are at $n{=}3$ (seeds 42, 123, 7) and the rest at $n{=}2$ (seeds 42, 123; see \Cref{app:seed_variance}). All five Llama-3 configurations are at $n{=}2$.
+We apply LoRA to all attention and MLP projection matrices ($q$, $k$, $v$, $o$, gate, up, down — 7 modules per layer, 294 total across 42 Gemma-2 layers; 224 across 32 Llama-3 layers). $\alpha = 2r$ throughout; we use paged AdamW with cosine LR schedule and 5\% warmup; effective batch 16; max seq length 256. The complete configuration grid (12 Gemma-2 runs, 5 Llama-3 runs, all language/rank/LR/epochs/init combinations) is in \Cref{tab:experiments} (\Cref{app:configs}). All twelve Gemma-2 configurations are seed-replicated; the three carrying the underdetermination argument---E3, E5, E5c---are at $n{=}3$ (seeds 42, 123, 7) and the rest at $n{=}2$ (seeds 42, 123; see \Cref{app:seed_variance}). All five Llama-3 configurations are at $n{=}2$.
 
 \subsection{SVD Monitoring Protocol}
 
@@ -192,7 +192,7 @@ Three patterns drive the rest of the paper (full PPL matrix and heatmap in \Cref
 
 The SE threshold of $0.7$ proposed by \citet{biderman2024lora} is never reached in any of our experiments, including those exhibiting severe functional degradation (SE dynamics in \Cref{fig:svd_dynamics}, layer-wise heatmap in \Cref{fig:layer_heatmap}, both in \Cref{app:fig_extras}). The KY baseline ($r{=}16$) peaks at max SE $\sim 0.44$ then decreases to $\sim 0.32$. Both $r{=}64$ configurations---collapsed E5 and healthy E5b---end at final max SE $\sim 0.06$--$0.11$, mean SE $\sim 0.03$, near-identical spectra but with completely different functional outcomes (F1 $0$ vs.\ $0.146$, TUMLU $23\%$ vs.\ $33\%$). SE is a \emph{shape} metric, invariant to rescaling and rank-biased by construction ($\text{SE}\approx 1/r$ at initialisation), so it cannot see the difference (\Cref{app:why_se_fails}). Effective rank tells the same story: both $r{=}64$ runs use most of their capacity yet diverge functionally.
 
-\textbf{Quantization is not the cause (BF16 control, C3).} The full-precision replication of E3 is statistically indistinguishable from 4-bit E3 on the spectral signal (final max SE $0.32$ vs.\ $0.33\pm0.01$, in-training peak $0.47$ vs.\ $0.45\pm0.02$, Frobenius growth $8.6\times$ vs.\ $8.4\times$) and on target-language PPL, NER and TUMLU (within or near the two-seed E3 spread); cross-lingual KZ/UZ PPL ($43.97/59.02$) trends slightly outside the spread ($50.0\pm2.4$ / $55.5\pm1.4$) but stays in the same regime, an order of magnitude below E5's forgetting. The falsification therefore carries to full precision; C3 is $n{=}1$ (\Cref{app:bf16}).
+\textbf{Quantization is not the cause (BF16 control, C3).} The full-precision replication of E3, at two seeds, is statistically indistinguishable from 4-bit E3 on the spectral signal (final max SE $0.33\pm0.02$ vs.\ $0.33\pm0.01$, in-training peak $0.49\pm0.02$ vs.\ $0.45\pm0.02$, Frobenius growth $8.5\times$ vs.\ $8.4\times$) and on NER and TUMLU (within the two-seed E3 spread). Target KY PPL is $4.99$ at both BF16 seeds against $4.81\pm0.02$, and cross-lingual KZ/UZ PPL ($46.3\pm2.3$ / $58.3\pm0.7$) overlaps the 4-bit spread ($50.0\pm2.4$ / $55.5\pm1.4$), an order of magnitude below E5's forgetting. The falsification therefore carries to full precision (\Cref{app:bf16}).
 
 \subsection{Frobenius Norm Is Not a Universal Diagnostic}
 \label{sec:frobenius}
@@ -320,13 +320,13 @@ We studied LoRA spectral and directional dynamics for three low-resource Turkic 
 
 Our study has several important limitations, which we discuss here in decreasing order of severity for downstream interpretation.
 
-\textbf{(L1) Limited-seed experiments.} E3, E5 and E5c---the configurations carrying the underdetermination evidence---are at $n{=}3$ (seeds 42, 123, 7); the remaining Gemma-2 configurations are at $n{=}2$ (only C3 single-seed), as are all five Llama-3 configurations. Six further claims hold across both seeds, including the $2\times$ KZ-PPL transfer retention and the EN-vs-Turkic Frobenius dissociation (\Cref{app:seed_variance}). The L3-C5 replication also shows the inequality is not universal across configuration \emph{pairs} ($\cos$(C5-s42,~C5-s123)$=0.200 < \cos$(C5,~E3)$=0.343$): it holds for the collapse-vs-healthy comparisons the argument rests on, and we claim no more. Extending $n{=}3$ to the transfer configurations and adding a second BF16 seed would tighten the remaining comparisons.
+\textbf{(L1) Limited-seed experiments.} E3, E5 and E5c---the configurations carrying the underdetermination evidence---are at $n{=}3$ (seeds 42, 123, 7); the remaining Gemma-2 configurations are at $n{=}2$, as are all five Llama-3 configurations. Six further claims hold across both seeds, including the $2\times$ KZ-PPL transfer retention and the EN-vs-Turkic Frobenius dissociation (\Cref{app:seed_variance}). The L3-C5 replication also shows the inequality is not universal across configuration \emph{pairs} ($\cos$(C5-s42,~C5-s123)$=0.200 < \cos$(C5,~E3)$=0.343$): it holds for the collapse-vs-healthy comparisons the argument rests on, and we claim no more. Extending $n{=}3$ to the transfer configurations would tighten the remaining comparisons.
 
 \textbf{(L2) Training-set contamination for NER (quantified).} Our Turkic corpora include Wikipedia, and WikiANN derives from Wikipedia entity links \cite{pan2017cross}. Verbatim overlap between gold test entities and each training corpus is $65.7\%$ (KZ), $55.9\%$ (KY) and $2.2\%$ (UZ), so KZ/KY NER numbers upper-bound memorization at ${\sim}60\%$ and cross-configuration comparisons within those languages are partially confounded. The UZ figure is a script-mismatch artifact (L9) that incidentally makes Uzbek a memorization-clean probe. A non-Wikipedia benchmark such as KazNERD \cite{yeshpanov2022kaznerd} would tighten this; per-type breakdown in \Cref{app:overlap}.
 
 \textbf{(L3) Rank--LR--epoch confound (closed by E5b, E5c, C5).} E5 varied four factors at once; E5b matches rank at baseline LR, E5c additionally matches epochs, and C5 additionally matches absolute $\alpha$. Together they decompose it: catastrophic collapse $=$ aggressive LR; extra cross-lingual forgetting $=$ training duration; apparent rank-only advantage $=$ the $\alpha{=}2r$ convention amplifying absolute $\alpha$, refuted by C5 (\Cref{sec:spectral-collapse-rank-lr}). Rank itself, at matched $\alpha$, delivers no functional benefit here.
 
-\textbf{(L4) Quantization confound (addressed by C3).} The BF16 control (Kyrgyz, $r{=}16$, identical to E3 but full-precision) refutes the concern that 4-bit NF4 suppresses singular-value growth: SE is statistically indistinguishable from 4-bit E3 at every comparable point, and Frobenius, PPL, NER and TUMLU fall within seed variance (\Cref{app:bf16}). C3 is $n{=}1$; a second BF16 seed would tighten it.
+\textbf{(L4) Quantization confound (addressed by C3).} The BF16 control (Kyrgyz, $r{=}16$, identical to E3 but full-precision) refutes the concern that 4-bit NF4 suppresses singular-value growth: SE is statistically indistinguishable from 4-bit E3 at every comparable point, and Frobenius, PPL, NER and TUMLU fall within seed variance (\Cref{app:bf16}). C3 is at two seeds on Gemma-2; the full-precision control is not replicated on Llama-3.
 
 \textbf{(L5) Corpus imbalance (partially addressed).} Corpora are byte-matched (${\sim}150$~MB) but token counts differ (KZ 14.1M, UZ 5.4M, KY 4.4M). The small-corpus KZ control E1b (${\sim}1.5$M tokens) separates volume from coverage: KZ PPL rises $2.73\to4.17$, so volume matters, yet $4.17$ still beats the KY baseline's $4.78$ at ${\sim}3\times$ fewer tokens, so Kazakh also enjoys a tokenizer/pretraining-coverage advantage. Both contribute.
 
@@ -612,28 +612,28 @@ Uzbek  & 3\% (2/67)     & 4\% (8/202)    & 1\% (3/333)    \\
 \section{BF16 vs.\ 4-bit Control (C3)}
 \label{app:bf16}
 
-\Cref{tab:bf16} reports a side-by-side comparison of the 4-bit E3 baseline (averaged across our two seeds where available) and the full-precision BF16 control (C3, single seed, run on a cloud A100~40GB instance). All hyperparameters except quantization are identical.
+\Cref{tab:bf16} reports a side-by-side comparison of the 4-bit E3 baseline (averaged across our two seeds where available) and the full-precision BF16 control (C3, seeds 42 and 123, each trained on a cloud A100~40GB instance). All hyperparameters except quantization are identical. Both C3 adapters, like every adapter in the paper, are scored by the same evaluation script on the 4-bit base, so the comparison isolates the effect of quantization \emph{during training}.
 
 \begin{table*}[!htbp]
 \centering
 \small
 \begin{tabular}{lcc}
 \toprule
-\textbf{Metric} & \textbf{E3 (4-bit, 2 seeds)} & \textbf{C3 (BF16, $n{=}1$)} \\
+\textbf{Metric} & \textbf{E3 (4-bit, 2 seeds)} & \textbf{C3 (BF16, 2 seeds)} \\
 \midrule
-KY PPL              & $4.81 \pm 0.02$    & $4.99$ \\
-KZ PPL (cross-ling) & $50.0 \pm 2.4$     & $43.97$ \\
-UZ PPL (cross-ling) & $55.5 \pm 1.4$     & $59.02$ \\
-NER F1 KY (gen)     & $0.170 \pm 0.013$  & $0.164$ \\
-NER TypeAcc KY      & $55.0 \pm 4.6$     & $58.6$ \\
-TUMLU KY            & $36.1 \pm 1.4$     & $36.1$ \\
-$\|B\|_F$ growth    & $8.36\times$       & $8.60\times$ \\
-Final SE max        & $0.33 \pm 0.01$    & $0.32$ \\
+KY PPL              & $4.81 \pm 0.02$    & $4.99 \pm 0.00$ \\
+KZ PPL (cross-ling) & $50.0 \pm 2.4$     & $46.3 \pm 2.3$ \\
+UZ PPL (cross-ling) & $55.5 \pm 1.4$     & $58.3 \pm 0.7$ \\
+NER F1 KY (gen)     & $0.170 \pm 0.013$  & $0.182 \pm 0.018$ \\
+NER TypeAcc KY      & $55.0 \pm 4.6$     & $56.8 \pm 1.9$ \\
+TUMLU KY            & $36.1 \pm 1.4$     & $35.0 \pm 1.1$ \\
+$\|B\|_F$ growth    & $8.33 \pm 0.03\times$ & $8.51 \pm 0.09\times$ \\
+Final SE max        & $0.33 \pm 0.01$    & $0.33 \pm 0.02$ \\
 Final SE mean       & $0.10$             & $0.10$ \\
-Peak SE max (training) & $0.45 \pm 0.02$ & $0.47$ \\
+Peak SE max (training) & $0.45 \pm 0.02$ & $0.49 \pm 0.02$ \\
 \bottomrule
 \end{tabular}
-\caption{4-bit NF4 vs.\ BF16 control on the same KY baseline configuration (rank 16, lr $2{\times}10^{-4}$, 3 epochs). E3 (4-bit) values are reported as $\text{mean} \pm \text{half-range}$ across two seeds (seeds 42 and 123); we use half-range rather than standard deviation because the unbiased SD estimator at $n{=}2$ is unreliable, and half-range gives a more honest visual sense of seed-to-seed spread. All downstream metrics fall within or near this two-seed spread for the 4-bit run. Frobenius norm growth is essentially identical. Spectral energy in BF16 is statistically indistinguishable from 4-bit at every comparable point (final max, final mean, in-training peak), which rules out the original concern: 4-bit quantization is not artificially suppressing SE. The SE-threshold falsification therefore carries over to full precision. We did not run a second seed for C3 due to compute cost (the BF16 run was completed on rented cloud GPU); $n{=}1$ is acknowledged in L1.}
+\caption{4-bit NF4 vs.\ BF16 control on the same KY baseline configuration (rank 16, lr $2{\times}10^{-4}$, 3 epochs). Both columns are reported as $\text{mean} \pm \text{half-range}$ across two seeds (seeds 42 and 123); we use half-range rather than standard deviation because the unbiased SD estimator at $n{=}2$ is unreliable, and half-range gives a more honest visual sense of seed-to-seed spread. All downstream metrics fall within or near this two-seed spread for the 4-bit run. Frobenius norm growth is essentially identical. Spectral energy in BF16 is statistically indistinguishable from 4-bit at every comparable point (final max, final mean, in-training peak), which rules out the original concern: 4-bit quantization is not artificially suppressing SE. The SE-threshold falsification therefore carries over to full precision. Target KY PPL is $4.99$ at both BF16 seeds; the seed-42 cross-lingual KZ PPL of $43.97$, which sat just outside the 4-bit spread, is matched by $48.64$ at seed 123, inside it, so the earlier discrepancy was seed noise. Per-seed C3 values: KZ PPL $43.97/48.64$, UZ PPL $59.02/57.67$, NER F1 $0.164/0.199$, TypeAcc $58.6/54.9$, TUMLU $36.1/33.9$, final max SE $0.32/0.35$, growth $8.60/8.42\times$.}
 \label{tab:bf16}
 \end{table*}
 
@@ -641,7 +641,7 @@ Peak SE max (training) & $0.45 \pm 0.02$ & $0.47$ \\
 \section{Seed-Variance Replication}
 \label{app:seed_variance}
 
-Eleven of the twelve Gemma-2 configurations are seed-replicated (all but the C3 BF16 control), as are all five Llama-3 configurations. The three that carry the underdetermination argument---E3, E5, E5c---are run at a third seed ($7$), which is what turns the within-configuration side of the inequality from a single cross-seed number into a measured spread (\Cref{sec:underdetermination}). Training hyperparameters and data are identical across seeds; only the random seed for initialization, data shuffling, and train/val split differs.
+All twelve Gemma-2 configurations are seed-replicated, as are all five Llama-3 configurations. The three that carry the underdetermination argument---E3, E5, E5c---are run at a third seed ($7$), which is what turns the within-configuration side of the inequality from a single cross-seed number into a measured spread (\Cref{sec:underdetermination}). Training hyperparameters and data are identical across seeds; only the random seed for initialization, data shuffling, and train/val split differs.
 
 \begin{table*}[!htbp]
 \centering

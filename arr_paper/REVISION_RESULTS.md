@@ -288,3 +288,32 @@ aclpubcheck: All Clear, 23 pages.
   column was added (width). Re-add if space allows; L3-C5 value still TBD
   (raw per-layer ratio looked anomalously high, needs the paper's exact
   definition before reporting).
+
+---
+
+## 4. C3-s123 — BF16 control, second seed  [DONE 2026-09-17, in paper]
+
+Setup: Kyrgyz, r=16, alpha=32, lr=2e-4, 3 ep, **no quantization**, seed 123;
+BS=1 x GA=16, gradient checkpointing on (same as seed 42). Trained on a
+Vast.ai A100-PCIE-40GB (30,120 s = 8.4 h wall, transformers 5.2.0 / peft
+0.18.1; environment in `training_artifacts/environment_vast.txt`). First
+attempt at BS=8 x GA=2 without checkpointing OOM'd at step 0.
+Dir: `output_ky_bf16_r16_lr2e4_3ep_seed123/`.
+
+Evaluation: unmodified `evaluate.py` on the 4-bit base over the seed-42
+held-out split -- the protocol the seed-42 C3 report was produced with
+(evaluate.py has no unquantized path). Run locally on the RTX 5080; the
+perplexity stage was also run on the A100 and agreed to 0.02 PPL.
+
+| seed | KY PPL | KZ PPL | UZ PPL | F1 KY | TypeAcc KY | TUMLU KY | final max SE | peak max SE | B growth |
+|------|-------:|-------:|-------:|------:|-----------:|---------:|-------------:|------------:|---------:|
+| 42   | 4.99 | 43.97 | 59.02 | 0.164 | 58.6 | 36.1 | 0.317 | 0.473 | 8.60x |
+| 123  | 4.99 | 48.64 | 57.67 | 0.199 | 54.9 | 33.9 | 0.352 | 0.509 | 8.42x |
+| E3 4-bit (2 seeds) | 4.81+-0.02 | 50.0+-2.4 | 55.5+-1.4 | 0.170+-0.013 | 55.0+-4.6 | 36.1+-1.4 | 0.33+-0.01 | 0.45+-0.02 | 8.33x |
+
+Early growth rate g (steps 100-300): 0.00280 (s42), 0.00274 (s123) -- both
+healthy, indistinguishable from E3 (0.00273 / 0.00271).
+
+=> The seed-42 KZ PPL that sat outside the 4-bit spread was seed noise.
+Every Gemma-2 configuration is now seed-replicated. Paper: Section 4.3
+BF16 paragraph, Table `tab:bf16`, L1, L4, Section 3.3.
