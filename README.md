@@ -14,7 +14,7 @@ We fine-tune **Gemma-2-9B** (4-bit QLoRA) on Kyrgyz, Kazakh and Uzbek, with a **
 
 2. **Frobenius norm growth separates regimes within a language category but not across.** EN grows 33× without forgetting (KZ PPL 5.5) while KZ grows 38× with severe forgetting.
 
-3. **The final adapter is structurally underdetermined.** Direct LoRA from base is near-orthogonal across seeds (per-module cosine 0.01–0.04, 0/294 modules above 0.5). At $n{=}3$ (seeds 42, 123, 7) the collapse-vs-healthy gap (0.010) sits inside the within-configuration seed spread (0.022–0.042) by 3–8×, which bounds the SNR of any Lipschitz function of the final adapter in this regime. The same inequality holds on Llama-3-8B (0.072 vs. 0.029). **What works is a trajectory measurement**: the mean early growth rate of $\|B\|_F$ over training steps 100–300 separates all 31 logged runs (25 healthy, 6 collapsed, both architectures) with no overlap — AUC 1.000 vs. 0.073 for spectral energy at the same step.
+3. **The final adapter is structurally underdetermined.** Direct LoRA from base is near-orthogonal across seeds (per-module cosine 0.01–0.04, 0/294 modules above 0.5). At $n{=}3$ (seeds 42, 123, 7) the collapse-vs-healthy gap (0.010) sits inside the within-configuration seed spread (0.022–0.042) by 3–8×, which bounds the SNR of any Lipschitz function of the final adapter in this regime. The same inequality holds on Llama-3-8B (0.072 vs. 0.029). **What works is a trajectory measurement**: the mean early growth rate of $\|B\|_F$ over training steps 100–300 separates all 42 logged runs (36 healthy, 6 collapsed, both architectures) with no overlap — AUC 1.000 vs. 0.073 for spectral energy at the same step.
 
 4. **Related-language warm-start preserves source-language knowledge; transfer pins direction to its source, not to a canonical direction.** KZ→KY transfer halves cross-lingual KZ PPL on Gemma (23.5 vs. 50.0), on Llama-3 (19.0 vs. 30.4) and under fully independent reseeding of both stages (26.8). The cross-family control EN→KY does not reproduce retention. The 0.785 cross-seed cosine of the original E6 pair measures two warm-starts from a *shared* source; with the source itself reseeded the cosine falls to 0.023 (Gemma) / 0.060 (Llama-3), inside the direct-training band.
 
@@ -78,14 +78,14 @@ Collapse-vs-healthy (0.010) is inside the same-configuration cross-seed band. Di
 
 ## The trajectory probe
 
-$g = (\overline{\|B\|_F}(300) - \overline{\|B\|_F}(100)) / 200$, averaged over all LoRA modules, read from `svd_log.jsonl`. Over the 31 runs with logged trajectories: healthy $g \le 0.0055$, collapsed $g \ge 0.0076$ (candidate threshold 0.00653). All values are in `directional_results/early_frobenius_probe.json`.
+$g = (\overline{\|B\|_F}(300) - \overline{\|B\|_F}(100)) / 200$, averaged over all LoRA modules, read from `svd_log.jsonl`. Over the 42 non-held-out runs with logged trajectories and a functional label (36 healthy, 6 collapsed; Appendix W of the paper lists them): healthy $g \le 0.0055$, collapsed $g \ge 0.0076$ (threshold 0.00653). All per-run values, the four held-out verdicts and the AUCs are in `directional_results/early_frobenius_probe.json`.
 
 ```bash
 # Prediction for any run directory (exit 3 if step 300 is not logged yet)
 python scripts/probe_predict.py output_ky_collapse_r64_lr5e4_5ep
 # -> g[100->300] = 0.01195  (1.83x threshold)  -> COLLAPSE
 
-# Held-out test: four configurations absent from the 31, prediction logged at step 300 before eval
+# Held-out test: four configurations absent from the 42, prediction logged at step 300 before eval
 bash scripts/run_heldout_probe.sh
 ```
 
@@ -122,7 +122,7 @@ bash scripts/run_heldout_probe.sh
 └── README.md
 ```
 
-Naming: `output_<model>_<lang>_<config>[_seed<N>]/`; `l3_` prefix = Llama-3-8B. Adapter weights (`final_adapter/`, `checkpoint-*/`, `*.safetensors`) are excluded from git for size; the full per-run `svd_log.jsonl` trajectories are being added to git (the BF16 control's is already tracked); until then, the early-window trajectory of every run in the paper is tracked in `directional_results/early_frobenius_probe.json`, from which `scripts/recompute_probe_table.py` reproduces all of Section 4.8 and Table 4.
+Naming: `output_<model>_<lang>_<config>[_seed<N>]/`; `l3_` prefix = Llama-3-8B. Adapter weights (`final_adapter/`, `checkpoint-*/`, `*.safetensors`) are excluded from git for size; the full per-run `svd_log.jsonl` trajectories are tracked for every run in the paper, and `directional_results/early_frobenius_probe.json` holds the early-window values from which `scripts/recompute_probe_table.py` reproduces Section 4.8 and Table 4.
 
 ---
 

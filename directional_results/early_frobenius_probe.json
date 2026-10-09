@@ -12,7 +12,9 @@
       "norm_100": 0.2271813503401361,
       "norm_300": 0.7722185612244897,
       "se_300": 0.13431499659863944,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E3-s123": {
       "dir": "output_ky_baseline_r16_lr2e4_3ep_seed123",
@@ -24,7 +26,9 @@
       "norm_100": 0.22866612925170066,
       "norm_300": 0.770898612244898,
       "se_300": 0.13683965986394558,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E3-s7": {
       "dir": "output_ky_baseline_r16_lr2e4_3ep_seed7",
@@ -36,7 +40,9 @@
       "norm_100": 0.2175612551020408,
       "norm_300": 0.77951868707483,
       "se_300": 0.13978834353741496,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 7
     },
     "E5": {
       "dir": "output_ky_collapse_r64_lr5e4_5ep",
@@ -48,7 +54,9 @@
       "norm_100": 0.5661198537414965,
       "norm_300": 2.956251095238095,
       "se_300": 0.04499858843537415,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E5-s123": {
       "dir": "output_ky_collapse_r64_lr5e4_5ep_seed123",
@@ -60,7 +68,9 @@
       "norm_100": 0.571187006802721,
       "norm_300": 2.93605518707483,
       "se_300": 0.04519278231292517,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E5-s7": {
       "dir": "output_ky_collapse_r64_lr5e4_5ep_seed7",
@@ -72,7 +82,9 @@
       "norm_100": 0.6173834659863946,
       "norm_300": 2.869468557823129,
       "se_300": 0.045069653061224485,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 7
     },
     "E5b": {
       "dir": "output_ky_r64_lr2e4_5ep",
@@ -84,7 +96,9 @@
       "norm_100": 0.24661195578231296,
       "norm_300": 1.1720499727891156,
       "se_300": 0.04818080952380952,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E5b-s123": {
       "dir": "output_ky_r64_lr2e4_5ep_seed123",
@@ -96,7 +110,9 @@
       "norm_100": 0.24831828231292516,
       "norm_300": 1.1729429523809525,
       "se_300": 0.04836193197278912,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E5c": {
       "dir": "output_ky_r64_lr2e4_3ep",
@@ -108,7 +124,9 @@
       "norm_100": 0.38808797278911566,
       "norm_300": 1.407156051020408,
       "se_300": 0.045985874149659864,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E5c-s123": {
       "dir": "output_ky_r64_lr2e4_3ep_seed123",
@@ -120,7 +138,9 @@
       "norm_100": 0.3911199795918367,
       "norm_300": 1.408634448979592,
       "se_300": 0.046156085034013604,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E5c-s7": {
       "dir": "output_ky_r64_lr2e4_3ep_seed7",
@@ -132,7 +152,9 @@
       "norm_100": 0.42591493537414965,
       "norm_300": 1.4860279897959183,
       "se_300": 0.045635163265306124,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 7
     },
     "C5": {
       "dir": "output_ky_r64_lr2e4_3ep_alpha32",
@@ -144,7 +166,9 @@
       "norm_100": 0.45641133333333334,
       "norm_300": 1.5561377925170068,
       "se_300": 0.07130895238095239,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E7": {
       "dir": "output_diverged_lr1e3_r64",
@@ -156,7 +180,10 @@
       "norm_100": 0.3468491292517007,
       "norm_300": 1.8597633095238093,
       "se_300": 0.04404463945578231,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42,
+      "note": "diverged at lr=1e-3: target PPL 17 -> 870 between steps 400 and 600, stopped at step 850, not evaluated downstream; labelled collapsed by divergence"
     },
     "E1": {
       "dir": "output_kz_baseline_r16_lr2e4_3ep",
@@ -168,7 +195,9 @@
       "norm_100": 0.08069533673469388,
       "norm_300": 0.3207828469387755,
       "se_300": 0.16581381292517006,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E1-s123": {
       "dir": "output_kz_baseline_r16_lr2e4_3ep_seed123",
@@ -180,7 +209,9 @@
       "norm_100": 0.08158002380952381,
       "norm_300": 0.31944461224489795,
       "se_300": 0.16907163945578232,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E1b": {
       "dir": "output_kz_tokenmatched_r16_lr2e4_3ep",
@@ -192,7 +223,9 @@
       "norm_100": 0.4268129829931973,
       "norm_300": 0.8309783503401361,
       "se_300": 0.12519136734693875,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E2": {
       "dir": "output_uz_baseline_r16_lr2e4_3ep",
@@ -204,7 +237,9 @@
       "norm_100": 0.19754915646258503,
       "norm_300": 0.7482721054421768,
       "se_300": 0.14184795918367346,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E4": {
       "dir": "output_ky_overfit_r16_lr2e4_10ep",
@@ -216,7 +251,9 @@
       "norm_100": 0.08970642176870748,
       "norm_300": 0.3551611598639456,
       "se_300": 0.17868836394557824,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E8": {
       "dir": "output_en_baseline_r16_lr2e4_3ep",
@@ -228,7 +265,9 @@
       "norm_100": 0.09210301700680272,
       "norm_300": 0.38344220748299324,
       "se_300": 0.16272890476190477,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E8-s123": {
       "dir": "output_en_baseline_r16_lr2e4_3ep_seed123",
@@ -240,7 +279,9 @@
       "norm_100": 0.09353046598639456,
       "norm_300": 0.3800676530612245,
       "se_300": 0.16320551700680272,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 123
     },
     "E6": {
       "dir": "output_ky_from_kz_r16_lr2e4_3ep",
@@ -252,7 +293,9 @@
       "norm_100": 3.043134105442177,
       "norm_300": 3.093229544217687,
       "se_300": 0.08577667006802721,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "E6b": {
       "dir": "output_en_to_ky_r16_lr2e4_3ep",
@@ -264,7 +307,9 @@
       "norm_100": 0.6526705204081632,
       "norm_300": 1.0083207959183673,
       "se_300": 0.11796221768707484,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "C3": {
       "dir": "output_ky_bf16_r16_lr2e4_3ep",
@@ -276,7 +321,9 @@
       "norm_100": 0.21842618707482991,
       "norm_300": 0.777952537414966,
       "se_300": 0.13445884693877552,
-      "arch": "Gemma-2-9B"
+      "arch": "Gemma-2-9B",
+      "in_original_31": true,
+      "seed": 42
     },
     "L3-E3": {
       "dir": "output_l3_ky_baseline_r16_lr2e4_3ep",
@@ -288,7 +335,9 @@
       "norm_100": 0.22841817410714288,
       "norm_300": 0.7436282321428571,
       "se_300": 0.16488221428571428,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 42
     },
     "L3-E3-s123": {
       "dir": "output_l3_ky_baseline_r16_lr2e4_3ep_seed123",
@@ -300,7 +349,9 @@
       "norm_100": 0.22794942857142855,
       "norm_300": 0.7380487901785714,
       "se_300": 0.1659922455357143,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 123
     },
     "L3-E5": {
       "dir": "output_l3_ky_collapse_r64_lr5e4_5ep",
@@ -312,7 +363,9 @@
       "norm_100": 0.5425621294642857,
       "norm_300": 2.7351981339285714,
       "se_300": 0.05560300892857143,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 42
     },
     "L3-E5-s123": {
       "dir": "output_l3_ky_collapse_r64_lr5e4_5ep_seed123",
@@ -324,7 +377,9 @@
       "norm_100": 0.5448489821428572,
       "norm_300": 2.7132673169642856,
       "se_300": 0.057559218749999995,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 123
     },
     "L3-E5c": {
       "dir": "output_l3_ky_r64_lr2e4_3ep",
@@ -336,7 +391,9 @@
       "norm_100": 0.37573760714285714,
       "norm_300": 1.3336314241071427,
       "se_300": 0.05726978125,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 42
     },
     "L3-E5c-s123": {
       "dir": "output_l3_ky_r64_lr2e4_3ep_seed123",
@@ -348,7 +405,9 @@
       "norm_100": 0.3762575357142857,
       "norm_300": 1.3223122544642858,
       "se_300": 0.05776066071428571,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 123
     },
     "L3-C5": {
       "dir": "output_l3_ky_r64_lr2e4_3ep_alpha32",
@@ -360,7 +419,9 @@
       "norm_100": 0.45364307142857146,
       "norm_300": 1.4888692723214285,
       "se_300": 0.09128004910714285,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 42
     },
     "L3-E6": {
       "dir": "output_l3_ky_from_kz_r16_lr2e4_3ep",
@@ -372,16 +433,226 @@
       "norm_100": 3.03834603125,
       "norm_300": 3.0804796026785715,
       "se_300": 0.09751751339285715,
-      "arch": "Llama-3-8B"
+      "arch": "Llama-3-8B",
+      "in_original_31": true,
+      "seed": 42
+    },
+    "E6b-s123": {
+      "dir": "output_en_to_ky_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0017662531122448932,
+      "g_100_300_scaled": 0.0035325062244897865,
+      "norm_100": 0.6538189217687074,
+      "norm_300": 1.007069544217686,
+      "se_300": 0.11809524489795918,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "C3-s123": {
+      "dir": "output_ky_bf16_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0027439395408163287,
+      "g_100_300_scaled": 0.005487879081632657,
+      "norm_100": 0.2276272040816327,
+      "norm_300": 0.7764151122448985,
+      "se_300": 0.13583359863945588,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "E6-s123": {
+      "dir": "output_ky_from_kz_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0002484157142857257,
+      "g_100_300_scaled": 0.0004968314285714514,
+      "norm_100": 3.043042612244896,
+      "norm_300": 3.092725755102041,
+      "se_300": 0.08576249659863934,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "E6-indep-s123": {
+      "dir": "output_ky_from_kz_r16_lr2e4_3ep_indep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.00024903326530612224,
+      "g_100_300_scaled": 0.0004980665306122445,
+      "norm_100": 3.056080170068028,
+      "norm_300": 3.1058868231292522,
+      "se_300": 0.08693545238095236,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "E4-s123": {
+      "dir": "output_ky_overfit_r16_lr2e4_10ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0013162701530612245,
+      "g_100_300_scaled": 0.002632540306122449,
+      "norm_100": 0.09078392176870742,
+      "norm_300": 0.3540379523809523,
+      "se_300": 0.18023819727891158,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "KZ-4p4M": {
+      "dir": "output_kz_4p4M_r16_lr2e4_3ep",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.002701997108843539,
+      "g_100_300_scaled": 0.005403994217687078,
+      "norm_100": 0.2042892993197278,
+      "norm_300": 0.7446887210884356,
+      "se_300": 0.13186250340136038,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 42
+    },
+    "E1b-s123": {
+      "dir": "output_kz_tokenmatched_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0020489968027210875,
+      "g_100_300_scaled": 0.004097993605442175,
+      "norm_100": 0.42261849319727884,
+      "norm_300": 0.8324178537414963,
+      "se_300": 0.12501110544217695,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "E2-s123": {
+      "dir": "output_uz_baseline_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.0027290632142857115,
+      "g_100_300_scaled": 0.005458126428571423,
+      "norm_100": 0.19866221088435362,
+      "norm_300": 0.7444748537414959,
+      "se_300": 0.14483733673469387,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "UZ-small": {
+      "dir": "output_uz_tokenmatched_r16_lr2e4_3ep",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.002025343588435369,
+      "g_100_300_scaled": 0.004050687176870738,
+      "norm_100": 0.46273687755102094,
+      "norm_300": 0.8678055952380948,
+      "se_300": 0.1348871734693877,
+      "arch": "Gemma-2-9B",
+      "in_original_31": false,
+      "seed": 42
+    },
+    "L3-E6-s123": {
+      "dir": "output_l3_ky_from_kz_r16_lr2e4_3ep_seed123",
+      "rank": 16,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.00021420189732143324,
+      "g_100_300_scaled": 0.0004284037946428665,
+      "norm_100": 3.0402659062500015,
+      "norm_300": 3.083106285714288,
+      "se_300": 0.0973502857142857,
+      "arch": "Llama-3-8B",
+      "in_original_31": false,
+      "seed": 123
+    },
+    "L3-C5-s123": {
+      "dir": "output_l3_ky_r64_lr2e4_3ep_alpha32_seed123",
+      "rank": 64,
+      "alpha": 32,
+      "healthy": true,
+      "g_100_300": 0.005121221294642859,
+      "g_100_300_scaled": 0.0025606106473214296,
+      "norm_100": 0.45492420982142834,
+      "norm_300": 1.4791684687500002,
+      "se_300": 0.09164901785714284,
+      "arch": "Llama-3-8B",
+      "in_original_31": false,
+      "seed": 123
     }
   },
   "summary": {
-    "n_healthy": 25,
+    "n_runs": 42,
+    "n_healthy": 36,
     "n_collapse": 6,
     "healthy_max": 0.005498632295918368,
     "collapse_min": 0.007564570901360543,
+    "collapse_min_without_E7": 0.010842091674107142,
     "separation_ratio": 1.3757186322452803,
+    "separation_ratio_without_E7": 1.9717797245971913,
     "separates": true,
-    "candidate_threshold": 0.0065316015986394554
-  }
+    "candidate_threshold": 0.0065316015986394554,
+    "auc_g": 1.0,
+    "auc_norm_300": 0.8611111111111112,
+    "auc_se_300": 0.05092592592592592,
+    "note": "42 non-held-out runs with an SVD log and a functional label (paper Appendix W); the 31 runs flagged in_original_31 are the sample on which the threshold was first read off; the held-out runs are listed separately and were predicted at step 300 before evaluation"
+  },
+  "held_out": {
+    "H1": {
+      "dir": "output_ky_heldout_r16_lr1e3_3ep",
+      "g_100_300": 0.017113828469387762,
+      "norm_100": 1.017512673469387,
+      "norm_300": 4.44027836734694,
+      "se_300": 0.16328661904761885,
+      "prediction": "collapse",
+      "prediction_timestamp_utc": "2026-09-15T12:12:37",
+      "threshold": 0.00653,
+      "outcome": "collapsed"
+    },
+    "H2": {
+      "dir": "output_ky_heldout_r32_lr5e4_5ep",
+      "g_100_300": 0.00880854608843536,
+      "norm_100": 0.4250745782312926,
+      "norm_300": 2.1867837959183647,
+      "se_300": 0.07177802721088437,
+      "prediction": "collapse",
+      "prediction_timestamp_utc": "2026-09-15T19:25:05",
+      "threshold": 0.00653,
+      "outcome": "collapsed"
+    },
+    "H3": {
+      "dir": "output_ky_heldout_r64_lr3p5e4_5ep",
+      "g_100_300": 0.008225741020408163,
+      "norm_100": 0.4077483027210884,
+      "norm_300": 2.052896506802721,
+      "se_300": 0.04563088435374145,
+      "prediction": "collapse",
+      "prediction_timestamp_utc": "2026-09-16T06:33:09",
+      "threshold": 0.00653,
+      "outcome": "collapsed"
+    },
+    "H4": {
+      "dir": "output_kzsmall_heldout_r64_lr5e4_5ep",
+      "g_100_300": 0.011923099472789103,
+      "norm_100": 1.5340771462585054,
+      "norm_300": 3.918697040816326,
+      "se_300": 0.04066057482993197,
+      "prediction": "collapse",
+      "prediction_timestamp_utc": "2026-09-10T11:20:41",
+      "threshold": 0.00653,
+      "outcome": "collapsed"
+    }
+  },
+  "sample": "all runs with a logged SVD trajectory and a functional label, excluding the four held-out runs; omitted: two Llama-3 Kazakh source adapters (no downstream evaluation) and one r=128 run that stopped before step 300"
 }

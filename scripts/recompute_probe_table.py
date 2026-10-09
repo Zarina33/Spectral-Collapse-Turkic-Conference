@@ -2,18 +2,20 @@
 artifacts tracked in this repository, with no access to the full SVD logs.
 
 Inputs (all in git):
-  directional_results/early_frobenius_probe.json   31 runs: ||B||_F at steps
+  directional_results/early_frobenius_probe.json   42 runs: ||B||_F at steps
                                                    100/300, SE at 300, labels
+                                                   (plus the 4 held-out runs)
   output_*heldout*/probe_prediction.json           four held-out verdicts,
                                                    written at step 300
   output_*heldout*/eval_report.json                post-hoc evaluations
   heldout_probe_predictions.log                    append-only prediction log
 
 Reproduces and checks:
-  - g = (||B||_F(300) - ||B||_F(100)) / 200 for each of the 31 runs
+  - g = (||B||_F(300) - ||B||_F(100)) / 200 for each of the 42 runs
   - complete separation: max healthy g < min collapsed g, and the paper's
     bounds (healthy <= 0.0055, collapsed >= 0.0076)
-  - AUC of g (expected 1.000) and of SE at step 300 (expected ~0.073)
+  - AUC of g (expected 1.000), of the absolute norm at step 300 (~0.861)
+    and of SE at step 300 (expected ~0.051, i.e. anti-correlated)
   - Table 4 held-out rows: g, g/theta, verdict, and the functional outcome
     (TUMLU at chance) from the eval reports
 
@@ -69,16 +71,27 @@ def main():
     if not (hmax <= 0.0055 + 5e-5 and cmin >= 0.0076 - 5e-5):
         failures.append(f"class bounds differ from the paper: {hmax:.4f} / {cmin:.4f}")
 
-    # 3. AUCs: g should be 1.000, SE at the same step ~0.073 (anti-correlated).
+    # 3. AUCs: g should be 1.000, absolute norm ~0.861, SE ~0.051 (anti-correlated).
     auc_g = auc([v["g_100_300"] for v in collapsed.values()],
                 [v["g_100_300"] for v in healthy.values()])
     auc_se = auc([v["se_300"] for v in collapsed.values()],
                  [v["se_300"] for v in healthy.values()])
-    print(f"AUC(g) = {auc_g:.3f}   AUC(SE@300) = {auc_se:.3f}")
+    auc_norm = auc([v["norm_300"] for v in collapsed.values()],
+                   [v["norm_300"] for v in healthy.values()])
+    print(f"AUC(g) = {auc_g:.3f}   AUC(||B||@300) = {auc_norm:.3f}   AUC(SE@300) = {auc_se:.3f}")
     if auc_g != 1.0:
         failures.append(f"AUC(g) = {auc_g:.3f}, expected 1.000")
-    if abs(auc_se - 0.073) > 0.005:
-        failures.append(f"AUC(SE@300) = {auc_se:.3f}, expected ~0.073")
+    if abs(auc_norm - 0.861) > 0.005:
+        failures.append(f"AUC(||B||@300) = {auc_norm:.3f}, expected ~0.861")
+    if abs(auc_se - 0.051) > 0.005:
+        failures.append(f"AUC(SE@300) = {auc_se:.3f}, expected ~0.051")
+    if len(runs) != 42 or len(healthy) != 36 or len(collapsed) != 6:
+        failures.append(f"sample size {len(runs)} = {len(healthy)} + {len(collapsed)}, expected 42 = 36 + 6")
+    e7 = runs.get("E7")
+    if e7 is None or e7["healthy"] or abs(e7["g_100_300"] - cmin) > TOL:
+        failures.append("E7 (diverged run) should be the collapsed minimum")
+    cmin_no_e7 = min(v["g_100_300"] for k, v in collapsed.items() if k != "E7")
+    print(f"min collapsed g without E7 = {cmin_no_e7:.4f}   margin without E7 = {cmin_no_e7/hmax:.2f}x")
 
     # 4. Held-out rows of Table 4.
     print("\nheld-out runs (verdict written at step 300, before evaluation):")
