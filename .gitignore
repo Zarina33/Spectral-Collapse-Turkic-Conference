@@ -6,8 +6,7 @@ output_*/checkpoint-*/
 output_*/final_adapter/
 output/
 
-# ── Large log files (SVD logs → HuggingFace) ──
-output_*/svd_log.jsonl
+# (SVD logs output_*/svd_log.jsonl are tracked as of the Oct 2026 revision)
 
 # ── Large binary files ──
 *.safetensors
@@ -99,3 +98,4 @@ arr_paper/RESUBMISSION_PLAN.md
 arr_paper/REVISION_RESULTS.md
 arr_paper/REVISION_SAFETY.md
 arr_paper/revision_summary.tex
+paper/

@@ -2,7 +2,7 @@
 
 **SVD, Frobenius and directional dynamics of LoRA adapters fine-tuned on three low-resource Turkic languages (Kyrgyz, Kazakh, Uzbek), with a Llama-3-8B replication and a trajectory probe that separates collapsed from healthy runs at a tenth of the training budget.**
 
-> Paper: `arr_paper/main.pdf` (ARR submission, anonymized). `paper/main.pdf` is an earlier full-length draft kept for reference; where the two disagree, `arr_paper/` is current.
+> Paper: `arr_paper/main.pdf` (ARR submission, anonymized).
 
 ---
 
@@ -26,19 +26,19 @@ Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at
 
 | ID | Config | KY PPL | KZ PPL | UZ PPL | F1 KY | TypeAcc KY | TUMLU KY | $\|B\|_F$ growth |
 |----|--------|:------:|:------:|:------:|:-----:|:---------:|:--------:|:---------:|
-| E1 | KZ baseline (14.1M tok, n=2) | 40.75 | **2.73** | 41.27 | 0.158 | 70.8% | 32.9% | 38.5× |
-| E1b | KZ small-corpus (1.5M, n=2) | 25.55 | **4.17** | 23.17 | 0.150 | 64.0% | 32.0% | 8.5× |
+| E1 | KZ baseline (14.1M tok, n=2) | 40.75 | **2.73** | 41.27 | 0.219 | 57.7% | 35.7% | 38.5× |
+| E1b | KZ small-corpus (1.5M, n=2) | 25.55 | **4.17** | 23.17 | 0.150 | 46.0% | 37.3% | 2.86× |
 | E2 | UZ baseline (n=2) | 116.89 | 64.44 | **4.03** | 0.138 | 54.0% | 35.4% | — |
 | E3 | KY baseline (n=3) | **4.78** | 47.58 | 56.85 | 0.157 | 50.4% | 34.7% | 8.4× |
 | E4 | KY overfit (10ep, n=2) | **4.18** | 87.65 | 95.76 | 0.173 | 56.8% | 33.9% | — |
 | E5 | KY r=64, lr=5e-4, 5ep (n=3) | 5.90 | 659.25 | 742.73 | **0.000** | 59.5%‡ | 23.2%‡ | 15.6× |
 | E5b | KY r=64, lr=2e-4, 5ep (n=2) | 4.55 | 128.04 | 162.68 | 0.146 | 53.1% | 33.2% | 18.2× |
 | E5c | KY r=64, lr=2e-4, 3ep (n=3) | **3.86** | 93.52 | 111.25 | 0.115 | 54.9% | **38.5%** | 8.7× |
-| E6 | KZ→KY transfer (n=2, + independent-init seed) | 4.73 | **23.49** | 124.19 | 0.253\* | 62.2% | 33.7% | **1.13×** |
-| E6b | EN→KY (cross-family, n=2) | 4.78 | 47.46 | 63.42 | 0.133 | 55.9% | 36.1% | 3.10× |
+| E6 | KZ→KY transfer (n=2, + independent-init seed) | 4.73 | **23.49** | 124.19 | 0.253\* | 59.5% | 33.7% | **1.13×** |
+| E6b | EN→KY (cross-family, n=2) | 4.78 | 47.46 | 63.42 | 0.133 | 54.0% | 36.1% | 3.10× |
 | E8 | EN control (n=2) | 14.96 | 5.54 | 16.55 | 0.209 | 56.8% | 37.7% | 33.4× |
 | C3 | KY BF16 (no quantization, n=2) | 4.99 | 43.97 | 59.02 | 0.164 | 58.6% | 36.1% | 8.6× |
-| C5 | KY r=64, **α=32** (absolute-α control, n=2) | **4.46** | 49.22 | 57.36 | 0.174 | 52.3% | 33.2% | 8.55× |
+| C5 | KY r=64, **α=32** (absolute-α control) | **4.46** | 49.22 | 57.36 | 0.174 | 52.3% | 33.2% | 8.55× |
 
 ‡ E5's high TypeAcc despite F1 = 0: entity knowledge survives the collapse; structured-output generation fails. \* Not robust to reseeding; E6 is framed as KZ retention, not KY improvement.
 
@@ -122,7 +122,7 @@ bash scripts/run_heldout_probe.sh
 └── README.md
 ```
 
-Naming: `output_<model>_<lang>_<config>[_seed<N>]/`; `l3_` prefix = Llama-3-8B. Adapter weights (`final_adapter/`, `checkpoint-*/`, `*.safetensors`) are excluded from git for size; `svd_log.jsonl` files are tracked for the runs used in the paper.
+Naming: `output_<model>_<lang>_<config>[_seed<N>]/`; `l3_` prefix = Llama-3-8B. Adapter weights (`final_adapter/`, `checkpoint-*/`, `*.safetensors`) are excluded from git for size; the full per-run `svd_log.jsonl` trajectories are being added to git (the BF16 control's is already tracked); until then, the early-window trajectory of every run in the paper is tracked in `directional_results/early_frobenius_probe.json`, from which `scripts/recompute_probe_table.py` reproduces all of Section 4.8 and Table 4.
 
 ---
 
@@ -140,8 +140,10 @@ python scripts/evaluate.py --adapter_path output_ky_baseline_r16_lr2e4_3ep/final
 # Table 3: pairwise cosines
 python scripts/pairwise_cosine.py --output directional_results/pairwise.json
 
-# Table 4: trajectory probe over all runs with an svd_log.jsonl
-python scripts/probe_predict.py output_*/
+# Table 4 + Section 4.8 (g per run, class bounds, AUC, held-out verdicts)
+python scripts/recompute_probe_table.py
+# per-run verdicts from a full svd_log.jsonl, where present
+python scripts/probe_predict.py output_ky_bf16_r16_lr2e4_3ep
 
 # Figures
 python scripts/plot_final.py && python scripts/plot_pairwise_cosine.py
