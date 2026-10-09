@@ -14,7 +14,7 @@ We fine-tune **Gemma-2-9B** (4-bit QLoRA) on Kyrgyz, Kazakh and Uzbek, with a **
 
 2. **Frobenius norm growth separates regimes within a language category but not across.** EN grows 33× without forgetting (KZ PPL 5.5) while KZ grows 38× with severe forgetting.
 
-3. **The final adapter is structurally underdetermined.** Direct LoRA from base is near-orthogonal across seeds (per-module cosine 0.01–0.04, 0/294 modules above 0.5). At $n{=}3$ (seeds 42, 123, 7) the collapse-vs-healthy gap (0.010) sits inside the within-configuration seed spread (0.022–0.042) by 3–8×, which bounds the SNR of any Lipschitz function of the final adapter in this regime. The same inequality holds on Llama-3-8B (0.072 vs. 0.029). **What works is a trajectory measurement**: the mean early growth rate of $\|B\|_F$ over training steps 100–300 separates all 42 logged runs (36 healthy, 6 collapsed, both architectures) with no overlap — AUC 1.000 vs. 0.073 for spectral energy at the same step.
+3. **The final adapter is structurally underdetermined.** Direct LoRA from base is near-orthogonal across seeds (per-module cosine 0.01–0.04, 0/294 modules above 0.5). At $n{=}3$ (seeds 42, 123, 7) the collapse-vs-healthy gap (0.010) sits inside the within-configuration seed spread (0.022–0.042) by 2–8×, which leaves no leverage for any scale-invariant (direction-based) function of the final adapter; the final norm does separate E5 from E5c, but has no threshold that transfers across languages. The same inequality holds on Llama-3-8B (0.072 vs. 0.029). **What works is a trajectory measurement**: the mean early growth rate of $\|B\|_F$ over training steps 100–300 separates all 42 logged runs (36 healthy, 6 collapsed, both architectures) with no overlap — AUC 1.000, against 0.861 for the absolute norm and 0.051 for spectral energy at the same step. The collapsed minimum is E7, a diverged lr=1e-3 run; without it the gap is 2.0×. Four held-out runs (unseen rank, learning rate and language) were predicted to collapse at step 300 and did.
 
 4. **Related-language warm-start preserves source-language knowledge; transfer pins direction to its source, not to a canonical direction.** KZ→KY transfer halves cross-lingual KZ PPL on Gemma (23.5 vs. 50.0), on Llama-3 (19.0 vs. 30.4) and under fully independent reseeding of both stages (26.8). The cross-family control EN→KY does not reproduce retention. The 0.785 cross-seed cosine of the original E6 pair measures two warm-starts from a *shared* source; with the source itself reseeded the cosine falls to 0.023 (Gemma) / 0.060 (Llama-3), inside the direct-training band.
 
@@ -22,13 +22,13 @@ We fine-tune **Gemma-2-9B** (4-bit QLoRA) on Kyrgyz, Kazakh and Uzbek, with a **
 
 ## Results at a glance (Gemma-2-9B, seed 42)
 
-Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at $n{=}3$; every other configuration, including the BF16 control, is at $n{=}2$.
+Two-seed means with spreads are in the paper's Appendix J; E3, E5 and E5c are at $n{=}3$; every other configuration is at $n{=}2$ except the Gemma-2 C5 control, which is single-seed (its Llama-3 replication is at $n{=}2$).
 
 | ID | Config | KY PPL | KZ PPL | UZ PPL | F1 KY | TypeAcc KY | TUMLU KY | $\|B\|_F$ growth |
 |----|--------|:------:|:------:|:------:|:-----:|:---------:|:--------:|:---------:|
 | E1 | KZ baseline (14.1M tok, n=2) | 40.75 | **2.73** | 41.27 | 0.219 | 57.7% | 35.7% | 38.5× |
 | E1b | KZ small-corpus (1.5M, n=2) | 25.55 | **4.17** | 23.17 | 0.150 | 46.0% | 37.3% | 2.86× |
-| E2 | UZ baseline (n=2) | 116.89 | 64.44 | **4.03** | 0.138 | 54.0% | 35.4% | — |
+| E2 | UZ baseline (n=2) | 116.89 | 64.44 | **4.03** | 0.138 | 54.9% | 31.9% | — |
 | E3 | KY baseline (n=3) | **4.78** | 47.58 | 56.85 | 0.157 | 50.4% | 34.7% | 8.4× |
 | E4 | KY overfit (10ep, n=2) | **4.18** | 87.65 | 95.76 | 0.173 | 56.8% | 33.9% | — |
 | E5 | KY r=64, lr=5e-4, 5ep (n=3) | 5.90 | 659.25 | 742.73 | **0.000** | 59.5%‡ | 23.2%‡ | 15.6× |
